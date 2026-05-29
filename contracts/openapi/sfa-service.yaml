@@ -1,0 +1,63 @@
+openapi: 3.0.3
+info:
+  title: Sales Force Automation (SFA) Service API
+  version: 1.0.0
+  description: High-reliability API for capturing field sales, journey beats, and visits.
+paths:
+  /orders:
+    post:
+      summary: Place a new sales order
+      operationId: placeOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceOrderInput'
+      responses:
+        '201':
+          description: Order captured successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+components:
+  schemas:
+    PlaceOrderInput:
+      type: object
+      required:
+        - outletId
+        - items
+      properties:
+        outletId:
+          type: string
+          format: uuid
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        notes:
+          type: string
+    OrderItem:
+      type: object
+      required:
+        - skuId
+        - quantity
+        - price
+      properties:
+        skuId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+        price:
+          type: number
+          minimum: 0.01

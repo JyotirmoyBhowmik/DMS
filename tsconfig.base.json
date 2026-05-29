@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@dms/pkg-crypto": ["packages/pkg-crypto/src/index.ts"],
+      "@dms/pkg-database": ["packages/pkg-database/src/index.ts"],
+      "@dms/pkg-events": ["packages/pkg-events/src/index.ts"],
+      "@dms/pkg-ui-shared": ["packages/pkg-ui-shared/src/index.ts"],
+      "@dms/pkg-logger": ["packages/pkg-logger/src/index.ts"],
+      "@dms/pkg-validation": ["packages/pkg-validation/src/index.ts"],
+      "@dms/pkg-http": ["packages/pkg-http/src/index.ts"],
+      "@dms/pkg-rbac": ["packages/pkg-rbac/src/index.ts"],
+      "@dms/pkg-config-client": ["packages/pkg-config-client/src/index.ts"],
+      "@dms/pkg-testing": ["packages/pkg-testing/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}

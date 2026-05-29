@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: Distributor Management System (DMS) Core API
+  version: 1.0.0
+  description: API for managing distributor inventory, schemes, claims, and returns.
+paths:
+  /inventory/adjust:
+    post:
+      summary: Adjust warehouse stock levels
+      operationId: adjustStock
+      responses:
+        '200':
+          description: Stock adjusted successfully

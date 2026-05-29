@@ -1,0 +1,20 @@
+{
+  "name": "@dms/sfa-service",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dms/pkg-crypto": "workspace:*",
+    "@dms/pkg-database": "workspace:*",
+    "@dms/pkg-events": "workspace:*",
+    "@dms/pkg-logger": "workspace:*",
+    "@dms/pkg-validation": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

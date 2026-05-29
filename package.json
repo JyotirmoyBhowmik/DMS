@@ -1,0 +1,25 @@
+{
+  "name": "enterprise-dms-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "pnpm@8.15.4",
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "codegen": "turbo run codegen"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "commitlint": "^19.0.3",
+    "eslint": "^8.56.0",
+    "husky": "^9.0.11",
+    "prettier": "^3.2.5",
+    "turbo": "^1.12.4",
+    "typescript": "^5.3.3"
+  }
+}

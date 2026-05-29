@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderPlacedV1",
+  "type": "object",
+  "required": ["orderId", "outletId", "distributorId", "agentId", "totalAmount", "items"],
+  "properties": {
+    "orderId": { "type": "string", "format": "uuid" },
+    "outletId": { "type": "string", "format": "uuid" },
+    "distributorId": { "type": "string", "format": "uuid" },
+    "agentId": { "type": "string", "format": "uuid" },
+    "totalAmount": { "type": "number", "minimum": 0 },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["skuId", "quantity", "price"],
+        "properties": {
+          "skuId": { "type": "string", "format": "uuid" },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "price": { "type": "number", "minimum": 0.01 }
+        }
+      }
+    }
+  }
+}
