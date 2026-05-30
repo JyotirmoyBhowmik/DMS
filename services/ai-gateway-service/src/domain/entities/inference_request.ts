@@ -54,8 +54,17 @@ export class InferenceRequest {
   }
 
   static reconstitute(props: InferenceRequestProps): InferenceRequest {
-    return new InferenceRequest(props);
+    let tokensUsed = props.tokensUsed;
+    if (tokensUsed && !(tokensUsed instanceof TokenUsage)) {
+      const raw = tokensUsed as unknown as { inputTokens: number; outputTokens: number; estimatedCost: number };
+      tokensUsed = TokenUsage.fromRaw(raw.inputTokens, raw.outputTokens, raw.estimatedCost);
+    }
+    return new InferenceRequest({
+      ...props,
+      tokensUsed,
+    });
   }
+
 
   // ── Accessors ──────────────────────────────────────────────────
   get id(): string { return this.props.id; }
