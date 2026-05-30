@@ -139,6 +139,62 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
+  services/ai-gateway-service:
+    dependencies:
+      '@dms/pkg-crypto':
+        specifier: workspace:*
+        version: link:../../packages/pkg-crypto
+      '@dms/pkg-database':
+        specifier: workspace:*
+        version: link:../../packages/pkg-database
+      '@dms/pkg-events':
+        specifier: workspace:*
+        version: link:../../packages/pkg-events
+      '@dms/pkg-http':
+        specifier: workspace:*
+        version: link:../../packages/pkg-http
+      '@dms/pkg-logger':
+        specifier: workspace:*
+        version: link:../../packages/pkg-logger
+      '@dms/pkg-rbac':
+        specifier: workspace:*
+        version: link:../../packages/pkg-rbac
+      '@dms/pkg-validation':
+        specifier: workspace:*
+        version: link:../../packages/pkg-validation
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  services/api-gateway:
+    dependencies:
+      '@dms/pkg-crypto':
+        specifier: workspace:*
+        version: link:../../packages/pkg-crypto
+      '@dms/pkg-database':
+        specifier: workspace:*
+        version: link:../../packages/pkg-database
+      '@dms/pkg-events':
+        specifier: workspace:*
+        version: link:../../packages/pkg-events
+      '@dms/pkg-http':
+        specifier: workspace:*
+        version: link:../../packages/pkg-http
+      '@dms/pkg-logger':
+        specifier: workspace:*
+        version: link:../../packages/pkg-logger
+      '@dms/pkg-rbac':
+        specifier: workspace:*
+        version: link:../../packages/pkg-rbac
+      '@dms/pkg-validation':
+        specifier: workspace:*
+        version: link:../../packages/pkg-validation
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   services/audit-service:
     dependencies:
       '@dms/pkg-crypto':
@@ -217,7 +273,147 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
+  services/file-service:
+    dependencies:
+      '@dms/pkg-crypto':
+        specifier: workspace:*
+        version: link:../../packages/pkg-crypto
+      '@dms/pkg-database':
+        specifier: workspace:*
+        version: link:../../packages/pkg-database
+      '@dms/pkg-events':
+        specifier: workspace:*
+        version: link:../../packages/pkg-events
+      '@dms/pkg-http':
+        specifier: workspace:*
+        version: link:../../packages/pkg-http
+      '@dms/pkg-logger':
+        specifier: workspace:*
+        version: link:../../packages/pkg-logger
+      '@dms/pkg-rbac':
+        specifier: workspace:*
+        version: link:../../packages/pkg-rbac
+      '@dms/pkg-validation':
+        specifier: workspace:*
+        version: link:../../packages/pkg-validation
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  services/forecasting-service:
+    dependencies:
+      '@dms/pkg-crypto':
+        specifier: workspace:*
+        version: link:../../packages/pkg-crypto
+      '@dms/pkg-database':
+        specifier: workspace:*
+        version: link:../../packages/pkg-database
+      '@dms/pkg-events':
+        specifier: workspace:*
+        version: link:../../packages/pkg-events
+      '@dms/pkg-http':
+        specifier: workspace:*
+        version: link:../../packages/pkg-http
+      '@dms/pkg-logger':
+        specifier: workspace:*
+        version: link:../../packages/pkg-logger
+      '@dms/pkg-rbac':
+        specifier: workspace:*
+        version: link:../../packages/pkg-rbac
+      '@dms/pkg-validation':
+        specifier: workspace:*
+        version: link:../../packages/pkg-validation
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   services/identity-service:
+    dependencies:
+      '@dms/pkg-crypto':
+        specifier: workspace:*
+        version: link:../../packages/pkg-crypto
+      '@dms/pkg-database':
+        specifier: workspace:*
+        version: link:../../packages/pkg-database
+      '@dms/pkg-events':
+        specifier: workspace:*
+        version: link:../../packages/pkg-events
+      '@dms/pkg-http':
+        specifier: workspace:*
+        version: link:../../packages/pkg-http
+      '@dms/pkg-logger':
+        specifier: workspace:*
+        version: link:../../packages/pkg-logger
+      '@dms/pkg-rbac':
+        specifier: workspace:*
+        version: link:../../packages/pkg-rbac
+      '@dms/pkg-validation':
+        specifier: workspace:*
+        version: link:../../packages/pkg-validation
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  services/notification-service:
+    dependencies:
+      '@dms/pkg-crypto':
+        specifier: workspace:*
+        version: link:../../packages/pkg-crypto
+      '@dms/pkg-database':
+        specifier: workspace:*
+        version: link:../../packages/pkg-database
+      '@dms/pkg-events':
+        specifier: workspace:*
+        version: link:../../packages/pkg-events
+      '@dms/pkg-http':
+        specifier: workspace:*
+        version: link:../../packages/pkg-http
+      '@dms/pkg-logger':
+        specifier: workspace:*
+        version: link:../../packages/pkg-logger
+      '@dms/pkg-rbac':
+        specifier: workspace:*
+        version: link:../../packages/pkg-rbac
+      '@dms/pkg-validation':
+        specifier: workspace:*
+        version: link:../../packages/pkg-validation
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  services/recommendation-service:
+    dependencies:
+      '@dms/pkg-crypto':
+        specifier: workspace:*
+        version: link:../../packages/pkg-crypto
+      '@dms/pkg-database':
+        specifier: workspace:*
+        version: link:../../packages/pkg-database
+      '@dms/pkg-events':
+        specifier: workspace:*
+        version: link:../../packages/pkg-events
+      '@dms/pkg-http':
+        specifier: workspace:*
+        version: link:../../packages/pkg-http
+      '@dms/pkg-logger':
+        specifier: workspace:*
+        version: link:../../packages/pkg-logger
+      '@dms/pkg-rbac':
+        specifier: workspace:*
+        version: link:../../packages/pkg-rbac
+      '@dms/pkg-validation':
+        specifier: workspace:*
+        version: link:../../packages/pkg-validation
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  services/report-service:
     dependencies:
       '@dms/pkg-crypto':
         specifier: workspace:*

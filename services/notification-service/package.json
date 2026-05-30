@@ -1,5 +1,5 @@
 {
-  "name": "@dms/ai-gateway-service",
+  "name": "@dms/notification-service",
   "version": "1.0.0",
   "private": true,
   "main": "./dist/main.js",
@@ -9,12 +9,12 @@
   },
   "dependencies": {
     "@dms/pkg-crypto": "workspace:*",
+    "@dms/pkg-database": "workspace:*",
     "@dms/pkg-events": "workspace:*",
     "@dms/pkg-logger": "workspace:*",
     "@dms/pkg-validation": "workspace:*",
     "@dms/pkg-rbac": "workspace:*",
-    "@dms/pkg-http": "workspace:*",
-    "@dms/pkg-database": "workspace:*"
+    "@dms/pkg-http": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.3.3"
