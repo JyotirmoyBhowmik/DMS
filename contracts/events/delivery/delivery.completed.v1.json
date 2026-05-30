@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dms.enterprise/events/delivery/delivery.completed.v1",
+  "title": "DeliveryCompletedV1",
+  "description": "Emitted when an order delivery to a retail outlet is completed.",
+  "type": "object",
+  "required": [
+    "deliveryId",
+    "orderId",
+    "distributorId",
+    "outletId",
+    "deliveredItems",
+    "deliveredAt",
+    "proofOfDelivery"
+  ],
+  "properties": {
+    "deliveryId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this delivery."
+    },
+    "orderId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Order being fulfilled."
+    },
+    "distributorId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Distributor fulfilling the delivery."
+    },
+    "outletId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Retail outlet receiving the delivery."
+    },
+    "deliveryPersonId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the delivery person."
+    },
+    "deliveredItems": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Items actually delivered.",
+      "items": {
+        "type": "object",
+        "required": ["sku", "orderedQty", "deliveredQty"],
+        "properties": {
+          "sku": {
+            "type": "string",
+            "description": "Stock-keeping unit identifier."
+          },
+          "orderedQty": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Originally ordered quantity."
+          },
+          "deliveredQty": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Actually delivered quantity."
+          },
+          "shortageReason": {
+            "type": "string",
+            "description": "Reason for shortage if deliveredQty < orderedQty."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "deliveredAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of delivery completion."
+    },
+    "proofOfDelivery": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["SIGNATURE", "PHOTO", "OTP", "NONE"],
+          "description": "Method of delivery confirmation."
+        },
+        "signatureUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to signed delivery receipt image."
+        },
+        "photoUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to delivery photo."
+        },
+        "receivedBy": {
+          "type": "string",
+          "description": "Name of the person who received the delivery."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Proof-of-delivery details."
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        }
+      },
+      "additionalProperties": false,
+      "description": "GPS coordinates at delivery point."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@dms/ai-gateway-service",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dms/pkg-events": "workspace:*",
+    "@dms/pkg-logger": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

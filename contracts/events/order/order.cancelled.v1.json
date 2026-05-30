@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dms.enterprise/events/order/order.cancelled.v1",
+  "title": "OrderCancelledV1",
+  "description": "Emitted when a previously placed order is cancelled.",
+  "type": "object",
+  "required": [
+    "orderId",
+    "distributorId",
+    "outletId",
+    "cancelledBy",
+    "reason",
+    "refundAmount",
+    "cancelledAt",
+    "idempotencyKey"
+  ],
+  "properties": {
+    "orderId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifier of the order being cancelled."
+    },
+    "distributorId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Distributor that was servicing this order."
+    },
+    "outletId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Retail outlet that placed the order."
+    },
+    "cancelledBy": {
+      "type": "string",
+      "format": "uuid",
+      "description": "User ID of the actor who cancelled the order."
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "CUSTOMER_REQUEST",
+        "OUT_OF_STOCK",
+        "PRICING_ERROR",
+        "DUPLICATE",
+        "FRAUD_SUSPECTED",
+        "OTHER"
+      ],
+      "description": "Reason category for the cancellation."
+    },
+    "reasonDetail": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Free-text additional detail for the cancellation reason."
+    },
+    "refundAmount": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Amount to be refunded or credited back."
+    },
+    "cancelledAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp when the cancellation occurred."
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "description": "Client-generated key for exactly-once processing."
+    }
+  },
+  "additionalProperties": false
+}

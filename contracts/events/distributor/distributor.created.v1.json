@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dms.enterprise/events/distributor/distributor.created.v1",
+  "title": "DistributorCreatedV1",
+  "description": "Emitted when a new distributor is onboarded into the system.",
+  "type": "object",
+  "required": [
+    "distributorId",
+    "tenantId",
+    "name",
+    "code",
+    "region",
+    "status",
+    "createdBy",
+    "createdAt"
+  ],
+  "properties": {
+    "distributorId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the distributor."
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Tenant the distributor belongs to."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "Legal name of the distributor."
+    },
+    "code": {
+      "type": "string",
+      "pattern": "^[A-Z0-9-]{3,20}$",
+      "description": "Short alphanumeric distributor code."
+    },
+    "region": {
+      "type": "string",
+      "description": "Geographic region or territory assigned."
+    },
+    "gstNumber": {
+      "type": "string",
+      "description": "GST/tax registration number."
+    },
+    "address": {
+      "type": "object",
+      "required": ["line1", "city", "state", "postalCode", "country"],
+      "properties": {
+        "line1": { "type": "string" },
+        "line2": { "type": "string" },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "postalCode": { "type": "string" },
+        "country": { "type": "string", "pattern": "^[A-Z]{2}$" }
+      },
+      "additionalProperties": false,
+      "description": "Primary address of the distributor."
+    },
+    "contactEmail": {
+      "type": "string",
+      "format": "email",
+      "description": "Primary contact email."
+    },
+    "contactPhone": {
+      "type": "string",
+      "description": "Primary contact phone number."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "PENDING_VERIFICATION", "SUSPENDED"],
+      "description": "Onboarding status."
+    },
+    "createdBy": {
+      "type": "string",
+      "format": "uuid",
+      "description": "User who onboarded the distributor."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of creation."
+    }
+  },
+  "additionalProperties": false
+}

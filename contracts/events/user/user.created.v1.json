@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dms.enterprise/events/user/user.created.v1",
+  "title": "UserCreatedV1",
+  "description": "Emitted when a new user account is created.",
+  "type": "object",
+  "required": [
+    "userId",
+    "tenantId",
+    "email",
+    "displayName",
+    "roles",
+    "status",
+    "createdAt"
+  ],
+  "properties": {
+    "userId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the user."
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Tenant the user belongs to."
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "User email address."
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Display name of the user."
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number."
+    },
+    "roles": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Initial roles assigned to the user.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "distributorId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Distributor the user is associated with, if applicable."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "PENDING_ACTIVATION", "DISABLED"],
+      "description": "Initial account status."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of account creation."
+    }
+  },
+  "additionalProperties": false
+}

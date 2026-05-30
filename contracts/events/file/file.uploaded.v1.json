@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dms.enterprise/events/file/file.uploaded.v1",
+  "title": "FileUploadedV1",
+  "description": "Emitted when a file upload is completed and ready for consumption.",
+  "type": "object",
+  "required": [
+    "fileId",
+    "tenantId",
+    "fileName",
+    "mimeType",
+    "sizeBytes",
+    "storageKey",
+    "category",
+    "uploadedBy",
+    "uploadedAt"
+  ],
+  "properties": {
+    "fileId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the uploaded file."
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Tenant context."
+    },
+    "fileName": {
+      "type": "string",
+      "description": "Original file name."
+    },
+    "mimeType": {
+      "type": "string",
+      "description": "MIME type of the file (e.g. image/jpeg, application/pdf)."
+    },
+    "sizeBytes": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "File size in bytes."
+    },
+    "storageKey": {
+      "type": "string",
+      "description": "Object storage key or path."
+    },
+    "checksum": {
+      "type": "string",
+      "description": "SHA-256 checksum of the file contents."
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "VISIT_PHOTO",
+        "DELIVERY_PROOF",
+        "CLAIM_DOCUMENT",
+        "PRODUCT_IMAGE",
+        "REPORT_EXPORT",
+        "OTHER"
+      ],
+      "description": "Business category of the uploaded file."
+    },
+    "referenceId": {
+      "type": "string",
+      "description": "Related entity ID (visitId, claimId, orderId, etc.)."
+    },
+    "referenceType": {
+      "type": "string",
+      "description": "Type of the related entity."
+    },
+    "uploadedBy": {
+      "type": "string",
+      "format": "uuid",
+      "description": "User who uploaded the file."
+    },
+    "uploadedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of upload completion."
+    }
+  },
+  "additionalProperties": false
+}

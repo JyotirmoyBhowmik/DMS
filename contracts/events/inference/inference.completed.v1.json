@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dms.enterprise/events/inference/inference.completed.v1",
+  "title": "InferenceCompletedV1",
+  "description": "Emitted when an AI/ML inference request completes processing.",
+  "type": "object",
+  "required": [
+    "inferenceId",
+    "tenantId",
+    "modelId",
+    "modelVersion",
+    "inputHash",
+    "status",
+    "latencyMs",
+    "completedAt"
+  ],
+  "properties": {
+    "inferenceId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique inference request identifier."
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Tenant context."
+    },
+    "modelId": {
+      "type": "string",
+      "description": "Identifier of the ML model used."
+    },
+    "modelVersion": {
+      "type": "string",
+      "description": "Version of the ML model."
+    },
+    "inputHash": {
+      "type": "string",
+      "description": "SHA-256 hash of the input payload for deduplication."
+    },
+    "inputType": {
+      "type": "string",
+      "enum": ["FORECAST", "RECOMMENDATION", "CLASSIFICATION", "ANOMALY_DETECTION"],
+      "description": "Category of inference task."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["SUCCESS", "FAILURE", "TIMEOUT", "FALLBACK"],
+      "description": "Outcome of the inference."
+    },
+    "confidenceScore": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Model confidence score for the output."
+    },
+    "outputSummary": {
+      "type": "string",
+      "description": "Brief summary of the inference output."
+    },
+    "latencyMs": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Inference latency in milliseconds."
+    },
+    "tokensUsed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of tokens consumed (for LLM-based models)."
+    },
+    "fallbackReason": {
+      "type": "string",
+      "description": "Reason for fallback, if status is FALLBACK."
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of completion."
+    }
+  },
+  "additionalProperties": false
+}

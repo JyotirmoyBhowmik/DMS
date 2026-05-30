@@ -1,8 +1,8 @@
-import { StructuredLogger } from '@dms/pkg-logger';
+import { StructuredLogger, getCorrelation } from '@dms/pkg-logger';
 import { PlaceOrderInput } from '@dms/pkg-validation';
 import { OrderEntity } from '../../domain/entities/order.entity';
 import { OrderAggregate } from '../../domain/aggregates/order.aggregate';
-import { CloudEventBuilder } from '@dms/pkg-events';
+import { makeEnvelope } from '@dms/pkg-events';
 
 export class PlaceOrderUseCase {
   private logger = new StructuredLogger('PlaceOrderUseCase');
@@ -27,12 +27,11 @@ export class PlaceOrderUseCase {
 
     this.logger.info('Order aggregate validated successfully', { orderId, total });
 
-    const event = CloudEventBuilder.build({
-      source: 'sfa-service',
-      type: 'order.placed.v1',
-      subject: `orders/${orderId}`,
-      tenantId,
-      data: {
+    const activeCtx = getCorrelation();
+    const event = makeEnvelope(
+      'order.placed',
+      'v1',
+      {
         orderId,
         outletId: orderEntity.outletId,
         distributorId: 'distributor-uuid-mock-9999',
@@ -40,9 +39,16 @@ export class PlaceOrderUseCase {
         totalAmount: total,
         items: orderEntity.items,
       },
-    });
+      {
+        tenantId,
+        correlationId: activeCtx?.correlationId ?? 'correlation-uuid-mock',
+        producer: 'sfa-service',
+        partitionKey: orderId,
+        causationId: activeCtx?.causationId,
+      }
+    );
 
-    this.logger.info('Order placed event created', { eventId: event.id });
+    this.logger.info('Order placed event created', { eventId: event.eventId });
 
     return { orderId };
   }
