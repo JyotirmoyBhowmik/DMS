@@ -1,20 +1,18 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./formatters/json"), exports);
-__exportStar(require("./redaction/redactor"), exports);
-__exportStar(require("./correlation/context"), exports);
+exports.Logger = exports.StructuredLogger = exports.formatJsonLog = exports.PiiRedactor = exports.redact = exports.CorrelationContext_Class = exports.CorrelationContext = exports.getCorrelation = exports.withCorrelation = exports.correlationStore = void 0;
+var context_js_1 = require("./correlation/context.js");
+Object.defineProperty(exports, "correlationStore", { enumerable: true, get: function () { return context_js_1.correlationStore; } });
+Object.defineProperty(exports, "withCorrelation", { enumerable: true, get: function () { return context_js_1.withCorrelation; } });
+Object.defineProperty(exports, "getCorrelation", { enumerable: true, get: function () { return context_js_1.getCorrelation; } });
+Object.defineProperty(exports, "CorrelationContext", { enumerable: true, get: function () { return context_js_1.CorrelationContext; } });
+Object.defineProperty(exports, "CorrelationContext_Class", { enumerable: true, get: function () { return context_js_1.CorrelationContext_Class; } });
+var redactor_js_1 = require("./redaction/redactor.js");
+Object.defineProperty(exports, "redact", { enumerable: true, get: function () { return redactor_js_1.redact; } });
+Object.defineProperty(exports, "PiiRedactor", { enumerable: true, get: function () { return redactor_js_1.PiiRedactor; } });
+var json_js_1 = require("./formatters/json.js");
+Object.defineProperty(exports, "formatJsonLog", { enumerable: true, get: function () { return json_js_1.formatJsonLog; } });
+Object.defineProperty(exports, "StructuredLogger", { enumerable: true, get: function () { return json_js_1.StructuredLogger; } });
+var logger_js_1 = require("./logger.js");
+Object.defineProperty(exports, "Logger", { enumerable: true, get: function () { return logger_js_1.Logger; } });
 //# sourceMappingURL=index.js.map

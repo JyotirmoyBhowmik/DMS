@@ -112,6 +112,10 @@ importers:
         version: 5.9.3
 
   packages/pkg-rbac:
+    dependencies:
+      reflect-metadata:
+        specifier: ^0.2.1
+        version: 0.2.2
     devDependencies:
       typescript:
         specifier: ^5.3.3

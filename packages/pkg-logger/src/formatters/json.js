@@ -1,24 +1,51 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StructuredLogger = void 0;
-const context_1 = require("../correlation/context");
-const redactor_1 = require("../redaction/redactor");
+exports.formatJsonLog = formatJsonLog;
+const context_js_1 = require("../correlation/context.js");
+const redactor_js_1 = require("../redaction/redactor.js");
+/**
+ * Formats a log message as a single-line JSON string.
+ * Automatically pulls correlation context from AsyncLocalStorage
+ * and redacts any sensitive fields from the metadata.
+ */
+function formatJsonLog(level, message, bindings, meta) {
+    const ctx = (0, context_js_1.getCorrelation)();
+    const entry = {
+        timestamp: new Date().toISOString(),
+        level,
+        message,
+        ...(ctx
+            ? {
+                correlationId: ctx.correlationId || undefined,
+                causationId: ctx.causationId || undefined,
+                tenantId: ctx.tenantId || undefined,
+                userId: ctx.userId || undefined,
+                traceId: ctx.traceId || undefined,
+                spanId: ctx.spanId || undefined,
+            }
+            : {}),
+        ...bindings,
+        ...(meta ? (0, redactor_js_1.redact)(meta) : {}),
+    };
+    // Strip undefined values for cleaner output
+    const cleaned = {};
+    for (const [k, v] of Object.entries(entry)) {
+        if (v !== undefined) {
+            cleaned[k] = v;
+        }
+    }
+    return JSON.stringify(cleaned);
+}
+// ── Backward-compatible class ──────────────────────────────────
 class StructuredLogger {
     serviceName;
     constructor(serviceName) {
         this.serviceName = serviceName;
     }
     log(level, message, meta) {
-        const context = context_1.CorrelationContext.get() || {};
-        const payload = {
-            timestamp: new Date().toISOString(),
-            level,
-            service: this.serviceName,
-            message: redactor_1.PiiRedactor.redact(message),
-            ...context,
-            meta: meta ? redactor_1.PiiRedactor.redactObject(meta) : undefined,
-        };
-        process.stdout.write(JSON.stringify(payload) + '\n');
+        const line = formatJsonLog(level, message, { service: this.serviceName }, meta);
+        process.stdout.write(line + '\n');
     }
     info(message, meta) {
         this.log('INFO', message, meta);
@@ -28,6 +55,9 @@ class StructuredLogger {
     }
     error(message, meta) {
         this.log('ERROR', message, meta);
+    }
+    debug(message, meta) {
+        this.log('DEBUG', message, meta);
     }
 }
 exports.StructuredLogger = StructuredLogger;
