@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: Notification Service API
+  version: 1.0.0
+  description: Multi-channel notifications routing engine API.
+paths:
+  /notifications/send:
+    post:
+      summary: Send push, SMS, or email notification
+      operationId: sendNotification
+      responses:
+        '202':
+          description: Notification queued successfully

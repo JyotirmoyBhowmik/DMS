@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: Recommendation Service API
+  version: 1.0.0
+  description: Order recommendations and Next Best Action (NBA) service API.
+paths:
+  /recommendations/suggest:
+    post:
+      summary: Suggest product stock order recommendations and NBA actions
+      operationId: getRecommendations
+      responses:
+        '200':
+          description: NBA and product suggestions returned

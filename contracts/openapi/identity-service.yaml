@@ -1,0 +1,20 @@
+openapi: 3.0.3
+info:
+  title: Identity Service API
+  version: 1.0.0
+  description: Authentication and identity management API.
+paths:
+  /auth/login:
+    post:
+      summary: Login and issue JWT access/refresh tokens
+      operationId: login
+      responses:
+        '200':
+          description: Login successful
+  /auth/refresh:
+    post:
+      summary: Refresh JWT token
+      operationId: refreshToken
+      responses:
+        '200':
+          description: Token refreshed

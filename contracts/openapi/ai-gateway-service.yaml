@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: AI Gateway Service API
+  version: 1.0.0
+  description: Secured multi-model proxy routing and guardrail filter API.
+paths:
+  /ai/inference:
+    post:
+      summary: Send prompt to target route model with validation
+      operationId: runInference
+      responses:
+        '200':
+          description: Model inference response completed

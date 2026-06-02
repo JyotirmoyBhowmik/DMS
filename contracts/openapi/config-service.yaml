@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: Config Service API
+  version: 1.0.0
+  description: Tenant configs and feature flags service API.
+paths:
+  /configs/eval:
+    post:
+      summary: Evaluate active feature flags for a tenant
+      operationId: evaluateFlags
+      responses:
+        '200':
+          description: Flags evaluated successfully

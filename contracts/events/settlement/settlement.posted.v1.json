@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SettlementPostedV1",
+  "type": "object",
+  "properties": {
+    "settlementId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "distributorId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "claimId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "amount": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3
+        }
+      },
+      "required": ["amount", "currency"]
+    },
+    "postedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "paymentMethod": {
+      "type": "string",
+      "enum": ["BANK_TRANSFER", "CASH", "CHEQUE", "CREDIT_NOTE"]
+    },
+    "referenceNumber": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["SUCCESS", "FAILED", "PENDING"]
+    }
+  },
+  "required": ["settlementId", "tenantId", "distributorId", "amount", "postedAt", "paymentMethod", "status"]
+}

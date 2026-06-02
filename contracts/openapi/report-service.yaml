@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: Report Service API
+  version: 1.0.0
+  description: Analytical reporting and dashboard metrics extraction API.
+paths:
+  /reports/sales:
+    get:
+      summary: Get sales metrics and projection reports
+      operationId: getSalesReport
+      responses:
+        '200':
+          description: Report fetched successfully

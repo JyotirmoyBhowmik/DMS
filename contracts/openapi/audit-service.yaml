@@ -1,0 +1,20 @@
+openapi: 3.0.3
+info:
+  title: Audit Service API
+  version: 1.0.0
+  description: Cryptographic integrity audit chain ledger service API.
+paths:
+  /audit/records:
+    post:
+      summary: Ingest domain event and append to audit chain block
+      operationId: recordAuditLog
+      responses:
+        '201':
+          description: Audit log appended successfully
+  /audit/verify:
+    get:
+      summary: Scan and verify cryptographic hash chain integrity
+      operationId: verifyChain
+      responses:
+        '200':
+          description: Hash chain integrity validation results

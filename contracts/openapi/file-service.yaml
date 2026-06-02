@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: File Service API
+  version: 1.0.0
+  description: Dynamic pre-signed URLs and secure file uploads API.
+paths:
+  /files/upload/initiate:
+    post:
+      summary: Initiate dynamic pre-signed secure upload URL
+      operationId: initiateUpload
+      responses:
+        '200':
+          description: Pre-signed upload url generated

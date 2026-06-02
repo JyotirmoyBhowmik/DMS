@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: Forecasting Service API
+  version: 1.0.0
+  description: Demand signal forecasting models inference API.
+paths:
+  /forecasts/evaluate:
+    post:
+      summary: Calculate SKU demand forecast with point/confidence metrics
+      operationId: getForecast
+      responses:
+        '200':
+          description: SKU forecast generated successfully
