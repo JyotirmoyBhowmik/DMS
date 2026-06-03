@@ -1,11 +1,18 @@
 import { VisitRepository } from '../../../infrastructure/database/repositories/visit.repository.js';
 import { Visit } from '../../../domain/entities/visit.js';
 import { GeoPoint } from '../../../domain/value-objects/geo-point.js';
+import { CompleteVisitUseCase } from '../../../application/usecases/complete_visit.usecase.js';
+import { JourneyPolicy } from '../../../domain/policies/journey_policy.js';
 import { StructuredLogger } from '@dms/pkg-logger';
 
 export class VisitController {
   private repo = new VisitRepository();
+  private completeUseCase = new CompleteVisitUseCase();
   private logger = new StructuredLogger('VisitController');
+
+  // Hardcoded outlet location for Delhi check-in geofence
+  private static OUTLET_LAT = 28.6139;
+  private static OUTLET_LNG = 77.2090;
 
   constructor() {
     this.seedMockData();
@@ -49,23 +56,9 @@ export class VisitController {
     }
 
     // Geofencing verification (Delhi coordinates reference: 28.6139, 77.2090)
-    // We check if the distance to Delhi center is <= 50 meters
-    const refLat = 28.6139;
-    const refLng = 77.2090;
-    
-    // Haversine formula
-    const R = 6371e3;
-    const phi1 = (refLat * Math.PI) / 180;
-    const phi2 = (lat * Math.PI) / 180;
-    const deltaPhi = ((lat - refLat) * Math.PI) / 180;
-    const deltaLambda = ((lng - refLng) * Math.PI) / 180;
-
-    const a =
-      Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-      Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distanceMeters = Math.round(R * c);
-    
+    const agentLoc = { lat, lng };
+    const outletLoc = { lat: VisitController.OUTLET_LAT, lng: VisitController.OUTLET_LNG };
+    const distanceMeters = JourneyPolicy.calculateDistance(agentLoc, outletLoc);
     const compliant = distanceMeters <= 50;
 
     if (!compliant) {
@@ -115,25 +108,58 @@ export class VisitController {
       };
     }
 
-    if (visit.status !== 'in_progress') {
+    try {
+      const result = await this.completeUseCase.execute(
+        visit,
+        lat,
+        lng,
+        VisitController.OUTLET_LAT,
+        VisitController.OUTLET_LNG
+      );
+      await this.repo.save(visit);
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          visit: visit.toJSON(),
+          durationMinutes: result.durationMinutes,
+          isGeofenceAdherent: result.isAdherent,
+          message: 'Visit completed successfully.'
+        }
+      };
+    } catch (err: any) {
       return {
         status: 400,
-        body: { error: 'Cannot check-out from a visit that has not started', code: 'INVALID_VISIT_STATE' }
+        body: { error: err.message, code: 'INVALID_VISIT_STATE' }
       };
     }
+  }
 
-    visit.checkOut(GeoPoint.create(lat, lng));
-    await this.repo.save(visit);
+  async handleSuggestReroute(
+    agentLat: number,
+    agentLng: number,
+    headers: Record<string, string>
+  ): Promise<{ status: number; body: Record<string, unknown> }> {
+    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+    this.logger.info('Received agent detour beat rerouting request', { tenantId });
 
-    this.logger.info('Agent visit checked out successfully', { visitId });
+    // Mock unvisited outlets
+    const unvisited = [
+      { id: 'o-101', name: 'Metro Retail Store Delhi West', location: { lat: 28.6250, lng: 77.2150 } },
+      { id: 'o-102', name: 'Noida Grocery Outlet', location: { lat: 28.5355, lng: 77.3910 } },
+      { id: 'o-103', name: 'Connaught Place Supermarket', location: { lat: 28.6304, lng: 77.2177 } },
+    ];
+
+    const agentLoc = { lat: agentLat, lng: agentLng };
+    const suggestions = JourneyPolicy.suggestReroute(agentLoc, unvisited);
 
     return {
       status: 200,
       body: {
-        success: true,
-        visit: visit.toJSON(),
-        durationMinutes: visit.durationMinutes(),
-        message: 'Visit completed successfully.'
+        agentLocation: agentLoc,
+        recommendations: suggestions,
+        count: suggestions.length,
       }
     };
   }

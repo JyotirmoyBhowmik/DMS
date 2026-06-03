@@ -1,0 +1,189 @@
+import { test, describe } from 'node:test';
+import assert from 'node:assert';
+import { OrderAggregate } from './domain/aggregates/order.aggregate.js';
+import { OrderEntity } from './domain/entities/order.entity.js';
+import { SchemePolicy } from './domain/policies/scheme_policy.js';
+import { JourneyPolicy } from './domain/policies/journey_policy.js';
+import { ProcessOrderUseCase } from './application/usecases/process_order.usecase.js';
+import { CompleteVisitUseCase } from './application/usecases/complete_visit.usecase.js';
+import { OrderController } from './presentation/rest/controllers/order.controller.js';
+import { VisitController } from './presentation/rest/controllers/visit.controller.js';
+import { Visit } from './domain/entities/visit.js';
+import { Order } from './domain/entities/order.js';
+import { Money } from './domain/value-objects/money.js';
+import { OrderLine } from './domain/value-objects/order-line.js';
+import { GeoPoint } from './domain/value-objects/geo-point.js';
+
+describe('SFA Sales Force Automation Tests', () => {
+  const tenantId = '00000000-0000-0000-0000-000000000001';
+  const outletId = 'outlet-1111';
+
+  test('OrderAggregate state machine and recomputeTotals with tax GST formulas', () => {
+    const entity = new OrderEntity({
+      id: 'ord-101',
+      tenantId,
+      outletId,
+      status: 'draft',
+      items: [
+        { skuId: 'sku-A', quantity: 10, price: 1000 }, // Subtotal: 10,000
+      ]
+    });
+
+    const aggregate = new OrderAggregate(entity);
+    assert.strictEqual(entity.status, 'draft');
+
+    // 1. Recompute totals with 18% standard GST and a 1,000 discount
+    // Subtotal: 10,000. Discount: 1,000. Taxable: 9,000.
+    // Tax: 18% of 9,000 = 1,620. Total: 9,000 + 1,620 = 10,620.
+    aggregate.recomputeTotals(18.0, 1000);
+    assert.strictEqual(entity.totalAmount, 10620);
+
+    // 2. State transitions
+    aggregate.place();
+    assert.strictEqual(entity.status, 'placed');
+
+    aggregate.confirm();
+    assert.strictEqual(entity.status, 'confirmed');
+
+    // 3. Rejects invalid cancellation
+    assert.throws(() => aggregate.cancel(), /Cannot cancel/);
+  });
+
+  test('SchemePolicy slab evaluation and volume discounts', () => {
+    const mockOrder = Order.create({
+      id: 'ord-1',
+      tenantId,
+      agentId: 'agent-1',
+      outletId,
+      distributorId: 'dist-1',
+      creditLimit: Money.of(1000000, 'INR'),
+      outstandingBalance: Money.zero(),
+    });
+
+    // Subtotal = 60 * 1000 = 60,000. Matches Slab 2 (>= 50,000) which yields 5%.
+    // Matches volume discount (qty 60 >= 50) which yields extra 3% (stackable).
+    // Total discount = 8%.
+    mockOrder.addLine(OrderLine.create('sku-A', 60, 1000));
+    
+    const evaluation = SchemePolicy.evaluate(mockOrder);
+    assert.strictEqual(evaluation.bestSlabDiscount, 5);
+    assert.strictEqual(evaluation.volumeDiscount, 3);
+    assert.strictEqual(evaluation.totalDiscountPct, 8);
+
+    const discountAmount = SchemePolicy.applyBestDiscount(mockOrder);
+    assert.strictEqual(discountAmount.amount, 4800); // 8% of 60,000 = 4,800
+  });
+
+  test('JourneyPolicy coordinates beat adherence and rerouting Detours', () => {
+    const DelhiCenter = { lat: 28.6139, lng: 77.2090 };
+    
+    // Compliant location (~11m away)
+    const compliantLoc = { lat: 28.6140, lng: 77.2090 };
+    assert.strictEqual(JourneyPolicy.isBeatAdherent(compliantLoc, DelhiCenter, 50), true);
+
+    // Deviating location (~560m away)
+    const deviantLoc = { lat: 28.6190, lng: 77.2090 };
+    assert.strictEqual(JourneyPolicy.isBeatAdherent(deviantLoc, DelhiCenter, 50), false);
+
+    // Reroute suggestions proximity sorting
+    const unvisited = [
+      { id: 'o-far', name: 'Far Outlet', location: { lat: 28.8000, lng: 77.3000 } },
+      { id: 'o-near', name: 'Near Outlet', location: { lat: 28.6200, lng: 77.2100 } },
+    ];
+
+    const suggestions = JourneyPolicy.suggestReroute(DelhiCenter, unvisited);
+    assert.strictEqual(suggestions[0]?.outletId, 'o-near'); // Nearest first
+    assert.strictEqual(suggestions[1]?.outletId, 'o-far');
+  });
+
+  test('ProcessOrderUseCase and CompleteVisitUseCase workflow steps', async () => {
+    const processUseCase = new ProcessOrderUseCase();
+    const completeUseCase = new CompleteVisitUseCase();
+
+    // 1. ProcessOrder
+    const entity = new OrderEntity({
+      id: 'ord-102',
+      tenantId,
+      outletId,
+      items: [{ skuId: 'sku-A', quantity: 20, price: 1000 }] // Subtotal = 20,000
+    });
+
+    const pResult = await processUseCase.execute(entity, 1000000);
+    assert.strictEqual(pResult.status, 'confirmed');
+    // Subtotal = 20,000. Qty 20 yields 2% volume break discount (20000 * 0.02 = 400).
+    // Taxable = 19,600. Tax = 19,600 * 0.18 = 3,528.
+    // Net total = 19,600 + 3,528 = 23,128.
+    assert.strictEqual(pResult.netTotal, 23128);
+    assert.strictEqual(pResult.event.type, 'order.confirmed');
+
+    // 2. CompleteVisit
+    const visit = Visit.create({
+      id: 'visit-99',
+      tenantId,
+      agentId: 'agent-1',
+      outletId,
+      journeyPlanId: 'jp-1',
+      plannedDate: new Date(),
+    });
+    // Start visit
+    visit.checkIn(GeoPoint.create(28.6139, 77.2090));
+
+    const cResult = await completeUseCase.execute(
+      visit,
+      28.6139,
+      77.2090,
+      28.6139,
+      77.2090
+    );
+    assert.strictEqual(cResult.isAdherent, true);
+    assert.strictEqual(cResult.event.type, 'visit.completed');
+  });
+
+  test('OrderController and VisitController REST handlers', async () => {
+    OrderController.clearStore();
+    const orderCtrl = new OrderController();
+    const visitCtrl = new VisitController();
+
+    // 1. OrderController handlePostOrder & handleCancelOrder
+    const oRes = await orderCtrl.handlePostOrder(
+      {
+        outletId: '3c0a52f4-d5d4-47c0-a7d4-8d48177dfc89',
+        items: [{ skuId: 'bf9d22c9-65fe-4d7a-a682-62fe8324e93f', quantity: 5, price: 2000 }],
+        notes: 'Handle with care'
+      },
+      { 'x-tenant-id': tenantId, 'x-agent-id': 'agent-1' }
+    );
+    assert.strictEqual(oRes.statusCode, 201);
+    assert.strictEqual(oRes.body.status, 'confirmed');
+
+    const cRes = await orderCtrl.handleCancelOrder(oRes.body.orderId, { 'x-tenant-id': tenantId });
+    assert.strictEqual(cRes.statusCode, 200);
+    assert.strictEqual(cRes.body.status, 'cancelled');
+
+    // 2. VisitController handleCheckIn & handleCheckOut & handleSuggestReroute
+    const viRes = await visitCtrl.handleCheckIn(
+      'visit-1001',
+      28.6140,
+      77.2090,
+      { 'x-tenant-id': 'tenant-uuid-1111' }
+    );
+    assert.strictEqual(viRes.status, 200);
+
+    const voRes = await visitCtrl.handleCheckOut(
+      'visit-1001',
+      28.6140,
+      77.2090,
+      { 'x-tenant-id': 'tenant-uuid-1111' }
+    );
+    assert.strictEqual(voRes.status, 200);
+    assert.strictEqual(voRes.body.isGeofenceAdherent, true);
+
+    const vrRes = await visitCtrl.handleSuggestReroute(
+      28.6139,
+      77.2090,
+      { 'x-tenant-id': 'tenant-uuid-1111' }
+    );
+    assert.strictEqual(vrRes.status, 200);
+    assert.strictEqual(vrRes.body.count, 3);
+  });
+});

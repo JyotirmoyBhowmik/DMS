@@ -22,7 +22,7 @@ export class PlaceOrderUseCase {
     const aggregate = new OrderAggregate(orderEntity);
     aggregate.validateInvariants();
 
-    const total = aggregate.calculateTotal();
+    const total = aggregate.calculateSubtotal();
     orderEntity.totalAmount = total;
 
     this.logger.info('Order aggregate validated successfully', { orderId, total });

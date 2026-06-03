@@ -6,7 +6,8 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"dist/**/*.test.js\""
   },
   "dependencies": {
     "reflect-metadata": "^0.2.1"
