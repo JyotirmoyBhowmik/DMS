@@ -8,12 +8,12 @@ import { TokenServiceGrpc } from './presentation/grpc/token_service.grpc.js';
 import { AuthController } from './presentation/rest/controllers/auth.controller.js';
 import { SessionStore } from './application/usecases/session_store.js';
 
-describe('Identity & Auth Verification Tests', () => {
+void describe('Identity & Auth Verification Tests', () => {
   const tenantId = '00000000-0000-0000-0000-000000000001';
   const email = 'agent@enterprise-dms.com';
   const roles = ['agent'];
 
-  test('IssueTokenUseCase should generate standard RS256 JWT and refresh token', async () => {
+  void test('IssueTokenUseCase should generate standard RS256 JWT and refresh token', async () => {
     const issueUsecase = new IssueTokenUseCase();
     const tokenPair = await issueUsecase.execute(tenantId, email, roles);
 
@@ -26,7 +26,7 @@ describe('Identity & Auth Verification Tests', () => {
     assert.strictEqual(parts.length, 3);
   });
 
-  test('IssueTokenUseCase should verify credentials using scrypt', async () => {
+  void test('IssueTokenUseCase should verify credentials using scrypt', async () => {
     const issueUsecase = new IssueTokenUseCase();
     
     // Correct login
@@ -38,11 +38,11 @@ describe('Identity & Auth Verification Tests', () => {
       async () => {
         await issueUsecase.execute(tenantId, email, roles, 'wrong_password');
       },
-      (err: any) => err.message === 'Invalid credentials'
+      (err: unknown) => (err as Error).message === 'Invalid credentials'
     );
   });
 
-  test('VerifyTokenUseCase should decode and validate signed RS256 JWT claims', async () => {
+  void test('VerifyTokenUseCase should decode and validate signed RS256 JWT claims', async () => {
     const issueUsecase = new IssueTokenUseCase();
     const verifyUsecase = new VerifyTokenUseCase();
 
@@ -56,7 +56,7 @@ describe('Identity & Auth Verification Tests', () => {
     assert.ok(claims.exp > claims.iat);
   });
 
-  test('VerifyTokenUseCase should fail for tampered signatures', async () => {
+  void test('VerifyTokenUseCase should fail for tampered signatures', async () => {
     const issueUsecase = new IssueTokenUseCase();
     const verifyUsecase = new VerifyTokenUseCase();
 
@@ -76,13 +76,13 @@ describe('Identity & Auth Verification Tests', () => {
       async () => {
         await verifyUsecase.execute(tamperedToken);
       },
-      (err: any) => {
-        return err.message === 'Invalid JWT signature';
+      (err: unknown) => {
+        return (err as Error).message === 'Invalid JWT signature';
       }
     );
   });
 
-  test('RefreshTokenUseCase should support rotation and reuse detection (revocation)', async () => {
+  void test('RefreshTokenUseCase should support rotation and reuse detection (revocation)', async () => {
     SessionStore.getInstance().clearAll();
 
     const issueUsecase = new IssueTokenUseCase();
@@ -102,7 +102,7 @@ describe('Identity & Auth Verification Tests', () => {
       async () => {
         await refreshUsecase.execute(rt1); // Reusing rt1
       },
-      (err: any) => err.message.includes('reuse detected')
+      (err: unknown) => (err as Error).message.includes('reuse detected')
     );
 
     // Verify rt2 was revoked due to family revocation
@@ -110,11 +110,11 @@ describe('Identity & Auth Verification Tests', () => {
       async () => {
         await refreshUsecase.execute(rt2);
       },
-      (err: any) => err.message === 'Invalid refresh token'
+      (err: unknown) => (err as Error).message === 'Invalid refresh token'
     );
   });
 
-  test('AssignRoleUseCase should raise role.assigned.v1 event', async () => {
+  void test('AssignRoleUseCase should raise role.assigned.v1 event', async () => {
     const assignUseCase = new AssignRoleUseCase();
     const correlationId = 'corr-uuid-1111';
     
@@ -133,7 +133,7 @@ describe('Identity & Auth Verification Tests', () => {
     assert.strictEqual(parts[2]?.[0], '7'); // Verify UUIDv7 version is 7
   });
 
-  test('TokenServiceGrpc should route grpc actions correctly', async () => {
+  void test('TokenServiceGrpc should route grpc actions correctly', async () => {
     const grpcService = new TokenServiceGrpc();
 
     // 1. IssueToken
@@ -158,7 +158,7 @@ describe('Identity & Auth Verification Tests', () => {
     assert.ok(refreshRes.refreshToken);
   });
 
-  test('AuthController should orchestrate login and verify endpoints', async () => {
+  void test('AuthController should orchestrate login and verify endpoints', async () => {
     const controller = new AuthController();
 
     // 1. Post Login
@@ -169,7 +169,7 @@ describe('Identity & Auth Verification Tests', () => {
     assert.strictEqual(loginResult.statusCode, 200);
     assert.strictEqual(loginResult.body.success, true);
     
-    const token = loginResult.body.accessToken;
+    const token = loginResult.body.accessToken as string;
     assert.ok(token);
 
     // 2. Post Verify
@@ -179,6 +179,47 @@ describe('Identity & Auth Verification Tests', () => {
     );
     assert.strictEqual(verifyResult.statusCode, 200);
     assert.strictEqual(verifyResult.body.valid, true);
-    assert.strictEqual(verifyResult.body.claims.email, email);
+    
+    const claims = verifyResult.body.claims as Record<string, unknown>;
+    assert.strictEqual(claims['email'], email);
+  });
+
+  void test('KeyManager and AuthController should support automatic key rotation and JWKS output', async () => {
+    const { KeyManager } = await import('./application/usecases/key_manager.js');
+    const keyManager = KeyManager.getInstance();
+    keyManager.clear();
+
+    const controller = new AuthController();
+
+    // 1. Get initial JWKS keys
+    const jwksResult1 = await controller.handleGetJwks();
+    assert.strictEqual(jwksResult1.statusCode, 200);
+    
+    const body1 = jwksResult1.body as { keys: Array<{ kid: string }> };
+    assert.ok(body1.keys);
+    assert.strictEqual(body1.keys.length, 1);
+    const firstKid = body1.keys[0].kid;
+
+    // 2. Rotate keys
+    const newKey = keyManager.rotate();
+    const jwksResult2 = await controller.handleGetJwks();
+    const body2 = jwksResult2.body as { keys: Array<{ kid: string }> };
+    assert.strictEqual(body2.keys.length, 2);
+    assert.strictEqual(body2.keys[0].kid, newKey.kid);
+    assert.strictEqual(body2.keys[1].kid, firstKid);
+
+    // 3. Issue token using the new key, and verify it still decodes properly
+    const issueUsecase = new IssueTokenUseCase();
+    const verifyUsecase = new VerifyTokenUseCase();
+    const pair = await issueUsecase.execute(tenantId, email, roles);
+
+    // Header should contain the new kid
+    const parts = pair.accessToken.split('.');
+    const header = JSON.parse(Buffer.from(parts[0]!, 'base64url').toString('utf8')) as { kid: string };
+    assert.strictEqual(header.kid, newKey.kid);
+
+    // Verify should work
+    const claims = await verifyUsecase.execute(pair.accessToken);
+    assert.strictEqual(claims.sub, email);
   });
 });

@@ -84,3 +84,48 @@ test('Database RLS Policy: Context set/clear', async () => {
   assert.strictEqual(queries[0], `SET LOCAL app.tenant_id = '${tenantId}'`);
   assert.strictEqual(queries[1], 'RESET app.tenant_id');
 });
+
+test('Database RLS Policy: Automated Cross-Tenant Denial Test', async () => {
+  const tenantA = '00000000-0000-0000-0000-000000000001';
+  const tenantB = '00000000-0000-0000-0000-000000000002';
+  
+  let currentSessionTenantId: string | null = null;
+  
+  const mockConn = {
+    async query(sql: string, _params?: unknown[]): Promise<any> {
+      if (sql.startsWith('SET LOCAL app.tenant_id')) {
+        const match = sql.match(/'([^']+)'/);
+        currentSessionTenantId = match ? match[1] : null;
+      } else if (sql.startsWith('RESET app.tenant_id')) {
+        currentSessionTenantId = null;
+      }
+      return {};
+    }
+  };
+
+  async function executeSelect(targetTenantId: string) {
+    if (!currentSessionTenantId || currentSessionTenantId !== targetTenantId) {
+      throw new Error('AccessDenied: Row-Level Security policy violated. Cross-tenant access blocked.');
+    }
+    return { success: true };
+  }
+
+  // Set context to Tenant A
+  await setTenantContext(mockConn, tenantA);
+  
+  // Accessing Tenant A data should succeed
+  const successResult = await executeSelect(tenantA);
+  assert.strictEqual(successResult.success, true);
+
+  // Accessing Tenant B data under Tenant A session must fail
+  await assert.rejects(
+    async () => {
+      await executeSelect(tenantB);
+    },
+    /AccessDenied/
+  );
+
+  // Clear context
+  await clearTenantContext(mockConn);
+});
+

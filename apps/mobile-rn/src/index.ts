@@ -5,3 +5,7 @@ export type { CanonicalRequestParts } from './request_signer.js';
 
 export { SessionManager } from './session_manager.js';
 export type { TokenSession } from './session_manager.js';
+
+export { AesGcm } from './security/aes_gcm.js';
+export type { SealedPayload } from './security/aes_gcm.js';
+

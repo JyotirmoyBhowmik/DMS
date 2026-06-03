@@ -186,4 +186,75 @@ describe('SFA Sales Force Automation Tests', () => {
     assert.strictEqual(vrRes.status, 200);
     assert.strictEqual(vrRes.body.count, 3);
   });
+
+  test('JourneyPlanController creation and retrieval', async () => {
+    JourneyPlanController.clearStore();
+    const ctrl = new JourneyPlanController();
+    const agentId = 'agent-uuid-5555';
+    const date = '2026-06-05';
+    const headers = { 'x-tenant-id': tenantId, 'x-agent-id': agentId };
+
+    const planData = {
+      date,
+      beatId: '00000000-0000-0000-0000-000000000002',
+      beatName: 'South Delhi Retail Beat',
+      plannedOutlets: [
+        {
+          outletId: '00000000-0000-0000-0000-000000000003',
+          outletName: 'Sagar Store CP',
+          sequence: 1,
+          latitude: 28.6139,
+          longitude: 77.2090,
+          estimatedArrival: new Date().toISOString(),
+        }
+      ]
+    };
+
+    // 1. Create plan
+    const createRes = await ctrl.handleCreateJourneyPlan(planData, headers);
+    assert.strictEqual(createRes.statusCode, 201);
+    assert.strictEqual(createRes.body.success, true);
+    assert.ok(createRes.body.planId);
+
+    // 2. Prevent duplicate creation
+    const dupRes = await ctrl.handleCreateJourneyPlan(planData, headers);
+    assert.strictEqual(dupRes.statusCode, 409);
+
+    // 3. Retrieve plan
+    const getRes = await ctrl.handleGetAgentJourney(agentId, date, headers);
+    assert.strictEqual(getRes.statusCode, 200);
+    assert.strictEqual(getRes.body.success, true);
+    assert.strictEqual(getRes.body.plan.agentId, agentId);
+    assert.strictEqual(getRes.body.plan.beatName, 'South Delhi Retail Beat');
+    assert.strictEqual(getRes.body.plan.plannedOutlets.length, 1);
+  });
+
+  test('EventConsumer should process event once and skip duplicates', async () => {
+    const { EventConsumer } = await import('./presentation/events/event_consumer.js');
+    EventConsumer.clearStore();
+    const consumer = new EventConsumer();
+
+    const envelope = {
+      eventId: 'evt-order-placed-dedupe-1',
+      eventType: 'order.placed',
+      tenantId: 'tenant-uuid-1111',
+      data: { orderId: 'ord-101' }
+    };
+
+    let processedCount = 0;
+    const handler = async (evt: any) => {
+      processedCount++;
+      assert.strictEqual(evt.data.orderId, 'ord-101');
+    };
+
+    // First ingestion should process
+    const result1 = await consumer.consume(envelope as any, handler);
+    assert.strictEqual(result1.status, 'processed');
+    assert.strictEqual(processedCount, 1);
+
+    // Second ingestion (duplicate eventId) should skip
+    const result2 = await consumer.consume(envelope as any, handler);
+    assert.strictEqual(result2.status, 'skipped');
+    assert.strictEqual(processedCount, 1); // Callback not triggered again
+  });
 });

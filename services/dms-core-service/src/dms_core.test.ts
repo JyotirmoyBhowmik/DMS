@@ -141,4 +141,33 @@ describe('DMS Core Aggregates & Policies Tests', () => {
     assert.strictEqual(pRes.status, 200);
     assert.strictEqual(pRes.body.discountedUnitPrice, 4750); // 5000 * 0.95
   });
+
+  test('DMS EventConsumer should process event once and skip duplicates', async () => {
+    const { EventConsumer } = await import('./presentation/events/event_consumer.js');
+    EventConsumer.clearStore();
+    const consumer = new EventConsumer();
+
+    const envelope = {
+      eventId: 'evt-inventory-adjusted-dedupe-1',
+      eventType: 'inventory.adjusted',
+      tenantId: 'tenant-uuid-1111',
+      data: { skuId: 'sku-A', adjustment: 10 }
+    };
+
+    let processedCount = 0;
+    const handler = async (evt: any) => {
+      processedCount++;
+      assert.strictEqual(evt.data.skuId, 'sku-A');
+    };
+
+    // First ingestion should process
+    const result1 = await consumer.consume(envelope as any, handler);
+    assert.strictEqual(result1.status, 'processed');
+    assert.strictEqual(processedCount, 1);
+
+    // Second ingestion (duplicate eventId) should skip
+    const result2 = await consumer.consume(envelope as any, handler);
+    assert.strictEqual(result2.status, 'skipped');
+    assert.strictEqual(processedCount, 1); // Callback not triggered again
+  });
 });

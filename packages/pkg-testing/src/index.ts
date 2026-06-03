@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { execSync } from 'node:child_process';
 
 export class TestFactories {
   static createMockUser(overrides: any = {}): any {
@@ -82,6 +83,8 @@ export class TestFactories {
  * Helper to orchestrate docker-based test containers or fallback database setups.
  */
 export class TestContainersHelper {
+  private static activeContainers: string[] = [];
+
   static getPostgresConfig() {
     return {
       host: process.env['TEST_POSTGRES_HOST'] || 'localhost',
@@ -99,5 +102,81 @@ export class TestContainersHelper {
       username: process.env['TEST_BROKER_USER'] || 'guest',
       password: process.env['TEST_BROKER_PASSWORD'] || 'guest',
     };
+  }
+
+  /**
+   * Spin up a real PostgreSQL container.
+   * If Docker is not available, gracefully falls back to localhost configuration.
+   */
+  static async startPostgres(): Promise<void> {
+    const name = 'dms-test-postgres';
+    try {
+      // Check if docker is installed and running
+      execSync('docker --version', { stdio: 'ignore' });
+      
+      // Stop and remove existing container if it exists
+      try {
+        execSync(`docker rm -f ${name}`, { stdio: 'ignore' });
+      } catch {
+        // Ignore if container did not exist
+      }
+
+      // Run new Postgres container
+      execSync(
+        `docker run -d --name ${name} -p 5432:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dms_test postgres:15`,
+        { stdio: 'ignore' }
+      );
+      this.activeContainers.push(name);
+      console.log('[TestContainersHelper] Started Postgres container successfully');
+
+      // Wait a brief moment for Postgres to accept connections
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    } catch {
+      console.warn('[TestContainersHelper] Docker not available. Falling back to host database config.');
+    }
+  }
+
+  /**
+   * Spin up a real RabbitMQ/message broker container.
+   * If Docker is not available, gracefully falls back to localhost configuration.
+   */
+  static async startBroker(): Promise<void> {
+    const name = 'dms-test-broker';
+    try {
+      execSync('docker --version', { stdio: 'ignore' });
+      
+      try {
+        execSync(`docker rm -f ${name}`, { stdio: 'ignore' });
+      } catch {
+        // Ignore
+      }
+
+      // Run new RabbitMQ container
+      execSync(
+        `docker run -d --name ${name} -p 5672:5672 -p 15672:15672 rabbitmq:3-management`,
+        { stdio: 'ignore' }
+      );
+      this.activeContainers.push(name);
+      console.log('[TestContainersHelper] Started Message Broker container successfully');
+      
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    } catch {
+      console.warn('[TestContainersHelper] Docker not available. Falling back to host broker config.');
+    }
+  }
+
+  /**
+   * Terminate all active Docker containers started during testing.
+   */
+  static stopAll(): void {
+    try {
+      for (const name of this.activeContainers) {
+        execSync(`docker rm -f ${name}`, { stdio: 'ignore' });
+        console.log(`[TestContainersHelper] Stopped container ${name}`);
+      }
+      this.activeContainers = [];
+    } catch {
+      // Ignore cleanup failures
+    }
   }
 }

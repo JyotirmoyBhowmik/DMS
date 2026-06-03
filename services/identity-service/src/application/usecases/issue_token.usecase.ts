@@ -1,7 +1,8 @@
-import { generateKeyPairSync, createSign } from 'node:crypto';
+import { createSign } from 'node:crypto';
 import { deriveFromPassphrase } from '@dms/pkg-crypto';
 import { StructuredLogger } from '@dms/pkg-logger';
 import { SessionStore, RefreshTokenMetadata } from './session_store.js';
+import { KeyManager } from './key_manager.js';
 
 export interface TokenPair {
   accessToken: string;
@@ -9,14 +10,7 @@ export interface TokenPair {
   expiresIn: number;
 }
 
-// Generate an ephemeral RSA keypair for RS256 signing
-const { privateKey, publicKey } = generateKeyPairSync('rsa', {
-  modulusLength: 2048,
-  publicKeyEncoding: { type: 'spki', format: 'pem' },
-  privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-});
-
-export const JWKS_PUBLIC_KEY = publicKey;
+export const JWKS_PUBLIC_KEY = ''; // Deprecated, use KeyManager.getInstance().getJwks()
 
 export class IssueTokenUseCase {
   private logger = new StructuredLogger('IssueTokenUseCase');
@@ -38,7 +32,9 @@ export class IssueTokenUseCase {
     const iat = Math.floor(Date.now() / 1000);
     const exp = iat + 3600; // 1 hour access token
 
-    const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');
+    const keyRecord = KeyManager.getInstance().getSigningKey();
+
+    const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT', kid: keyRecord.kid })).toString('base64url');
     const payload = Buffer.from(JSON.stringify({
       sub: email,
       email,
@@ -52,7 +48,7 @@ export class IssueTokenUseCase {
     const signatureInput = `${header}.${payload}`;
     const signer = createSign('RSA-SHA256');
     signer.update(signatureInput);
-    const signature = signer.sign(privateKey, 'base64url');
+    const signature = signer.sign(keyRecord.privateKey, 'base64url');
 
     const accessToken = `${signatureInput}.${signature}`;
 
