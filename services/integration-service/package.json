@@ -1,0 +1,20 @@
+{
+  "name": "@dms/integration-service",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/services/integration-service/src/index.js",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/services/integration-service/src/index.js"
+  },
+  "dependencies": {
+    "@dms/pkg-integrations": "workspace:*",
+    "@dms/pkg-logger": "workspace:*",
+    "@dms/pkg-events": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.0.0"
+  }
+}
