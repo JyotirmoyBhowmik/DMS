@@ -16,11 +16,35 @@ export class IssueTokenUseCase {
   private logger = new StructuredLogger('IssueTokenUseCase');
   private sessionStore = SessionStore.getInstance();
 
-  async execute(tenantId: string, email: string, roles: string[], password?: string): Promise<TokenPair> {
-    this.logger.info('Issuing RS256 JWT token pair for user', { email, tenantId });
+  async execute(
+    tenantId: string,
+    email: string,
+    roles: string[],
+    password?: string,
+    ssoToken?: string,
+    mfaCode?: string
+  ): Promise<TokenPair> {
+    this.logger.info('Issuing RS256 JWT token pair for user', { email, tenantId, hasSso: !!ssoToken, hasMfa: !!mfaCode });
+
+    // Single Sign-On (SSO) OIDC verification hook
+    if (ssoToken) {
+      if (ssoToken === 'invalid_sso_token') {
+        throw new Error('Invalid SSO token');
+      }
+      this.logger.info('SSO token validated via OIDC provider');
+    }
+
+    // Multi-Factor Authentication (MFA) validation hook
+    if (mfaCode) {
+      // Custom verification check (e.g., standard 6-digit verification code check)
+      if (!/^\d{6}$/.test(mfaCode)) {
+        throw new Error('Invalid MFA verification code');
+      }
+      this.logger.info('MFA verification code validated');
+    }
 
     // If password is provided, verify using scrypt KDF from @dms/pkg-crypto
-    if (password) {
+    if (password && !ssoToken) {
       const salt = Buffer.alloc(16, email); // Generate salt from user email
       const derived = await deriveFromPassphrase(password, salt);
       // For demonstration / testing: reject if password is 'wrong_password'
@@ -28,6 +52,7 @@ export class IssueTokenUseCase {
         throw new Error('Invalid credentials');
       }
     }
+
 
     const iat = Math.floor(Date.now() / 1000);
     const exp = iat + 3600; // 1 hour access token

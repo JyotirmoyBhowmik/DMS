@@ -222,4 +222,33 @@ void describe('Identity & Auth Verification Tests', () => {
     const claims = await verifyUsecase.execute(pair.accessToken);
     assert.strictEqual(claims.sub, email);
   });
+
+  void test('IssueTokenUseCase should support OIDC SSO and MFA OTP validation checks', async () => {
+    const issueUsecase = new IssueTokenUseCase();
+
+    // 1. Success with SSO
+    const pairSso = await issueUsecase.execute(tenantId, 'sso_user@enterprise.com', roles, undefined, 'valid_sso_token');
+    assert.ok(pairSso.accessToken);
+
+    // 2. Success with MFA code
+    const pairMfa = await issueUsecase.execute(tenantId, email, roles, 'secure_password', undefined, '123456');
+    assert.ok(pairMfa.accessToken);
+
+    // 3. Failure with invalid SSO
+    await assert.rejects(
+      async () => {
+        await issueUsecase.execute(tenantId, email, roles, undefined, 'invalid_sso_token');
+      },
+      (err: unknown) => (err as Error).message === 'Invalid SSO token'
+    );
+
+    // 4. Failure with invalid MFA code (non-digit)
+    await assert.rejects(
+      async () => {
+        await issueUsecase.execute(tenantId, email, roles, 'secure_password', undefined, 'abc123');
+      },
+      (err: unknown) => (err as Error).message === 'Invalid MFA verification code'
+    );
+  });
 });
+

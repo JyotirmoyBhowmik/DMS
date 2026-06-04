@@ -8,6 +8,7 @@ import { ProcessOrderUseCase } from './application/usecases/process_order.usecas
 import { CompleteVisitUseCase } from './application/usecases/complete_visit.usecase.js';
 import { OrderController } from './presentation/rest/controllers/order.controller.js';
 import { VisitController } from './presentation/rest/controllers/visit.controller.js';
+import { JourneyPlanController } from './presentation/rest/controllers/journey_plan.controller.js';
 import { Visit } from './domain/entities/visit.js';
 import { Order } from './domain/entities/order.js';
 import { Money } from './domain/value-objects/money.js';
@@ -257,4 +258,132 @@ describe('SFA Sales Force Automation Tests', () => {
     assert.strictEqual(result2.status, 'skipped');
     assert.strictEqual(processedCount, 1); // Callback not triggered again
   });
+
+  test('Enterprise SFA Controller and Use Cases Integration', async () => {
+    const { EnterpriseSfaController } = await import('./presentation/rest/controllers/enterprise_sfa.controller.js');
+    const ctrl = new EnterpriseSfaController();
+    const headers = { 'x-tenant-id': tenantId };
+
+    // 1. BeatRoute
+    const brRes = await ctrl.handleCreateBeatRoute({
+      id: 'beat-route-1',
+      name: 'Delhi NCR Beat',
+      region: 'Delhi',
+      assignedAgentIds: ['agent-1'],
+      outlets: [
+        { outletId: 'outlet-1', sequence: 1, lat: 28.6, lng: 77.2 },
+        { outletId: 'outlet-2', sequence: 2, lat: 28.7, lng: 77.3 }
+      ],
+      frequency: 'daily'
+    }, headers);
+    assert.strictEqual(brRes.statusCode, 201);
+    assert.strictEqual((brRes.body.beatRoute as any).name, 'Delhi NCR Beat');
+
+    // 2. Attendance Check-in & Check-out
+    const attInRes = await ctrl.handleCheckInAttendance({
+      id: 'att-1',
+      agentId: 'agent-1',
+      date: '2026-06-04',
+      lat: 28.6,
+      lng: 77.2
+    }, headers);
+    assert.strictEqual(attInRes.statusCode, 200);
+    assert.strictEqual((attInRes.body.attendance as any).status, 'checked_in');
+
+    const attOutRes = await ctrl.handleCheckOutAttendance({
+      id: 'att-1',
+      lat: 28.6,
+      lng: 77.2
+    }, headers);
+    assert.strictEqual(attOutRes.statusCode, 200);
+    assert.strictEqual((attOutRes.body.attendance as any).status, 'approved');
+
+    // 3. GeoCheckIn
+    const geoRes = await ctrl.handleRecordGeoCheckIn({
+      id: 'geo-1',
+      agentId: 'agent-1',
+      outletId: 'outlet-1',
+      visitId: 'visit-1',
+      lat: 28.6139,
+      lng: 77.2090,
+      outletLat: 28.6140,
+      outletLng: 77.2090,
+      deviceInfo: { model: 'iPhone 15', os: 'iOS', batteryLevel: 90 }
+    }, headers);
+    assert.strictEqual(geoRes.statusCode, 201);
+    assert.strictEqual((geoRes.body.checkIn as any).isWithinGeofence, true);
+
+    // 4. OutletCensus
+    const censusRes = await ctrl.handleSubmitCensus({
+      id: 'census-1',
+      outletId: 'outlet-new-1',
+      agentId: 'agent-1',
+      outletName: 'New Grocery Store',
+      outletType: 'kirana',
+      ownerName: 'Rahul',
+      ownerPhone: '9999999999',
+      address: 'CP, Delhi',
+      lat: 28.6,
+      lng: 77.2
+    }, headers);
+    assert.strictEqual(censusRes.statusCode, 201);
+    assert.strictEqual((censusRes.body.census as any).status, 'submitted');
+
+    const verifyRes = await ctrl.handleVerifyCensus({
+      id: 'census-1',
+      verified: true
+    }, headers);
+    assert.strictEqual(verifyRes.statusCode, 200);
+    assert.strictEqual((verifyRes.body.census as any).status, 'approved');
+
+    // 5. VanSale load & record spot sale
+    const loadRes = await ctrl.handleLoadVanInventory({
+      id: 'van-1',
+      agentId: 'agent-1',
+      vehicleId: 'DL-3C-1234',
+      routeId: 'beat-route-1',
+      loadedItems: [{ skuId: 'sku-A', qty: 100, batchNumber: 'B1' }]
+    }, headers);
+    assert.strictEqual(loadRes.statusCode, 201);
+
+    const saleRes = await ctrl.handleRecordSpotSale({
+      id: 'van-1',
+      outletId: 'outlet-1',
+      saleItems: [{ skuId: 'sku-A', qty: 20, unitPrice: 500 }],
+      paymentCollected: 10000
+    }, headers);
+    assert.strictEqual(saleRes.statusCode, 200);
+    assert.strictEqual((saleRes.body.vanSale as any).status, 'closed');
+
+    // 6. OrderApproval
+    const appReqRes = await ctrl.handleRequestOrderApproval({
+      id: 'app-1',
+      orderId: 'ord-99',
+      requestedBy: 'agent-1',
+      amount: 15000,
+      thresholdAmount: 10000
+    }, headers);
+    assert.strictEqual(appReqRes.statusCode, 201);
+    assert.strictEqual((appReqRes.body.approval as any).status, 'pending');
+
+    const appRes = await ctrl.handleApproveOrder({
+      id: 'app-1',
+      approvedBy: 'manager-1'
+    }, headers);
+    assert.strictEqual(appRes.statusCode, 200);
+    assert.strictEqual((appRes.body.approval as any).status, 'approved');
+
+    // 7. MerchandisingAudit
+    const auditRes = await ctrl.handleSubmitMerchandisingAudit({
+      id: 'audit-1',
+      agentId: 'agent-1',
+      outletId: 'outlet-1',
+      visitId: 'visit-1',
+      photos: [{ photoUrl: 'http://img.com/1.png', category: 'shelf' }],
+      complianceScore: 85
+    }, headers);
+    assert.strictEqual(auditRes.statusCode, 201);
+    assert.strictEqual((auditRes.body.audit as any).planogramCompliance, 85);
+  });
 });
+

@@ -170,4 +170,163 @@ describe('DMS Core Aggregates & Policies Tests', () => {
     assert.strictEqual(result2.status, 'skipped');
     assert.strictEqual(processedCount, 1); // Callback not triggered again
   });
+
+  test('Enterprise DMS Controller and Use Cases Integration', async () => {
+    const { EnterpriseDmsController } = await import('./presentation/rest/controllers/enterprise_dms.controller.js');
+    const ctrl = new EnterpriseDmsController();
+    const headers = { 'x-tenant-id': tenantId };
+
+    // 1. DistributorHierarchy
+    const hRes = await ctrl.handleCreateHierarchy({
+      id: 'h-1',
+      parentDistributorId: 'parent-1',
+      childDistributorId: 'child-1',
+      hierarchyLevel: 'DISTRIBUTOR',
+      territory: 'North Delhi',
+      effectiveFrom: '2026-06-01',
+      effectiveTo: '2027-06-01'
+    }, headers);
+    assert.strictEqual(hRes.status, 201);
+    assert.strictEqual((hRes.body.hierarchy as any).hierarchyLevel, 'DISTRIBUTOR');
+
+    // 2. KYCDocument upload & verify
+    const kycRes = await ctrl.handleUploadKYCDocument({
+      id: 'kyc-1',
+      distributorId: 'dist-1',
+      documentType: 'GSTIN',
+      documentNumber: '07AAAAA1111A1Z1',
+      documentUrl: 'http://docs.com/gstin.pdf',
+      expiresAt: '2030-06-01'
+    }, headers);
+    assert.strictEqual(kycRes.status, 201);
+    assert.strictEqual((kycRes.body.document as any).verificationStatus, 'PENDING');
+
+    const verifyRes = await ctrl.handleVerifyKYCDocument({
+      id: 'kyc-1',
+      verifiedBy: 'verifier-1',
+      approve: true
+    }, headers);
+    assert.strictEqual(verifyRes.status, 200);
+    assert.strictEqual((verifyRes.body.document as any).verificationStatus, 'VERIFIED');
+
+    // 3. CreditLimit
+    const clRes = await ctrl.handleCreateCreditLimit({
+      id: 'cl-1',
+      distributorId: 'dist-1',
+      creditLimit: 5000000,
+      creditRating: 'A',
+      paymentTermDays: 45
+    }, headers);
+    assert.strictEqual(clRes.status, 201);
+    assert.strictEqual((clRes.body.creditLimit as any).creditRating, 'A');
+
+    const utilRes = await ctrl.handleUtilizeCredit({
+      id: 'cl-1',
+      amount: 1000000
+    }, headers);
+    assert.strictEqual(utilRes.status, 200);
+    assert.strictEqual((utilRes.body.creditLimit as any).utilizedAmount, 1000000);
+
+    // 4. StockLedgerEntry
+    const ledgerRes = await ctrl.handleRecordLedgerEntry({
+      id: 'ledger-1',
+      productId: 'prod-1',
+      warehouseId: 'wh-1',
+      batchNumber: 'B1',
+      transactionType: 'INWARD',
+      quantity: 500,
+      runningBalance: 500,
+      referenceId: 'ref-1',
+      referenceType: 'MANUAL',
+      createdBy: 'user-1'
+    }, headers);
+    assert.strictEqual(ledgerRes.status, 201);
+    
+    const getLedgerRes = await ctrl.handleGetLedger('prod-1', headers);
+    assert.strictEqual(getLedgerRes.status, 200);
+    assert.strictEqual((getLedgerRes.body as any).items.length, 1);
+
+    // 5. StockTransfer
+    const txReqRes = await ctrl.handleRequestTransfer({
+      id: 'tx-1',
+      fromWarehouseId: 'wh-1',
+      toWarehouseId: 'wh-2',
+      items: [{ productId: 'prod-1', batchNumber: 'B1', quantity: 50, expiryDate: '2027-06-01' }],
+      requestedBy: 'user-1'
+    }, headers);
+    assert.strictEqual(txReqRes.status, 201);
+    assert.strictEqual((txReqRes.body.transfer as any).status, 'REQUESTED');
+
+    const txAppRes = await ctrl.handleApproveTransfer({
+      id: 'tx-1',
+      approvedBy: 'approver-1'
+    }, headers);
+    assert.strictEqual(txAppRes.status, 200);
+    assert.strictEqual((txAppRes.body.transfer as any).status, 'APPROVED');
+
+    const txShipRes = await ctrl.handleShipTransfer({
+      id: 'tx-1'
+    }, headers);
+    assert.strictEqual(txShipRes.status, 200);
+    assert.strictEqual((txShipRes.body.transfer as any).status, 'IN_TRANSIT');
+
+    const txRecRes = await ctrl.handleReceiveTransfer({
+      id: 'tx-1',
+      receivedBy: 'receiver-1'
+    }, headers);
+    assert.strictEqual(txRecRes.status, 200);
+    assert.strictEqual((txRecRes.body.transfer as any).status, 'CLOSED');
+
+    // 6. ProductCategory
+    const catRes = await ctrl.handleCreateCategory({
+      id: 'cat-1',
+      name: 'Beverages',
+      level: 1,
+      sortOrder: 1
+    }, headers);
+    assert.strictEqual(catRes.status, 201);
+    assert.strictEqual((catRes.body.category as any).name, 'Beverages');
+
+    // 7. Batch
+    const batchRes = await ctrl.handleCreateBatch({
+      id: 'batch-1',
+      productId: 'prod-1',
+      batchNumber: 'B1',
+      manufacturingDate: '2026-06-01',
+      expiryDate: '2027-06-01',
+      quantity: 1000
+    }, headers);
+    assert.strictEqual(batchRes.status, 201);
+    assert.strictEqual((batchRes.body.batch as any).batchNumber, 'B1');
+
+    // 8. Invoice generate & issue (raises eInvoice & eWayBill)
+    const invRes = await ctrl.handleGenerateInvoice({
+      id: 'inv-1',
+      distributorId: 'dist-1',
+      orderId: 'ord-1',
+      invoiceNumber: 'INV-001',
+      items: [{
+        productId: 'prod-1',
+        quantity: 10,
+        unitPrice: 10000,
+        discountAmount: 1000,
+        taxableAmount: 90000,
+        taxRatePct: 18,
+        taxAmount: 16200,
+        totalAmount: 106200
+      }],
+      dueDate: '2026-07-01'
+    }, headers);
+    assert.strictEqual(invRes.status, 201);
+    assert.strictEqual((invRes.body.invoice as any).netAmount, 106200);
+
+    const issueRes = await ctrl.handleIssueInvoice({
+      id: 'inv-1'
+    }, headers);
+    assert.strictEqual(issueRes.status, 200);
+    assert.strictEqual((issueRes.body.invoice as any).status, 'ISSUED');
+    assert.ok((issueRes.body.invoice as any).eInvoiceIrn);
+    assert.ok((issueRes.body.invoice as any).eWayBillNumber);
+  });
 });
+

@@ -23,7 +23,7 @@ export class EventConsumer {
   async consume(envelope: EventEnvelope<any>, handleFn: (event: EventEnvelope<any>) => Promise<void>): Promise<{ status: 'processed' | 'skipped' }> {
     const eventId = envelope.eventId;
     const tenantId = envelope.tenantId;
-    const eventType = envelope.eventType;
+    const eventType = envelope.type;
 
     this.logger.info('Inbound event received for ingestion', { eventId, eventType, tenantId });
 

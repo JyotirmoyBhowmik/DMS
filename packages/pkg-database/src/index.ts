@@ -20,5 +20,18 @@ export type { ProcessedEvent } from './models/processed-event.entity.js';
 export { InMemoryUnitOfWork } from './unit-of-work/uow.js';
 export type { Transaction, UnitOfWork } from './unit-of-work/uow.js';
 
+// Postgres Client Pool
+export { PostgresDatabaseClient, InMemoryDriver, PgDriver } from './postgres/client.js';
+export type { DatabaseConfig, IDatabaseDriver, IConnectionClient, QueryResult, PoolMetrics } from './postgres/client.js';
+
+// Repositories
+export { BasePostgresRepository } from './repositories/base.repository.js';
+export type { BaseRow, FindAllOptions, PaginationOptions, PaginatedResult } from './repositories/base.repository.js';
+
+// Migrations
+export { MigrationRunner } from './migrations/runner.js';
+
 // Errors
 export { DatabaseError, EntityNotFoundError, ConcurrencyError } from './errors.js';
+
+

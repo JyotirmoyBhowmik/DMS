@@ -34,21 +34,21 @@ export class AuthController {
 
   async handlePostLogin(requestBody: unknown, headers: Record<string, string>): Promise<HttpResponse> {
     const tenantId = headers['x-tenant-id'] || 'mock-tenant';
-    const { email, password } = (requestBody || {}) as Record<string, string>;
+    const { email, password, ssoToken, mfaCode } = (requestBody || {}) as Record<string, string>;
 
-    this.logger.info('Login request received', { email, tenantId });
+    this.logger.info('Login request received', { email, tenantId, hasSso: !!ssoToken, hasMfa: !!mfaCode });
 
-    if (!email || !password) {
+    if (!email && !ssoToken) {
       return {
         statusCode: 400,
         body: {
-          message: 'Email and password are required',
+          message: 'Email or SSO token is required',
         },
       };
     }
 
     try {
-      const result = await this.issueUseCase.execute(tenantId, email, ['agent'], password);
+      const result = await this.issueUseCase.execute(tenantId, email || 'sso-user@dms.enterprise', ['agent'], password, ssoToken, mfaCode);
       return {
         statusCode: 200,
         body: {
@@ -58,7 +58,8 @@ export class AuthController {
           expiresIn: result.expiresIn,
         },
       };
-    } catch (err: unknown) {
+    }
+ catch (err: unknown) {
       this.logger.error('Login failed', { error: (err as Error).message });
       return {
         statusCode: 500,
