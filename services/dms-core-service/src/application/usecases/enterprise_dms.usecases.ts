@@ -312,3 +312,5 @@ export class EnterpriseDmsUseCases {
     return invoice;
   }
 }
+
+export * from './distributor-onboarding/distributor-onboarding.usecases.js';

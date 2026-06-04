@@ -329,3 +329,5 @@ export class EnterpriseDmsController {
     }
   }
 }
+
+export * from './distributor-onboarding.controller.js';

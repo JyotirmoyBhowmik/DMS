@@ -281,3 +281,8 @@ export class EnterpriseSfaUseCases {
     return audit;
   }
 }
+export * from './delivery-confirmation/create-delivery-confirmation.usecase'; 
+export * from './competitor-capture/create-competitor-capture.usecase'; 
+
+export * from './sales-target/sales-target.usecases.js';
+export * from './survey/survey.usecases.js';

@@ -1,5 +1,8 @@
 import { EnterpriseSfaUseCases } from '../../../application/usecases/enterprise_sfa.usecases.js';
 import { StructuredLogger } from '@dms/pkg-logger';
+import { RequirePermissions } from '@dms/pkg-rbac';
+import { CreateDeliveryConfirmationUseCase } from '../../../application/usecases/delivery-confirmation/create-delivery-confirmation.usecase.js';
+import { CreateCompetitorCaptureUseCase } from '../../../application/usecases/competitor-capture/create-competitor-capture.usecase.js';
 
 export class EnterpriseSfaController {
   private useCases = new EnterpriseSfaUseCases();
@@ -267,4 +270,67 @@ export class EnterpriseSfaController {
       };
     }
   }
+
+  // Note: These dependencies would normally be injected via DI container
+  private createDeliveryConfirmationUseCase: CreateDeliveryConfirmationUseCase | undefined;
+  private createCompetitorCaptureUseCase: CreateCompetitorCaptureUseCase | undefined;
+
+  @RequirePermissions('delivery_confirmation:create')
+  async handleCreateDeliveryConfirmation(body: any, headers: Record<string, string | undefined>): Promise<{ statusCode: number; body: Record<string, unknown> }> {
+    const tenantId = headers['x-tenant-id'] || '00000000-0000-0000-0000-000000000001';
+    this.logger.info('Create delivery confirmation request received', { tenantId, orderId: body.orderId });
+    
+    if (!this.createDeliveryConfirmationUseCase) {
+      return { statusCode: 500, body: { success: false, error: 'UseCase not configured' } };
+    }
+
+    try {
+      const confirmation = await this.createDeliveryConfirmationUseCase.execute({ ...body, tenantId });
+      return {
+        statusCode: 201,
+        body: { success: true, confirmation: confirmation.toJSON() }
+      };
+    } catch (err: any) {
+      return {
+        statusCode: 400,
+        body: { success: false, error: err.message }
+      };
+    }
+  }
+
+  @RequirePermissions('competitor_capture:create')
+  async handleCreateCompetitorCapture(body: any, headers: Record<string, string | undefined>): Promise<{ statusCode: number; body: Record<string, unknown> }> {
+    const tenantId = headers['x-tenant-id'] || '00000000-0000-0000-0000-000000000001';
+    this.logger.info('Create competitor capture request received', { tenantId, outletId: body.outletId });
+    
+    if (!this.createCompetitorCaptureUseCase) {
+      return { statusCode: 500, body: { success: false, error: 'UseCase not configured' } };
+    }
+
+    try {
+      const capture = await this.createCompetitorCaptureUseCase.execute({ ...body, tenantId });
+      return {
+        statusCode: 201,
+        body: { success: true, capture: capture.toJSON() }
+      };
+    } catch (err: any) {
+      return {
+        statusCode: 400,
+        body: { success: false, error: err.message }
+      };
+    }
+  }
+
+  // Sub-controllers mapped as routes
+  public salesTargetController: import('./sales-target.controller.js').SalesTargetController | undefined;
+  public surveyController: import('./survey.controller.js').SurveyController | undefined;
+
+  async handleCreateTarget(body: any, headers: Record<string, string | undefined>) { return this.salesTargetController ? this.salesTargetController.handleCreateTarget(body, headers) : { statusCode: 500, body: { error: 'Controller not configured' } }; }
+  async handleUpdateProgress(body: any, headers: Record<string, string | undefined>) { return this.salesTargetController ? this.salesTargetController.handleUpdateProgress(body, headers) : { statusCode: 500, body: { error: 'Controller not configured' } }; }
+  async handleGetAgentTargets(agentId: string, month: number, year: number, headers: Record<string, string | undefined>) { return this.salesTargetController ? this.salesTargetController.handleGetAgentTargets(agentId, month, year, headers) : { statusCode: 500, body: { error: 'Controller not configured' } }; }
+
+  async handleCreateSurvey(body: any, headers: Record<string, string | undefined>) { return this.surveyController ? this.surveyController.handleCreateSurvey(body, headers) : { statusCode: 500, body: { error: 'Controller not configured' } }; }
+  async handleSubmitResponses(body: any, headers: Record<string, string | undefined>) { return this.surveyController ? this.surveyController.handleSubmitResponses(body, headers) : { statusCode: 500, body: { error: 'Controller not configured' } }; }
+  async handleGetSurvey(id: string, headers: Record<string, string | undefined>) { return this.surveyController ? this.surveyController.handleGetSurvey(id, headers) : { statusCode: 500, body: { error: 'Controller not configured' } }; }
 }
+
