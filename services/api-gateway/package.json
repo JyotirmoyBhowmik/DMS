@@ -17,6 +17,7 @@
     "@dms/pkg-logger": "workspace:*",
     "@dms/pkg-rbac": "workspace:*",
     "@dms/pkg-validation": "workspace:*",
+    "@dms/pkg-mobile-sync": "workspace:*",
     "@dms/sfa-service": "workspace:^"
   },
   "devDependencies": {
