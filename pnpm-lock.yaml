@@ -70,6 +70,19 @@ importers:
         specifier: ^5.0.10
         version: 5.4.21(@types/node@25.9.1)
 
+  packages/pkg-analytics:
+    dependencies:
+      '@dms/pkg-database':
+        specifier: workspace:*
+        version: link:../pkg-database
+      '@dms/pkg-logger':
+        specifier: workspace:*
+        version: link:../pkg-logger
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   packages/pkg-config-client:
     devDependencies:
       typescript:
@@ -189,6 +202,12 @@ importers:
 
   services/api-gateway:
     dependencies:
+      '@dms/dms-core-service':
+        specifier: workspace:^
+        version: link:../dms-core-service
+      '@dms/pkg-analytics':
+        specifier: workspace:^
+        version: link:../../packages/pkg-analytics
       '@dms/pkg-crypto':
         specifier: workspace:*
         version: link:../../packages/pkg-crypto
@@ -210,6 +229,9 @@ importers:
       '@dms/pkg-validation':
         specifier: workspace:*
         version: link:../../packages/pkg-validation
+      '@dms/sfa-service':
+        specifier: workspace:^
+        version: link:../sfa-service
     devDependencies:
       typescript:
         specifier: ^5.3.3
@@ -273,6 +295,9 @@ importers:
 
   services/dms-core-service:
     dependencies:
+      '@dms/pkg-analytics':
+        specifier: workspace:^
+        version: link:../../packages/pkg-analytics
       '@dms/pkg-crypto':
         specifier: workspace:*
         version: link:../../packages/pkg-crypto
@@ -482,6 +507,9 @@ importers:
 
   services/sfa-service:
     dependencies:
+      '@dms/pkg-analytics':
+        specifier: workspace:^
+        version: link:../../packages/pkg-analytics
       '@dms/pkg-crypto':
         specifier: workspace:*
         version: link:../../packages/pkg-crypto

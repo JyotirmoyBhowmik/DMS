@@ -23,7 +23,8 @@
       "@dms/pkg-rbac": ["packages/pkg-rbac/src/index.ts"],
       "@dms/pkg-config-client": ["packages/pkg-config-client/src/index.ts"],
       "@dms/pkg-testing": ["packages/pkg-testing/src/index.ts"],
-      "@dms/pkg-integrations": ["packages/pkg-integrations/src/index.ts"]
+      "@dms/pkg-integrations": ["packages/pkg-integrations/src/index.ts"],
+      "@dms/pkg-analytics": ["packages/pkg-analytics/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "dist"]

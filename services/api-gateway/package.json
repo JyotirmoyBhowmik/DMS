@@ -8,13 +8,16 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@dms/dms-core-service": "workspace:^",
+    "@dms/pkg-analytics": "workspace:^",
     "@dms/pkg-crypto": "workspace:*",
     "@dms/pkg-database": "workspace:*",
     "@dms/pkg-events": "workspace:*",
+    "@dms/pkg-http": "workspace:*",
     "@dms/pkg-logger": "workspace:*",
-    "@dms/pkg-validation": "workspace:*",
     "@dms/pkg-rbac": "workspace:*",
-    "@dms/pkg-http": "workspace:*"
+    "@dms/pkg-validation": "workspace:*",
+    "@dms/sfa-service": "workspace:^"
   },
   "devDependencies": {
     "typescript": "^5.3.3"

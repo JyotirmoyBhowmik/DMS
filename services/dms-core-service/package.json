@@ -9,6 +9,7 @@
     "test": "node --test \"dist/**/*.test.js\""
   },
   "dependencies": {
+    "@dms/pkg-analytics": "workspace:^",
     "@dms/pkg-crypto": "workspace:*",
     "@dms/pkg-database": "workspace:*",
     "@dms/pkg-events": "workspace:*",
