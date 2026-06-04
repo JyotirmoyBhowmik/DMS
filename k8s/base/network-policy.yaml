@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-network-policy
+  namespace: dms-prod
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+        - podSelector:
+            matchLabels:
+              app: sfa-service
+        - podSelector:
+            matchLabels:
+              app: dms-core-service
+        - podSelector:
+            matchLabels:
+              app: integration-service
+        - podSelector:
+            matchLabels:
+              app: ai-service
+      ports:
+        - protocol: TCP
+          port: 5432
