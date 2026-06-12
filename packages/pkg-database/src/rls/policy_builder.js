@@ -27,9 +27,9 @@ function buildTenantRlsPolicy(table, tenantColumn) {
  * of the current transaction.  Must be called inside a transaction
  * before issuing any tenant-scoped queries.
  */
-async function setTenantContext(conn, tenantId) {
-    // Use SET LOCAL so the setting only lives for the current transaction.
-    await conn.query(`SET LOCAL app.tenant_id = '${sanitizeLiteral(tenantId)}'`);
+async function setTenantContext(conn, tenantId, scope = 'LOCAL') {
+    const scopeStr = scope === 'LOCAL' ? 'LOCAL ' : '';
+    await conn.query(`SET ${scopeStr}app.tenant_id = '${sanitizeLiteral(tenantId)}'`);
 }
 /**
  * Clears the tenant context on a database connection.

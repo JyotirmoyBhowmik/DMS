@@ -2,6 +2,9 @@ import { Product } from '../../domain/entities/product.js';
 import { Inventory } from '../../domain/entities/inventory.js';
 import { Distributor } from '../../domain/entities/distributor.js';
 import { Outlet } from '../../domain/entities/outlet.js';
+import { loadConfigSync } from '@dms/pkg-config';
+
+const config = loadConfigSync();
 
 export class DmsRepository {
   private products = new Map<string, Product>();
@@ -10,28 +13,32 @@ export class DmsRepository {
   private outlets = new Map<string, Outlet>();
 
   constructor() {
-    this.seedMockData();
+    if (config.seeds.seedMockData) {
+      this.seedMockData();
+    }
   }
 
   // --- Seed Data ---
   private seedMockData() {
+    const seedTenantId = config.seeds.tenantId;
+
     // Seed Products
-    this.saveProduct(Product.create({ id: 'p-001', tenantId: 'tenant-uuid-1111', sku: 'SKU-FMCG-001', name: 'Premium Sunflower Oil 1L', category: 'Cooking Oil', price: 12.50, minThreshold: 150 }));
-    this.saveProduct(Product.create({ id: 'p-002', tenantId: 'tenant-uuid-1111', sku: 'SKU-FMCG-002', name: 'Whole Wheat Atta 5kg', category: 'Flour', price: 8.90, minThreshold: 200 }));
-    this.saveProduct(Product.create({ id: 'p-003', tenantId: 'tenant-uuid-1111', sku: 'SKU-FMCG-003', name: 'Refined Sugar 2kg', category: 'Sweetener', price: 3.20, minThreshold: 100 }));
+    void this.saveProduct(Product.create({ id: 'p-001', tenantId: seedTenantId, sku: 'SKU-FMCG-001', name: 'Premium Sunflower Oil 1L', category: 'Cooking Oil', price: 12.50, minThreshold: 150 }));
+    void this.saveProduct(Product.create({ id: 'p-002', tenantId: seedTenantId, sku: 'SKU-FMCG-002', name: 'Whole Wheat Atta 5kg', category: 'Flour', price: 8.90, minThreshold: 200 }));
+    void this.saveProduct(Product.create({ id: 'p-003', tenantId: seedTenantId, sku: 'SKU-FMCG-003', name: 'Refined Sugar 2kg', category: 'Sweetener', price: 3.20, minThreshold: 100 }));
 
     // Seed Inventory
-    this.saveInventory(Inventory.create({ id: 'i-001', tenantId: 'tenant-uuid-1111', productId: 'p-001', warehouseId: 'wh-main', stock: 120 })); // Low Stock
-    this.saveInventory(Inventory.create({ id: 'i-002', tenantId: 'tenant-uuid-1111', productId: 'p-002', warehouseId: 'wh-main', stock: 450 })); // Adequate
-    this.saveInventory(Inventory.create({ id: 'i-003', tenantId: 'tenant-uuid-1111', productId: 'p-003', warehouseId: 'wh-main', stock: 85 }));  // Low Stock
+    void this.saveInventory(Inventory.create({ id: 'i-001', tenantId: seedTenantId, productId: 'p-001', warehouseId: 'wh-main', stock: 120 })); // Low Stock
+    void this.saveInventory(Inventory.create({ id: 'i-002', tenantId: seedTenantId, productId: 'p-002', warehouseId: 'wh-main', stock: 450 })); // Adequate
+    void this.saveInventory(Inventory.create({ id: 'i-003', tenantId: seedTenantId, productId: 'p-003', warehouseId: 'wh-main', stock: 85 }));  // Low Stock
 
     // Seed Distributors
-    this.saveDistributor(Distributor.create({ id: 'd-001', tenantId: 'tenant-uuid-1111', name: 'Metro Wholesale Distributors', region: 'Northern Region', creditLimit: 50000, balance: 12450 }));
-    this.saveDistributor(Distributor.create({ id: 'd-002', tenantId: 'tenant-uuid-1111', name: 'City FMCG Connect', region: 'Central Region', creditLimit: 30000, balance: 8290 }));
+    void this.saveDistributor(Distributor.create({ id: 'd-001', tenantId: seedTenantId, name: 'Metro Wholesale Distributors', region: 'Northern Region', creditLimit: 50000, balance: 12450 }));
+    void this.saveDistributor(Distributor.create({ id: 'd-002', tenantId: seedTenantId, name: 'City FMCG Connect', region: 'Central Region', creditLimit: 30000, balance: 8290 }));
 
     // Seed Outlets with physical GPS bounds
-    this.saveOutlet(Outlet.create({ id: 'o-001', tenantId: 'tenant-uuid-1111', name: 'ABC Retail Outlet', latitude: 28.6139, longitude: 77.2090, radiusMeters: 50 }));
-    this.saveOutlet(Outlet.create({ id: 'o-002', tenantId: 'tenant-uuid-1111', name: 'Sunshine Mart', latitude: 19.0760, longitude: 72.8777, radiusMeters: 50 }));
+    void this.saveOutlet(Outlet.create({ id: 'o-001', tenantId: seedTenantId, name: 'ABC Retail Outlet', latitude: config.seeds.outletLat, longitude: config.seeds.outletLng, radiusMeters: 50 }));
+    void this.saveOutlet(Outlet.create({ id: 'o-002', tenantId: seedTenantId, name: 'Sunshine Mart', latitude: 19.0760, longitude: 72.8777, radiusMeters: 50 }));
   }
 
   // --- Product Methods ---

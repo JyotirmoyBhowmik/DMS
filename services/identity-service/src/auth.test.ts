@@ -1,3 +1,9 @@
+process.env.PGUSER = process.env.PGUSER || 'user';
+process.env.PGPASSWORD = process.env.PGPASSWORD || 'password';
+process.env.PGDATABASE = process.env.PGDATABASE || 'dms';
+process.env.PGHOST = process.env.PGHOST || 'localhost';
+process.env.PGPORT = process.env.PGPORT || '5432';
+
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
 import { IssueTokenUseCase } from './application/usecases/issue_token.usecase.js';
@@ -6,7 +12,11 @@ import { RefreshTokenUseCase } from './application/usecases/refresh_token.usecas
 import { AssignRoleUseCase } from './application/usecases/assign_role.usecase.js';
 import { TokenServiceGrpc } from './presentation/grpc/token_service.grpc.js';
 import { AuthController } from './presentation/rest/controllers/auth.controller.js';
-import { SessionStore } from './application/usecases/session_store.js';
+import { PostgresDatabaseClient, InMemoryDriver } from '@dms/pkg-database';
+import { RefreshTokenPgRepository } from './infrastructure/database/repositories/refresh_token.pg-repository.js';
+
+const db = new PostgresDatabaseClient(new InMemoryDriver());
+const refreshTokenRepo = new RefreshTokenPgRepository(db);
 
 void describe('Identity & Auth Verification Tests', () => {
   const tenantId = '00000000-0000-0000-0000-000000000001';
@@ -14,7 +24,7 @@ void describe('Identity & Auth Verification Tests', () => {
   const roles = ['agent'];
 
   void test('IssueTokenUseCase should generate standard RS256 JWT and refresh token', async () => {
-    const issueUsecase = new IssueTokenUseCase();
+    const issueUsecase = new IssueTokenUseCase(refreshTokenRepo);
     const tokenPair = await issueUsecase.execute(tenantId, email, roles);
 
     assert.ok(tokenPair.accessToken);
@@ -27,7 +37,7 @@ void describe('Identity & Auth Verification Tests', () => {
   });
 
   void test('IssueTokenUseCase should verify credentials using scrypt', async () => {
-    const issueUsecase = new IssueTokenUseCase();
+    const issueUsecase = new IssueTokenUseCase(refreshTokenRepo);
     
     // Correct login
     const pair = await issueUsecase.execute(tenantId, email, roles, 'secure_pass_123');
@@ -43,7 +53,7 @@ void describe('Identity & Auth Verification Tests', () => {
   });
 
   void test('VerifyTokenUseCase should decode and validate signed RS256 JWT claims', async () => {
-    const issueUsecase = new IssueTokenUseCase();
+    const issueUsecase = new IssueTokenUseCase(refreshTokenRepo);
     const verifyUsecase = new VerifyTokenUseCase();
 
     const tokenPair = await issueUsecase.execute(tenantId, email, roles);
@@ -57,7 +67,7 @@ void describe('Identity & Auth Verification Tests', () => {
   });
 
   void test('VerifyTokenUseCase should fail for tampered signatures', async () => {
-    const issueUsecase = new IssueTokenUseCase();
+    const issueUsecase = new IssueTokenUseCase(refreshTokenRepo);
     const verifyUsecase = new VerifyTokenUseCase();
 
     const tokenPair = await issueUsecase.execute(tenantId, email, roles);
@@ -83,16 +93,14 @@ void describe('Identity & Auth Verification Tests', () => {
   });
 
   void test('RefreshTokenUseCase should support rotation and reuse detection (revocation)', async () => {
-    SessionStore.getInstance().clearAll();
-
-    const issueUsecase = new IssueTokenUseCase();
-    const refreshUsecase = new RefreshTokenUseCase();
+    const issueUsecase = new IssueTokenUseCase(refreshTokenRepo);
+    const refreshUsecase = new RefreshTokenUseCase(refreshTokenRepo);
 
     const pair1 = await issueUsecase.execute(tenantId, email, roles);
     const rt1 = pair1.refreshToken;
 
     // First rotation (valid)
-    const pair2 = await refreshUsecase.execute(rt1);
+    const pair2 = await refreshUsecase.execute(rt1, tenantId);
     const rt2 = pair2.refreshToken;
     assert.ok(rt2);
     assert.notStrictEqual(rt1, rt2);
@@ -100,7 +108,7 @@ void describe('Identity & Auth Verification Tests', () => {
     // Reuse rotation (invalid, must throw and revoke)
     await assert.rejects(
       async () => {
-        await refreshUsecase.execute(rt1); // Reusing rt1
+        await refreshUsecase.execute(rt1, tenantId); // Reusing rt1
       },
       (err: unknown) => (err as Error).message.includes('reuse detected')
     );
@@ -108,7 +116,7 @@ void describe('Identity & Auth Verification Tests', () => {
     // Verify rt2 was revoked due to family revocation
     await assert.rejects(
       async () => {
-        await refreshUsecase.execute(rt2);
+        await refreshUsecase.execute(rt2, tenantId);
       },
       (err: unknown) => (err as Error).message === 'Invalid refresh token'
     );
@@ -209,7 +217,7 @@ void describe('Identity & Auth Verification Tests', () => {
     assert.strictEqual(body2.keys[1].kid, firstKid);
 
     // 3. Issue token using the new key, and verify it still decodes properly
-    const issueUsecase = new IssueTokenUseCase();
+    const issueUsecase = new IssueTokenUseCase(refreshTokenRepo);
     const verifyUsecase = new VerifyTokenUseCase();
     const pair = await issueUsecase.execute(tenantId, email, roles);
 
@@ -224,7 +232,7 @@ void describe('Identity & Auth Verification Tests', () => {
   });
 
   void test('IssueTokenUseCase should support OIDC SSO and MFA OTP validation checks', async () => {
-    const issueUsecase = new IssueTokenUseCase();
+    const issueUsecase = new IssueTokenUseCase(refreshTokenRepo);
 
     // 1. Success with SSO
     const pairSso = await issueUsecase.execute(tenantId, 'sso_user@enterprise.com', roles, undefined, 'valid_sso_token');

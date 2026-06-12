@@ -36,6 +36,8 @@ export class KYCDocument {
   private _rejectionReason?: string;
   private _version: number;
 
+  public readonly domainEvents: Array<{ type: string; payload: any }> = [];
+
   constructor(props: KYCDocumentProps) {
     this.id = props.id;
     this.tenantId = props.tenantId;
@@ -62,7 +64,12 @@ export class KYCDocument {
     if (!props.documentNumber.trim()) {
       throw new Error('Document number is required');
     }
-    return new KYCDocument(props);
+    const doc = new KYCDocument(props);
+    doc.domainEvents.push({
+      type: 'distributor.kyc.submitted',
+      payload: { documentId: doc.id, distributorId: doc.distributorId, documentType: doc.documentType }
+    });
+    return doc;
   }
 
   verify(verifiedBy: string, expiresAt?: string): void {
@@ -75,6 +82,10 @@ export class KYCDocument {
     this._expiresAt = expiresAt;
     this._rejectionReason = undefined;
     this._version++;
+    this.domainEvents.push({
+      type: 'distributor.kyc.verified',
+      payload: { documentId: this.id, distributorId: this.distributorId, documentType: this.documentType, verifiedBy }
+    });
   }
 
   reject(reason: string): void {
@@ -87,6 +98,10 @@ export class KYCDocument {
     this._verificationStatus = 'REJECTED';
     this._rejectionReason = reason;
     this._version++;
+    this.domainEvents.push({
+      type: 'distributor.kyc.rejected',
+      payload: { documentId: this.id, distributorId: this.distributorId, documentType: this.documentType, reason }
+    });
   }
 
   markExpired(): void {
@@ -95,6 +110,10 @@ export class KYCDocument {
     }
     this._verificationStatus = 'EXPIRED';
     this._version++;
+    this.domainEvents.push({
+      type: 'distributor.kyc.expired',
+      payload: { documentId: this.id, distributorId: this.distributorId, documentType: this.documentType }
+    });
   }
 
   /**

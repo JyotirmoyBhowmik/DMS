@@ -328,6 +328,93 @@ export class EnterpriseDmsController {
       };
     }
   }
+
+  async handleAdjustStock(body: {
+    id: string;
+    productId: string;
+    warehouseId: string;
+    batchNumber: string;
+    transactionType: 'INWARD' | 'OUTWARD' | 'ADJUSTMENT' | 'TRANSFER' | 'RETURN' | 'WRITE_OFF';
+    quantity: number;
+    referenceId: string;
+    referenceType: 'ORDER' | 'TRANSFER' | 'RETURN' | 'MANUAL';
+    createdBy: string;
+    expiryDate?: string;
+  }, headers: Record<string, string | undefined>): Promise<{ status: number; body: Record<string, unknown> }> {
+    const tenantId = headers['x-tenant-id'] || '00000000-0000-0000-0000-000000000001';
+    try {
+      const entry = await this.useCases.adjustStock({ ...body, tenantId });
+      return {
+        status: 200,
+        body: { success: true, entry: entry.toJSON() }
+      };
+    } catch (err: any) {
+      return {
+        status: 400,
+        body: { success: false, error: err.message }
+      };
+    }
+  }
+
+  async handleAllocateStockFEFO(body: {
+    productId: string;
+    warehouseId: string;
+    quantity: number;
+    referenceId: string;
+    referenceType: 'ORDER' | 'TRANSFER' | 'RETURN' | 'MANUAL';
+    createdBy: string;
+  }, headers: Record<string, string | undefined>): Promise<{ status: number; body: Record<string, unknown> }> {
+    const tenantId = headers['x-tenant-id'] || '00000000-0000-0000-0000-000000000001';
+    try {
+      const result = await this.useCases.allocateStockFEFO({ ...body, tenantId });
+      return {
+        status: 200,
+        body: { success: true, ...result }
+      };
+    } catch (err: any) {
+      return {
+        status: 400,
+        body: { success: false, error: err.message }
+      };
+    }
+  }
+
+  async handleGetNearExpiryAlerts(query: {
+    days?: number;
+  }, headers: Record<string, string | undefined>): Promise<{ status: number; body: Record<string, unknown> }> {
+    const tenantId = headers['x-tenant-id'] || '00000000-0000-0000-0000-000000000001';
+    try {
+      const alerts = await this.useCases.getNearExpiryAlerts(tenantId, query.days);
+      return {
+        status: 200,
+        body: { success: true, alerts: alerts.map(b => b.toJSON()) }
+      };
+    } catch (err: any) {
+      return {
+        status: 400,
+        body: { success: false, error: err.message }
+      };
+    }
+  }
+
+  async handleReconcileStock(body: {
+    productId: string;
+    warehouseId: string;
+  }, headers: Record<string, string | undefined>): Promise<{ status: number; body: Record<string, unknown> }> {
+    const tenantId = headers['x-tenant-id'] || '00000000-0000-0000-0000-000000000001';
+    try {
+      const result = await this.useCases.reconcileStock(tenantId, body.productId, body.warehouseId);
+      return {
+        status: 200,
+        body: { success: true, ...result }
+      };
+    } catch (err: any) {
+      return {
+        status: 400,
+        body: { success: false, error: err.message }
+      };
+    }
+  }
 }
 
 export * from './distributor-onboarding.controller.js';

@@ -35,6 +35,8 @@ export class CreditLimit {
   private _paymentTermDays: number;
   private _version: number;
 
+  public readonly domainEvents: Array<{ type: string; payload: any }> = [];
+
   constructor(props: CreditLimitProps) {
     this.id = props.id;
     this.tenantId = props.tenantId;
@@ -96,7 +98,12 @@ export class CreditLimit {
     if (props.creditLimit < 0) {
       throw new Error('Credit limit must be non-negative');
     }
-    return new CreditLimit(props);
+    const cl = new CreditLimit(props);
+    cl.domainEvents.push({
+      type: 'distributor.credit_limit.created',
+      payload: { creditLimitId: cl.id, distributorId: cl.distributorId, creditLimit: cl.creditLimit }
+    });
+    return cl;
   }
 
   utilize(amount: number): void {
@@ -106,6 +113,10 @@ export class CreditLimit {
     }
     this._utilizedAmount += amount;
     this._version++;
+    this.domainEvents.push({
+      type: 'distributor.credit_limit.utilized',
+      payload: { creditLimitId: this.id, distributorId: this.distributorId, amount, totalUtilized: this._utilizedAmount }
+    });
   }
 
   releaseUtilization(amount: number): void {
@@ -115,6 +126,10 @@ export class CreditLimit {
     }
     this._utilizedAmount -= amount;
     this._version++;
+    this.domainEvents.push({
+      type: 'distributor.credit_limit.released',
+      payload: { creditLimitId: this.id, distributorId: this.distributorId, amount, totalUtilized: this._utilizedAmount }
+    });
   }
 
   setTemporaryIncrease(amount: number, expiryDate: string): void {
@@ -122,12 +137,20 @@ export class CreditLimit {
     this._temporaryLimitIncrease = amount;
     this._temporaryLimitExpiry = expiryDate;
     this._version++;
+    this.domainEvents.push({
+      type: 'distributor.credit_limit.temporary_increased',
+      payload: { creditLimitId: this.id, distributorId: this.distributorId, amount, expiryDate }
+    });
   }
 
   clearTemporaryIncrease(): void {
     this._temporaryLimitIncrease = 0;
     this._temporaryLimitExpiry = undefined;
     this._version++;
+    this.domainEvents.push({
+      type: 'distributor.credit_limit.temporary_cleared',
+      payload: { creditLimitId: this.id, distributorId: this.distributorId }
+    });
   }
 
   updateCreditRating(rating: CreditRating): void {
@@ -151,6 +174,10 @@ export class CreditLimit {
     if (newLimit < 0) throw new Error('Credit limit must be non-negative');
     this._creditLimit = newLimit;
     this._version++;
+    this.domainEvents.push({
+      type: 'distributor.credit_limit.limit_updated',
+      payload: { creditLimitId: this.id, distributorId: this.distributorId, newLimit }
+    });
   }
 
   private isTemporaryLimitActive(): boolean {

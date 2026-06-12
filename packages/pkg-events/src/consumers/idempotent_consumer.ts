@@ -50,6 +50,8 @@ export interface IdempotentConsumerConfig {
   maxRetries?: number;
   /** DLQ topic suffix. Default: ".dlq" */
   dlqSuffix?: string;
+  /** Exchange name to subscribe to. Default: "dms.events" */
+  exchangeName?: string;
 }
 
 export interface ProcessingResult {
@@ -68,6 +70,7 @@ export class IdempotentConsumer<T = unknown> {
   private readonly tableName: string;
   private readonly maxRetries: number;
   private readonly dlqSuffix: string;
+  private readonly exchangeName: string;
 
   constructor(
     db: IConsumerDatabaseClient,
@@ -82,6 +85,7 @@ export class IdempotentConsumer<T = unknown> {
     this.tableName = config.tableName ?? 'processed_events';
     this.maxRetries = config.maxRetries ?? 5;
     this.dlqSuffix = config.dlqSuffix ?? '.dlq';
+    this.exchangeName = config.exchangeName ?? 'dms.events';
   }
 
   /**
@@ -89,10 +93,22 @@ export class IdempotentConsumer<T = unknown> {
    * check before being handed to the wrapped handler.
    */
   subscribe(topic: string): void {
-    this.broker.subscribe(topic, async (raw: unknown) => {
-      const event = raw as InboundEvent<T>;
-      await this.handle(event);
-    });
+    const queueName = `${this.consumerGroup}.${topic}`;
+    const dlqName = `${queueName}.dlq`;
+
+    this.broker.subscribe(
+      topic,
+      async (raw: unknown) => {
+        const event = raw as InboundEvent<T>;
+        await this.handle(event);
+      },
+      {
+        queueName,
+        exchangeName: this.exchangeName,
+        dlqName,
+        maxRetries: this.maxRetries,
+      },
+    );
   }
 
   /**
@@ -159,11 +175,12 @@ export class IdempotentConsumer<T = unknown> {
     event: InboundEvent<T>,
     error: string,
   ): Promise<void> {
-    const dlqTopic = `${event.eventType}${this.dlqSuffix}`;
+    const dlqExchange = `${this.exchangeName}.dlx`;
+    const routingKey = event.eventType;
 
     try {
-      await this.broker.publish(dlqTopic, {
-        originalEventId: event.eventId,
+      await this.broker.publish(routingKey, {
+        eventId: event.eventId,
         eventType: event.eventType,
         tenantId: event.tenantId,
         payload: event.payload,
@@ -171,10 +188,9 @@ export class IdempotentConsumer<T = unknown> {
         failedAt: new Date().toISOString(),
         deliveryAttempt: event.deliveryAttempt ?? 1,
         lastError: error,
-      });
+      }, { exchangeName: dlqExchange });
     } catch {
-      // DLQ publish failure is swallowed – we don't want to crash the
-      // consumer if the DLQ itself is unreachable.
+      // Swallow DLQ publish failures
     }
   }
 }

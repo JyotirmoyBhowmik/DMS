@@ -4,10 +4,18 @@ import { VerifyChainUseCase } from '../../../application/usecases/verify_chain.u
 import { InMemoryAuditRepository } from '../../../domain/repositories/audit.repository.js';
 
 export class AuditController {
+  private static instance: AuditController | null = null;
   private logger = new StructuredLogger('AuditController');
   private repo = new InMemoryAuditRepository();
   private recordUseCase = new RecordAuditUseCase();
   private verifyUseCase = new VerifyChainUseCase();
+
+  static getInstance(): AuditController {
+    if (!AuditController.instance) {
+      AuditController.instance = new AuditController();
+    }
+    return AuditController.instance;
+  }
 
   getRepository(): InMemoryAuditRepository {
     return this.repo;

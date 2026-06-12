@@ -4,31 +4,36 @@ import { GeoPoint } from '../../../domain/value-objects/geo-point.js';
 import { CompleteVisitUseCase } from '../../../application/usecases/complete_visit.usecase.js';
 import { JourneyPolicy } from '../../../domain/policies/journey_policy.js';
 import { StructuredLogger } from '@dms/pkg-logger';
+import { loadConfigSync } from '@dms/pkg-config';
+
+const config = loadConfigSync();
 
 export class VisitController {
   private repo = new VisitRepository();
   private completeUseCase = new CompleteVisitUseCase();
   private logger = new StructuredLogger('VisitController');
 
-  // Hardcoded outlet location for Delhi check-in geofence
-  private static OUTLET_LAT = 28.6139;
-  private static OUTLET_LNG = 77.2090;
+  // Dynamic outlet location for Delhi check-in geofence
+  private static OUTLET_LAT = config.seeds.outletLat;
+  private static OUTLET_LNG = config.seeds.outletLng;
 
   constructor() {
-    this.seedMockData();
+    if (config.seeds.seedMockData) {
+      this.seedMockData();
+    }
   }
 
   private seedMockData() {
-    // Seed a planned visit for agent-uuid-2222 at outlet Delhi (o-001)
+    // Seed a planned visit for agent at outlet Delhi (o-001)
     const visit = Visit.create({
       id: 'visit-1001',
-      tenantId: 'tenant-uuid-1111',
-      agentId: 'agent-uuid-2222',
+      tenantId: config.seeds.tenantId,
+      agentId: config.seeds.agentId,
       outletId: 'o-001',
       journeyPlanId: 'jp-2026-001',
       plannedDate: new Date()
     });
-    this.repo.save(visit);
+    void this.repo.save(visit);
   }
 
   async handleCheckIn(
@@ -37,7 +42,7 @@ export class VisitController {
     lng: number,
     headers: Record<string, string>
   ): Promise<{ status: number; body: Record<string, unknown> }> {
-    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+    const tenantId = headers['x-tenant-id'] || config.seeds.tenantId;
     this.logger.info('Received agent check-in request', { visitId, tenantId, lat: '[REDACTED]', lng: '[REDACTED]' });
 
     const visit = await this.repo.findById(visitId, tenantId);
@@ -97,7 +102,7 @@ export class VisitController {
     lng: number,
     headers: Record<string, string>
   ): Promise<{ status: number; body: Record<string, unknown> }> {
-    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+    const tenantId = headers['x-tenant-id'] || config.seeds.tenantId;
     this.logger.info('Received agent check-out request', { visitId, tenantId });
 
     const visit = await this.repo.findById(visitId, tenantId);
@@ -141,7 +146,7 @@ export class VisitController {
     agentLng: number,
     headers: Record<string, string>
   ): Promise<{ status: number; body: Record<string, unknown> }> {
-    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+    const tenantId = headers['x-tenant-id'] || config.seeds.tenantId;
     this.logger.info('Received agent detour beat rerouting request', { tenantId });
 
     // Mock unvisited outlets

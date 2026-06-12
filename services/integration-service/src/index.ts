@@ -15,12 +15,16 @@ class MockConsumerDatabaseClient implements IConsumerDatabaseClient {
   }
 }
 
+import { loadConfigSync } from '@dms/pkg-config';
+
+const config = loadConfigSync();
+
 async function bootstrap() {
   const logger = new Logger({ service: 'integration-service' });
   logger.info('Starting Integration Service...');
 
   const db = new MockConsumerDatabaseClient();
-  const broker = new MessageBrokerClient({ host: 'localhost' });
+  const broker = new MessageBrokerClient(config.rabbitmq);
   
   const erpAdapter = new SapBapiAdapter(logger);
   const taxAdapter = new IndiaNicGstAdapter(logger);

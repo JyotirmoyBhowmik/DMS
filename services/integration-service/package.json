@@ -9,6 +9,7 @@
     "start": "node dist/services/integration-service/src/index.js"
   },
   "dependencies": {
+    "@dms/pkg-config": "workspace:*",
     "@dms/pkg-integrations": "workspace:*",
     "@dms/pkg-logger": "workspace:*",
     "@dms/pkg-events": "workspace:*"

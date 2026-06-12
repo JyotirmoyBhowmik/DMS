@@ -33,6 +33,7 @@ export interface OutboxRow {
   retry_count: number;
   max_retries: number;
   last_error: string | null;
+  next_attempt_at: Date;
 }
 
 export interface OutboxDispatcherConfig {
@@ -118,16 +119,25 @@ export class OutboxDispatcher {
   async dispatchPending(): Promise<DispatchResult> {
     const result: DispatchResult = { dispatched: 0, failed: 0, dlqRouted: 0 };
 
-    // 1. Fetch a batch of unsent events, ordered by creation time, with
-    //    row-level locking (FOR UPDATE SKIP LOCKED) to allow concurrent
-    //    dispatcher instances.
+    // 1. Fetch a batch of unsent events, ordered by creation time, with:
+    //    - row-level locking (FOR UPDATE SKIP LOCKED) to allow concurrent dispatcher instances.
+    //    - aggregate ordering (NOT EXISTS query preventing N+1 event from being sent before N is sent).
+    //    - backoff support (next_attempt_at <= NOW()).
     const batch = await this.db.query<OutboxRow>(
       `SELECT id, tenant_id, aggregate_type, aggregate_id,
               event_type, payload, created_at, published_at,
-              retry_count, max_retries, last_error
-       FROM "${this.tableName}"
+              retry_count, max_retries, last_error, next_attempt_at
+       FROM "${this.tableName}" e1
        WHERE published_at IS NULL
          AND retry_count < $1
+         AND next_attempt_at <= NOW()
+         AND NOT EXISTS (
+           SELECT 1 FROM "${this.tableName}" e2
+           WHERE e2.aggregate_type = e1.aggregate_type
+             AND e2.aggregate_id = e1.aggregate_id
+             AND e2.published_at IS NULL
+             AND e2.created_at < e1.created_at
+         )
        ORDER BY created_at ASC
        LIMIT $2
        FOR UPDATE SKIP LOCKED`,
@@ -205,12 +215,16 @@ export class OutboxDispatcher {
   }
 
   private async recordFailure(row: OutboxRow, error: string): Promise<void> {
+    const nextRetryCount = row.retry_count + 1;
+    // Backoff delay: 100ms * 2^retry_count (100ms, 200ms, 400ms, 800ms...)
+    const delayMs = 100 * Math.pow(2, row.retry_count);
     await this.db.query(
       `UPDATE "${this.tableName}"
-       SET retry_count = retry_count + 1,
-           last_error = $1
-       WHERE id = $2`,
-      [error, row.id],
+       SET retry_count = $1,
+           last_error = $2,
+           next_attempt_at = NOW() + ($3 || ' milliseconds')::INTERVAL
+       WHERE id = $4`,
+      [nextRetryCount, error, `${delayMs}`, row.id],
     );
   }
 
@@ -241,7 +255,8 @@ export class OutboxDispatcher {
     await this.db.query(
       `UPDATE "${this.tableName}"
        SET retry_count = $1,
-           last_error = $2
+           last_error = $2,
+           next_attempt_at = NOW()
        WHERE id = $3`,
       [this.maxRetries, `DLQ: ${error}`, row.id],
     );

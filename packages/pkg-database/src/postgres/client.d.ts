@@ -1,3 +1,4 @@
+import { Pool } from 'pg';
 export interface DatabaseConfig {
     connectionString?: string;
     host?: string;
@@ -5,6 +6,7 @@ export interface DatabaseConfig {
     database?: string;
     user?: string;
     password?: string;
+    ssl?: boolean | object;
     maxConnections?: number;
     idleTimeoutMillis?: number;
     /** Default query timeout in milliseconds. Default: 30_000 */
@@ -77,10 +79,10 @@ export declare class PgDriver implements IDatabaseDriver {
     private pool;
     private metrics;
     /**
-     * @param pool  A `pg.Pool` instance (or any object with the same API).
+     * @param pool  A `pg.Pool` instance.
      * @param maxConnections  The `max` value the pool was created with (for metrics).
      */
-    constructor(pool: any, maxConnections?: number);
+    constructor(pool?: Pool, maxConnections?: number);
     connect(): Promise<IConnectionClient>;
     end(): Promise<void>;
     getPoolMetrics(): PoolMetrics;
@@ -111,7 +113,7 @@ export declare class PostgresDatabaseClient {
     private readonly queryTimeoutMs;
     private readonly maxRetries;
     private readonly retryBaseDelayMs;
-    constructor(config: DatabaseConfig, driver?: IDatabaseDriver);
+    constructor(configOrDriver?: DatabaseConfig | IDatabaseDriver, driver?: IDatabaseDriver);
     /**
      * Performs a health check by attempting to reach the database host and port
      * via a TCP socket.

@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS sfa_outbox (
   event_type        VARCHAR(128) NOT NULL,
   payload           JSONB        NOT NULL,
   metadata          JSONB        NOT NULL DEFAULT '{}',
-  destination_topic VARCHAR(256) NOT NULL,
+  destination_topic VARCHAR(256) NOT NULL DEFAULT 'sfa-events',
+  next_attempt_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
   partition_key     VARCHAR(128),
   sequence_num      BIGSERIAL,
   status            VARCHAR(20)  NOT NULL DEFAULT 'PENDING'

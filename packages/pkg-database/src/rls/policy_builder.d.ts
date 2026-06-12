@@ -11,7 +11,7 @@ export declare function buildTenantRlsPolicy(table: string, tenantColumn: string
  */
 export declare function setTenantContext(conn: {
     query: (sql: string, params?: unknown[]) => Promise<unknown>;
-}, tenantId: string): Promise<void>;
+}, tenantId: string, scope?: 'LOCAL' | 'SESSION'): Promise<void>;
 /**
  * Clears the tenant context on a database connection.
  * Typically called at the end of a transaction or on connection release.

@@ -1,8 +1,12 @@
 import { createSign } from 'node:crypto';
 import { deriveFromPassphrase } from '@dms/pkg-crypto';
 import { StructuredLogger } from '@dms/pkg-logger';
-import { SessionStore, RefreshTokenMetadata } from './session_store.js';
 import { KeyManager } from './key_manager.js';
+import { RefreshTokenRepository } from '../../domain/repositories/refresh_token.repository.js';
+import { RefreshToken } from '../../domain/entities/refresh_token.js';
+import { loadConfigSync } from '@dms/pkg-config';
+
+const config = loadConfigSync();
 
 export interface TokenPair {
   accessToken: string;
@@ -14,7 +18,8 @@ export const JWKS_PUBLIC_KEY = ''; // Deprecated, use KeyManager.getInstance().g
 
 export class IssueTokenUseCase {
   private logger = new StructuredLogger('IssueTokenUseCase');
-  private sessionStore = SessionStore.getInstance();
+
+  constructor(private refreshTokenRepo: RefreshTokenRepository) {}
 
   async execute(
     tenantId: string,
@@ -65,6 +70,8 @@ export class IssueTokenUseCase {
       email,
       tenantId,
       roles,
+      iss: config.security.jwtIssuer,
+      aud: config.security.jwtAudience,
       iat,
       exp,
       jti: Math.random().toString(36).substring(2, 15),
@@ -83,17 +90,15 @@ export class IssueTokenUseCase {
 
     const expiresAt = Date.now() + 7 * 24 * 3600 * 1000; // 7 days
 
-    const metadata: RefreshTokenMetadata = {
-      token: refreshToken,
-      familyId,
-      isUsed: false,
-      expiresAt,
-      userId: email,
-      tenantId,
-      roles,
-    };
+    const metadata = new RefreshToken();
+    metadata.token = refreshToken;
+    metadata.familyId = familyId;
+    metadata.isUsed = false;
+    metadata.expiresAt = new Date(expiresAt);
+    metadata.userId = email;
+    metadata.tenantId = tenantId;
 
-    await this.sessionStore.persistToken(metadata);
+    await this.refreshTokenRepo.save(metadata, tenantId);
 
     this.logger.info('Token pair generated successfully', { email });
 

@@ -1,7 +1,12 @@
 import { IssueTokenUseCase } from '../../application/usecases/issue_token.usecase.js';
 import { RefreshTokenUseCase } from '../../application/usecases/refresh_token.usecase.js';
 import { VerifyTokenUseCase } from '../../application/usecases/verify_token.usecase.js';
+import { PostgresDatabaseClient, PgDriver } from '@dms/pkg-database';
+import { RefreshTokenPgRepository } from '../../infrastructure/database/repositories/refresh_token.pg-repository.js';
 import { StructuredLogger } from '@dms/pkg-logger';
+import { loadConfigSync } from '@dms/pkg-config';
+
+const config = loadConfigSync();
 
 export interface GrpcCall<T> {
   request: T;
@@ -44,8 +49,10 @@ export interface VerifyTokenResponse {
 }
 
 export class TokenServiceGrpc {
-  private issueUseCase = new IssueTokenUseCase();
-  private refreshUseCase = new RefreshTokenUseCase();
+  private db = new PostgresDatabaseClient(config.db, new PgDriver());
+  private refreshTokenRepo = new RefreshTokenPgRepository(this.db);
+  private issueUseCase = new IssueTokenUseCase(this.refreshTokenRepo);
+  private refreshUseCase = new RefreshTokenUseCase(this.refreshTokenRepo);
   private verifyUseCase = new VerifyTokenUseCase();
   private logger = new StructuredLogger('TokenServiceGrpc');
 
@@ -74,7 +81,8 @@ export class TokenServiceGrpc {
     this.logger.info('gRPC RefreshToken request received');
 
     try {
-      const tokenPair = await this.refreshUseCase.execute(refreshToken);
+      const tenantId = '00000000-0000-0000-0000-000000000001';
+      const tokenPair = await this.refreshUseCase.execute(refreshToken, tenantId);
       return {
         accessToken: tokenPair.accessToken,
         refreshToken: tokenPair.refreshToken,

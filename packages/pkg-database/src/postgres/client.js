@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PostgresDatabaseClient = exports.InMemoryDriver = exports.PgDriver = void 0;
 const node_net_1 = __importDefault(require("node:net"));
+const pg_1 = require("pg");
 const policy_builder_js_1 = require("../rls/policy_builder.js");
 const errors_js_1 = require("../errors.js");
 // ─── Circuit Breaker ──────────────────────────────────────────────────────────
@@ -93,19 +94,14 @@ class PreparedStatementCache {
  * ```
  */
 class PgDriver {
-    // In production the constructor receives a real `pg.Pool` instance.
-    // We type it as `any` here to avoid a hard dependency on the `pg` package
-    // at compile time.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     pool;
     metrics;
     /**
-     * @param pool  A `pg.Pool` instance (or any object with the same API).
+     * @param pool  A `pg.Pool` instance.
      * @param maxConnections  The `max` value the pool was created with (for metrics).
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(pool, maxConnections = 10) {
-        this.pool = pool;
+        this.pool = pool ?? new pg_1.Pool();
         this.metrics = {
             activeConnections: 0,
             idleConnections: maxConnections,
@@ -115,8 +111,6 @@ class PgDriver {
         };
     }
     async connect() {
-        // Real implementation:
-        // const pgClient = await this.pool.connect();
         const pgClient = await this.pool.connect();
         this.metrics.activeConnections++;
         this.metrics.idleConnections--;
@@ -126,9 +120,16 @@ class PgDriver {
             async query(sql, params) {
                 // Real pg client returns { rows, rowCount, ... }
                 const result = await pgClient.query(sql, params);
+                if (Array.isArray(result)) {
+                    const lastResult = result[result.length - 1];
+                    return {
+                        rows: (lastResult?.rows || []),
+                        rowCount: lastResult?.rowCount ?? (lastResult?.rows?.length || 0),
+                    };
+                }
                 return {
-                    rows: result.rows,
-                    rowCount: result.rowCount ?? result.rows.length,
+                    rows: (result.rows || []),
+                    rowCount: result.rowCount ?? (result.rows?.length || 0),
                 };
             },
             release() {
@@ -226,15 +227,31 @@ class PostgresDatabaseClient {
     queryTimeoutMs;
     maxRetries;
     retryBaseDelayMs;
-    constructor(config, driver) {
-        this.config = config;
-        this.queryTimeoutMs = config.queryTimeoutMs ?? 30_000;
-        this.maxRetries = config.maxRetries ?? 5;
-        this.retryBaseDelayMs = config.retryBaseDelayMs ?? 200;
+    constructor(configOrDriver, driver) {
+        let resolvedConfig = {};
+        let resolvedDriver;
+        if (configOrDriver) {
+            if ('connect' in configOrDriver &&
+                typeof configOrDriver.connect === 'function') {
+                resolvedDriver = configOrDriver;
+            }
+            else {
+                resolvedConfig = configOrDriver;
+                resolvedDriver = driver;
+            }
+        }
+        else {
+            resolvedDriver = driver;
+        }
+        this.config = resolvedConfig;
+        this.queryTimeoutMs = resolvedConfig.queryTimeoutMs ?? 30_000;
+        this.maxRetries = resolvedConfig.maxRetries ?? 5;
+        this.retryBaseDelayMs = resolvedConfig.retryBaseDelayMs ?? 200;
         // If no driver is provided, create a default InMemoryDriver so existing
         // call-sites that only pass `config` continue to work (backwards compat).
-        this.driver = driver ?? new InMemoryDriver(config.maxConnections ?? 10);
-        this.circuitBreaker = new CircuitBreaker(config.circuitBreakerThreshold ?? 5, config.circuitBreakerResetMs ?? 30_000);
+        this.driver =
+            resolvedDriver ?? new InMemoryDriver(resolvedConfig.maxConnections ?? 10);
+        this.circuitBreaker = new CircuitBreaker(resolvedConfig.circuitBreakerThreshold ?? 5, resolvedConfig.circuitBreakerResetMs ?? 30_000);
     }
     // ── Health Check ──────────────────────────────────────────────────────────
     /**
@@ -278,14 +295,26 @@ class PostgresDatabaseClient {
      */
     async query(sql, params, tenantId) {
         this.circuitBreaker.guard();
-        const client = await this.acquireWithRetry();
+        let client;
+        try {
+            client = await this.acquireWithRetry();
+        }
+        catch (err) {
+            this.circuitBreaker.recordFailure();
+            throw err;
+        }
         try {
             if (tenantId) {
-                await (0, policy_builder_js_1.setTenantContext)({ query: (s, p) => client.query(s, p).then(() => undefined) }, tenantId);
+                await (0, policy_builder_js_1.setTenantContext)({ query: (s, p) => client.query(s, p).then(() => undefined) }, tenantId, 'SESSION');
             }
-            const result = await this.executeWithTimeout(client, sql, params);
-            if (tenantId) {
-                await (0, policy_builder_js_1.clearTenantContext)({ query: (s, p) => client.query(s, p).then(() => undefined) });
+            let result;
+            try {
+                result = await this.executeWithTimeout(client, sql, params);
+            }
+            finally {
+                if (tenantId) {
+                    await (0, policy_builder_js_1.clearTenantContext)({ query: (s, p) => client.query(s, p).then(() => undefined) });
+                }
             }
             this.circuitBreaker.recordSuccess();
             return result;
@@ -306,7 +335,14 @@ class PostgresDatabaseClient {
      */
     async transaction(operations, tenantId) {
         this.circuitBreaker.guard();
-        const client = await this.acquireWithRetry();
+        let client;
+        try {
+            client = await this.acquireWithRetry();
+        }
+        catch (err) {
+            this.circuitBreaker.recordFailure();
+            throw err;
+        }
         try {
             await client.query('BEGIN');
             if (tenantId) {

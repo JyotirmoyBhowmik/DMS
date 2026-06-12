@@ -9,4 +9,5 @@ export * from './schemas/visit/visit.completed.v1.js';
 export * from './schemas/delivery/delivery.completed.v1.js';
 export * from './broker/rabbitmq.js';
 export * from './outbox/dispatcher.js';
+export * from './outbox/outbox.repository.js';
 export * from './consumers/idempotent_consumer.js';

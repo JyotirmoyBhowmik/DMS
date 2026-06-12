@@ -22,10 +22,11 @@ CREATE TABLE IF NOT EXISTS distributor_hierarchy (
   updated_at            TIMESTAMPTZ   NOT NULL DEFAULT now(),
 
   -- A distributor cannot be its own parent
-  CONSTRAINT chk_no_self_reference CHECK (parent_distributor_id <> child_distributor_id),
-  -- A child can only have one active parent per tenant
-  CONSTRAINT uq_active_child UNIQUE (tenant_id, child_distributor_id) WHERE (is_active = true)
+  CONSTRAINT chk_no_self_reference CHECK (parent_distributor_id <> child_distributor_id)
 );
+
+-- A child can only have one active parent per tenant
+CREATE UNIQUE INDEX uq_active_child ON distributor_hierarchy (tenant_id, child_distributor_id) WHERE (is_active = true);
 
 -- Indexes
 CREATE INDEX idx_dh_tenant           ON distributor_hierarchy (tenant_id);

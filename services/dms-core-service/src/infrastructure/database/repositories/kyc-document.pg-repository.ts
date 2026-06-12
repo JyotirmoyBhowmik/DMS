@@ -1,17 +1,15 @@
-/**
- * Postgres Repository for KYCDocument.
- */
 import { KYCDocument, KYCDocumentType, KYCVerificationStatus } from '../../../domain/entities/kyc-document.js';
 import { KYCDocumentRepository } from '../../../domain/repositories/kyc-document.repository.js';
+import { PostgresDatabaseClient } from '@dms/pkg-database';
 
 export class KYCDocumentPgRepository extends KYCDocumentRepository {
-  constructor(private pool: any) {
+  constructor(private db: PostgresDatabaseClient) {
     super();
   }
 
   async save(doc: KYCDocument): Promise<void> {
     const data = doc.toJSON();
-    await this.pool.query(
+    await this.db.query(
       `INSERT INTO kyc_documents
         (id, tenant_id, distributor_id, document_type, document_number, document_url,
          verification_status, verified_by, verified_at, expires_at, rejection_reason, version)
@@ -21,57 +19,66 @@ export class KYCDocumentPgRepository extends KYCDocumentRepository {
          expires_at = $10, rejection_reason = $11, version = $12`,
       [data.id, data.tenantId, data.distributorId, data.documentType, data.documentNumber,
        data.documentUrl ?? null, data.verificationStatus, data.verifiedBy ?? null,
-       data.verifiedAt ?? null, data.expiresAt ?? null, data.rejectionReason ?? null, data.version]
+       data.verifiedAt ? new Date(data.verifiedAt) : null,
+       data.expiresAt ? new Date(data.expiresAt) : null,
+       data.rejectionReason ?? null, data.version],
+      doc.tenantId
     );
   }
 
   async findById(tenantId: string, id: string): Promise<KYCDocument | null> {
-    const result = await this.pool.query(
+    const result = await this.db.query<any>(
       `SELECT * FROM kyc_documents WHERE tenant_id = $1 AND id = $2`,
-      [tenantId, id]
+      [tenantId, id],
+      tenantId
     );
     return result.rows[0] ? this.toDomain(result.rows[0]) : null;
   }
 
   async findByDistributor(tenantId: string, distributorId: string): Promise<KYCDocument[]> {
-    const result = await this.pool.query(
+    const result = await this.db.query<any>(
       `SELECT * FROM kyc_documents WHERE tenant_id = $1 AND distributor_id = $2 ORDER BY document_type`,
-      [tenantId, distributorId]
+      [tenantId, distributorId],
+      tenantId
     );
     return result.rows.map((r: any) => this.toDomain(r));
   }
 
   async findByDistributorAndType(tenantId: string, distributorId: string, documentType: KYCDocumentType): Promise<KYCDocument | null> {
-    const result = await this.pool.query(
+    const result = await this.db.query<any>(
       `SELECT * FROM kyc_documents WHERE tenant_id = $1 AND distributor_id = $2 AND document_type = $3`,
-      [tenantId, distributorId, documentType]
+      [tenantId, distributorId, documentType],
+      tenantId
     );
     return result.rows[0] ? this.toDomain(result.rows[0]) : null;
   }
 
   async findByStatus(tenantId: string, status: KYCVerificationStatus): Promise<KYCDocument[]> {
-    const result = await this.pool.query(
+    const result = await this.db.query<any>(
       `SELECT * FROM kyc_documents WHERE tenant_id = $1 AND verification_status = $2`,
-      [tenantId, status]
+      [tenantId, status],
+      tenantId
     );
     return result.rows.map((r: any) => this.toDomain(r));
   }
 
   async findExpiring(tenantId: string, withinDays: number): Promise<KYCDocument[]> {
-    const result = await this.pool.query(
+    const result = await this.db.query<any>(
       `SELECT * FROM kyc_documents
        WHERE tenant_id = $1 AND verification_status = 'VERIFIED'
          AND expires_at IS NOT NULL
          AND expires_at <= now() + make_interval(days => $2)`,
-      [tenantId, withinDays]
+      [tenantId, withinDays],
+      tenantId
     );
     return result.rows.map((r: any) => this.toDomain(r));
   }
 
   async delete(tenantId: string, id: string): Promise<void> {
-    await this.pool.query(
+    await this.db.query(
       `DELETE FROM kyc_documents WHERE tenant_id = $1 AND id = $2`,
-      [tenantId, id]
+      [tenantId, id],
+      tenantId
     );
   }
 

@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS orders (
   outlet_id         UUID         NOT NULL,
   agent_id          UUID         NOT NULL,
   distributor_id    UUID         NOT NULL,
-  status            VARCHAR(20)  NOT NULL DEFAULT 'PLACED'
-                      CHECK (status IN ('PLACED','CONFIRMED','DISPATCHED','DELIVERED','CANCELLED','RETURNED')),
+  status            VARCHAR(20)  NOT NULL DEFAULT 'DRAFT'
+                      CHECK (status IN ('DRAFT','PLACED','CONFIRMED','DISPATCHED','DELIVERED','CANCELLED','RETURNED')),
   lines             JSONB        NOT NULL DEFAULT '[]',
   scheme_ids        TEXT[]       NOT NULL DEFAULT '{}',
   gross_amount      BIGINT       NOT NULL DEFAULT 0 CHECK (gross_amount >= 0),

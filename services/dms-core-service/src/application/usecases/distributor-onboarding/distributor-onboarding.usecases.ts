@@ -1,11 +1,19 @@
 import { DistributorOnboardingWorkflow } from '../../../domain/entities/distributor-onboarding.js';
 import { IDistributorOnboardingRepository } from '../../../domain/repositories/distributor-onboarding.repository.js';
+import { DistributorOnboardingPgRepository } from '../../../infrastructure/database/repositories/distributor-onboarding.pg-repository.js';
+import { TransactionalDbClient } from '../../../infrastructure/database/transactional-client.js';
+import { OutboxRepository, makeEnvelope } from '@dms/pkg-events';
+import { PostgresDatabaseClient } from '@dms/pkg-database';
 import { StructuredLogger } from '@dms/pkg-logger';
 
 export class DistributorOnboardingUseCases {
   private logger = new StructuredLogger('DistributorOnboardingUseCases');
+  private outboxRepo = new OutboxRepository({ tableName: 'dms_outbox' });
 
-  constructor(private repository: IDistributorOnboardingRepository) {}
+  constructor(
+    private repository: IDistributorOnboardingRepository,
+    private db?: PostgresDatabaseClient
+  ) {}
 
   async createOnboarding(input: {
     id: string;
@@ -14,7 +22,37 @@ export class DistributorOnboardingUseCases {
   }): Promise<DistributorOnboardingWorkflow> {
     this.logger.info('Creating onboarding workflow', { id: input.id, distributorId: input.distributorId });
     const workflow = DistributorOnboardingWorkflow.create(input);
-    await this.repository.save(workflow);
+
+    const event = makeEnvelope(
+      'distributor.onboarding.created',
+      'v1',
+      { onboardingId: workflow.id, distributorId: workflow.distributorId },
+      {
+        tenantId: input.tenantId,
+        correlationId: 'correlation-uuid-mock',
+        producer: 'dms-core-service',
+        partitionKey: workflow.id,
+      }
+    );
+
+    if (this.db) {
+      await this.db.transaction(async (conn) => {
+        const txDb = new TransactionalDbClient(conn);
+        const txRepo = new DistributorOnboardingPgRepository(txDb);
+        await txRepo.save(workflow);
+
+        await this.outboxRepo.save(conn, {
+          eventId: event.eventId,
+          tenantId: input.tenantId,
+          type: event.type,
+          version: 'v1',
+          payload: event.payload,
+        }, 'DistributorOnboardingWorkflow', workflow.id);
+      }, input.tenantId);
+    } else {
+      await this.repository.save(workflow);
+    }
+
     return workflow;
   }
 
@@ -23,7 +61,37 @@ export class DistributorOnboardingUseCases {
     const workflow = await this.repository.findById(id, tenantId);
     if (!workflow) throw new Error('Workflow not found');
     workflow.submitForKYC();
-    await this.repository.save(workflow);
+
+    const event = makeEnvelope(
+      'distributor.onboarding.stage_updated',
+      'v1',
+      { onboardingId: workflow.id, distributorId: workflow.distributorId, stage: 'KYC_PENDING' },
+      {
+        tenantId,
+        correlationId: 'correlation-uuid-mock',
+        producer: 'dms-core-service',
+        partitionKey: workflow.id,
+      }
+    );
+
+    if (this.db) {
+      await this.db.transaction(async (conn) => {
+        const txDb = new TransactionalDbClient(conn);
+        const txRepo = new DistributorOnboardingPgRepository(txDb);
+        await txRepo.save(workflow);
+
+        await this.outboxRepo.save(conn, {
+          eventId: event.eventId,
+          tenantId,
+          type: event.type,
+          version: 'v1',
+          payload: event.payload,
+        }, 'DistributorOnboardingWorkflow', workflow.id);
+      }, tenantId);
+    } else {
+      await this.repository.save(workflow);
+    }
+
     return workflow;
   }
 
@@ -32,7 +100,37 @@ export class DistributorOnboardingUseCases {
     const workflow = await this.repository.findById(id, tenantId);
     if (!workflow) throw new Error('Workflow not found');
     workflow.approveKYC();
-    await this.repository.save(workflow);
+
+    const event = makeEnvelope(
+      'distributor.onboarding.stage_updated',
+      'v1',
+      { onboardingId: workflow.id, distributorId: workflow.distributorId, stage: 'CREDIT_CHECK', kycStatus: 'APPROVED' },
+      {
+        tenantId,
+        correlationId: 'correlation-uuid-mock',
+        producer: 'dms-core-service',
+        partitionKey: workflow.id,
+      }
+    );
+
+    if (this.db) {
+      await this.db.transaction(async (conn) => {
+        const txDb = new TransactionalDbClient(conn);
+        const txRepo = new DistributorOnboardingPgRepository(txDb);
+        await txRepo.save(workflow);
+
+        await this.outboxRepo.save(conn, {
+          eventId: event.eventId,
+          tenantId,
+          type: event.type,
+          version: 'v1',
+          payload: event.payload,
+        }, 'DistributorOnboardingWorkflow', workflow.id);
+      }, tenantId);
+    } else {
+      await this.repository.save(workflow);
+    }
+
     return workflow;
   }
 
@@ -41,7 +139,37 @@ export class DistributorOnboardingUseCases {
     const workflow = await this.repository.findById(id, tenantId);
     if (!workflow) throw new Error('Workflow not found');
     workflow.approveCreditCheck();
-    await this.repository.save(workflow);
+
+    const event = makeEnvelope(
+      'distributor.onboarding.stage_updated',
+      'v1',
+      { onboardingId: workflow.id, distributorId: workflow.distributorId, stage: 'CONTRACT_SIGNATURE', creditCheckStatus: 'APPROVED' },
+      {
+        tenantId,
+        correlationId: 'correlation-uuid-mock',
+        producer: 'dms-core-service',
+        partitionKey: workflow.id,
+      }
+    );
+
+    if (this.db) {
+      await this.db.transaction(async (conn) => {
+        const txDb = new TransactionalDbClient(conn);
+        const txRepo = new DistributorOnboardingPgRepository(txDb);
+        await txRepo.save(workflow);
+
+        await this.outboxRepo.save(conn, {
+          eventId: event.eventId,
+          tenantId,
+          type: event.type,
+          version: 'v1',
+          payload: event.payload,
+        }, 'DistributorOnboardingWorkflow', workflow.id);
+      }, tenantId);
+    } else {
+      await this.repository.save(workflow);
+    }
+
     return workflow;
   }
 
@@ -50,7 +178,37 @@ export class DistributorOnboardingUseCases {
     const workflow = await this.repository.findById(id, tenantId);
     if (!workflow) throw new Error('Workflow not found');
     workflow.signContract();
-    await this.repository.save(workflow);
+
+    const event = makeEnvelope(
+      'distributor.onboarding.contract_signed',
+      'v1',
+      { onboardingId: workflow.id, distributorId: workflow.distributorId },
+      {
+        tenantId,
+        correlationId: 'correlation-uuid-mock',
+        producer: 'dms-core-service',
+        partitionKey: workflow.id,
+      }
+    );
+
+    if (this.db) {
+      await this.db.transaction(async (conn) => {
+        const txDb = new TransactionalDbClient(conn);
+        const txRepo = new DistributorOnboardingPgRepository(txDb);
+        await txRepo.save(workflow);
+
+        await this.outboxRepo.save(conn, {
+          eventId: event.eventId,
+          tenantId,
+          type: event.type,
+          version: 'v1',
+          payload: event.payload,
+        }, 'DistributorOnboardingWorkflow', workflow.id);
+      }, tenantId);
+    } else {
+      await this.repository.save(workflow);
+    }
+
     return workflow;
   }
 
@@ -59,7 +217,37 @@ export class DistributorOnboardingUseCases {
     const workflow = await this.repository.findById(id, tenantId);
     if (!workflow) throw new Error('Workflow not found');
     workflow.activate(approvedBy);
-    await this.repository.save(workflow);
+
+    const event = makeEnvelope(
+      'distributor.onboarding.activated',
+      'v1',
+      { onboardingId: workflow.id, distributorId: workflow.distributorId, approvedBy },
+      {
+        tenantId,
+        correlationId: 'correlation-uuid-mock',
+        producer: 'dms-core-service',
+        partitionKey: workflow.id,
+      }
+    );
+
+    if (this.db) {
+      await this.db.transaction(async (conn) => {
+        const txDb = new TransactionalDbClient(conn);
+        const txRepo = new DistributorOnboardingPgRepository(txDb);
+        await txRepo.save(workflow);
+
+        await this.outboxRepo.save(conn, {
+          eventId: event.eventId,
+          tenantId,
+          type: event.type,
+          version: 'v1',
+          payload: event.payload,
+        }, 'DistributorOnboardingWorkflow', workflow.id);
+      }, tenantId);
+    } else {
+      await this.repository.save(workflow);
+    }
+
     return workflow;
   }
 }

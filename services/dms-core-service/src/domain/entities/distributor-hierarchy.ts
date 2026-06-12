@@ -40,6 +40,8 @@ export class DistributorHierarchy {
   private _isActive: boolean;
   private _version: number;
 
+  public readonly domainEvents: Array<{ type: string; payload: any }> = [];
+
   constructor(props: DistributorHierarchyProps) {
     this.id = props.id;
     this.tenantId = props.tenantId;
@@ -62,7 +64,12 @@ export class DistributorHierarchy {
     if (props.parentDistributorId === props.childDistributorId) {
       throw new Error('A distributor cannot be its own parent');
     }
-    return new DistributorHierarchy(props);
+    const h = new DistributorHierarchy(props);
+    h.domainEvents.push({
+      type: 'distributor.hierarchy.created',
+      payload: { hierarchyId: h.id, parentDistributorId: h.parentDistributorId, childDistributorId: h.childDistributorId, hierarchyLevel: h.hierarchyLevel }
+    });
+    return h;
   }
 
   /**
@@ -101,12 +108,20 @@ export class DistributorHierarchy {
     this._isActive = false;
     this._effectiveTo = new Date().toISOString().split('T')[0];
     this._version++;
+    this.domainEvents.push({
+      type: 'distributor.hierarchy.deactivated',
+      payload: { hierarchyId: this.id, parentDistributorId: this.parentDistributorId, childDistributorId: this.childDistributorId }
+    });
   }
 
   activate(): void {
     this._isActive = true;
     this._effectiveTo = undefined;
     this._version++;
+    this.domainEvents.push({
+      type: 'distributor.hierarchy.activated',
+      payload: { hierarchyId: this.id, parentDistributorId: this.parentDistributorId, childDistributorId: this.childDistributorId }
+    });
   }
 
   toJSON() {

@@ -26,9 +26,10 @@ export function buildTenantRlsPolicy(table: string, tenantColumn: string): strin
 export async function setTenantContext(
   conn: { query: (sql: string, params?: unknown[]) => Promise<unknown> },
   tenantId: string,
+  scope: 'LOCAL' | 'SESSION' = 'LOCAL'
 ): Promise<void> {
-  // Use SET LOCAL so the setting only lives for the current transaction.
-  await conn.query(`SET LOCAL app.tenant_id = '${sanitizeLiteral(tenantId)}'`);
+  const scopeStr = scope === 'LOCAL' ? 'LOCAL ' : '';
+  await conn.query(`SET ${scopeStr}app.tenant_id = '${sanitizeLiteral(tenantId)}'`);
 }
 
 /**

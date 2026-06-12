@@ -4,9 +4,11 @@ import { ClaimAggregate } from '../../../domain/entities/claim_aggregate.js';
 import { InventoryAggregate } from '../../../domain/entities/inventory_aggregate.js';
 import { PricingPolicy } from '../../../domain/policies/pricing_policy.js';
 import { StructuredLogger } from '@dms/pkg-logger';
+import { EnterpriseDmsUseCases } from '../../../application/usecases/enterprise_dms.usecases.js';
 
 export class DmsController {
   private repo = new DmsRepository();
+  private useCases = new EnterpriseDmsUseCases();
   private logger = new StructuredLogger('DmsController');
 
   // In-memory store for dynamic claim aggregates
@@ -192,34 +194,55 @@ export class DmsController {
   }): Promise<{ status: number; body: Record<string, unknown> }> {
     this.logger.info('Processing returning product shipment', { productId: body.productId, quantity: body.quantity });
     
-    // Increment stock batch inside inventory aggregate
-    const invKey = `${body.tenantId}-${body.productId}`;
-    let inv = DmsController.inventoryStore.get(invKey);
-    if (!inv) {
-      inv = new InventoryAggregate(`inv-${invKey}`, body.tenantId, body.productId, 'wh-001');
-      DmsController.inventoryStore.set(invKey, inv);
+    const adjustId = `adj-${Math.floor(Math.random() * 10000)}`;
+    const refundClaimId = `claim-ret-${Math.floor(Math.random() * 10000)}`;
+
+    let totalStock = 0;
+    try {
+      await this.useCases.adjustStock({
+        id: adjustId,
+        tenantId: body.tenantId,
+        productId: body.productId,
+        warehouseId: 'wh-001',
+        batchNumber: body.batchNumber,
+        transactionType: 'RETURN',
+        quantity: body.quantity,
+        referenceId: refundClaimId,
+        referenceType: 'RETURN',
+        createdBy: '00000000-0000-0000-0000-000000000009',
+        expiryDate: body.expiryDate
+      });
+
+      const invRecord = await new (await import('../../../infrastructure/database/repositories/inventory.pg-repository.js')).InventoryPgRepository(
+        (this.useCases as any).db
+      ).findByProductAndWarehouse(body.productId, 'wh-001', body.tenantId);
+      totalStock = invRecord ? invRecord.stock : body.quantity;
+    } catch (err: any) {
+      this.logger.warn('Database post return adjustment failed, falling back to static map store', { error: err.message });
+      const invKey = `${body.tenantId}-${body.productId}`;
+      let inv = DmsController.inventoryStore.get(invKey);
+      if (!inv) {
+        inv = new InventoryAggregate(`inv-${invKey}`, body.tenantId, body.productId, 'wh-001');
+        DmsController.inventoryStore.set(invKey, inv);
+      }
+      inv.adjustStock(body.batchNumber, body.quantity, body.expiryDate);
+      totalStock = inv.totalStock;
     }
 
-    inv.adjustStock(body.batchNumber, body.quantity, body.expiryDate);
-
-    // Automatically accrue a return refund claim
-    const claimId = `claim-ret-${Math.floor(Math.random() * 10000)}`;
-    const refundClaim = new ClaimAggregate(claimId, body.tenantId, body.distributorId);
-    
-    // Mock refund calculations ($10 per unit return value)
+    const refundClaim = new ClaimAggregate(refundClaimId, body.tenantId, body.distributorId);
     const refundAmount = body.quantity * 1000;
     refundClaim.accrue('RETURNS_REFUND', refundAmount, `Refund for returning ${body.quantity} units due to: ${body.reason}`);
     refundClaim.submit();
     
-    DmsController.claimsStore.set(claimId, refundClaim);
+    DmsController.claimsStore.set(refundClaimId, refundClaim);
 
     return {
       status: 200,
       body: {
         success: true,
-        refundClaimId: claimId,
+        refundClaimId,
         refundAmount,
-        totalStock: inv.totalStock,
+        totalStock,
       }
     };
   }

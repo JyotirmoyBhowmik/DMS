@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS distributors (
   region          VARCHAR(100)  NOT NULL,
   credit_limit    BIGINT        NOT NULL DEFAULT 0 CHECK (credit_limit >= 0),
   balance         BIGINT        NOT NULL DEFAULT 0,
+  version         INTEGER       NOT NULL DEFAULT 1,
   created_at      TIMESTAMPTZ   NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS products_skus (
   category        VARCHAR(100)  NOT NULL,
   price           BIGINT        NOT NULL DEFAULT 0 CHECK (price >= 0),
   min_threshold   INTEGER       NOT NULL DEFAULT 10 CHECK (min_threshold >= 0),
+  version         INTEGER       NOT NULL DEFAULT 1,
   created_at      TIMESTAMPTZ   NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ   NOT NULL DEFAULT now(),
   UNIQUE(tenant_id, sku)
@@ -38,6 +40,7 @@ CREATE TABLE IF NOT EXISTS inventory_records (
   product_id      UUID          NOT NULL REFERENCES products_skus(id) ON DELETE CASCADE,
   warehouse_id    VARCHAR(100)  NOT NULL,
   stock           INTEGER       NOT NULL DEFAULT 0 CHECK (stock >= 0),
+  version         INTEGER       NOT NULL DEFAULT 1,
   created_at      TIMESTAMPTZ   NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ   NOT NULL DEFAULT now(),
   UNIQUE(tenant_id, product_id, warehouse_id)
@@ -51,6 +54,7 @@ CREATE TABLE IF NOT EXISTS retail_outlets (
   latitude        DOUBLE PRECISION NOT NULL,
   longitude       DOUBLE PRECISION NOT NULL,
   radius_meters   INTEGER       NOT NULL DEFAULT 50,
+  version         INTEGER       NOT NULL DEFAULT 1,
   created_at      TIMESTAMPTZ   NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ   NOT NULL DEFAULT now()
 );

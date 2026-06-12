@@ -9,6 +9,8 @@ export class DistributorOnboardingWorkflow {
   private _approvedBy: string | null;
   private _version: number;
 
+  public readonly domainEvents: Array<{ type: string; payload: any }> = [];
+
   constructor(
     id: string,
     tenantId: string,
@@ -43,7 +45,7 @@ export class DistributorOnboardingWorkflow {
     tenantId: string;
     distributorId: string;
   }): DistributorOnboardingWorkflow {
-    return new DistributorOnboardingWorkflow(
+    const workflow = new DistributorOnboardingWorkflow(
       props.id,
       props.tenantId,
       props.distributorId,
@@ -54,6 +56,11 @@ export class DistributorOnboardingWorkflow {
       null,
       1
     );
+    workflow.domainEvents.push({
+      type: 'distributor.onboarding.created',
+      payload: { onboardingId: props.id, distributorId: props.distributorId }
+    });
+    return workflow;
   }
 
   submitForKYC(): void {
@@ -62,6 +69,10 @@ export class DistributorOnboardingWorkflow {
     }
     this._currentStage = 'KYC_PENDING';
     this.incrementVersion();
+    this.domainEvents.push({
+      type: 'distributor.onboarding.stage_updated',
+      payload: { onboardingId: this.id, distributorId: this.distributorId, stage: 'KYC_PENDING' }
+    });
   }
 
   approveKYC(): void {
@@ -71,6 +82,10 @@ export class DistributorOnboardingWorkflow {
     this._kycStatus = 'APPROVED';
     this._currentStage = 'CREDIT_CHECK';
     this.incrementVersion();
+    this.domainEvents.push({
+      type: 'distributor.onboarding.stage_updated',
+      payload: { onboardingId: this.id, distributorId: this.distributorId, stage: 'CREDIT_CHECK', kycStatus: 'APPROVED' }
+    });
   }
 
   approveCreditCheck(): void {
@@ -80,6 +95,10 @@ export class DistributorOnboardingWorkflow {
     this._creditCheckStatus = 'APPROVED';
     this._currentStage = 'CONTRACT_SIGNATURE';
     this.incrementVersion();
+    this.domainEvents.push({
+      type: 'distributor.onboarding.stage_updated',
+      payload: { onboardingId: this.id, distributorId: this.distributorId, stage: 'CONTRACT_SIGNATURE', creditCheckStatus: 'APPROVED' }
+    });
   }
 
   signContract(): void {
@@ -88,6 +107,10 @@ export class DistributorOnboardingWorkflow {
     }
     this._contractSigned = true;
     this.incrementVersion();
+    this.domainEvents.push({
+      type: 'distributor.onboarding.contract_signed',
+      payload: { onboardingId: this.id, distributorId: this.distributorId }
+    });
   }
 
   activate(approvedBy: string): void {
@@ -97,6 +120,10 @@ export class DistributorOnboardingWorkflow {
     this._currentStage = 'ACTIVE';
     this._approvedBy = approvedBy;
     this.incrementVersion();
+    this.domainEvents.push({
+      type: 'distributor.onboarding.activated',
+      payload: { onboardingId: this.id, distributorId: this.distributorId, approvedBy }
+    });
   }
 
   private incrementVersion(): void {

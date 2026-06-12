@@ -18,7 +18,9 @@ import { createVerify } from 'node:crypto';
 
 export interface JwtConfig {
   /** PEM-encoded RSA public key (or JWKS-fetched key) for RS256 verification */
-  publicKey: string;
+  publicKey?: string;
+  /** Resolver function to fetch a public key dynamically by Key ID (kid) */
+  publicKeyResolver?: (kid: string) => Promise<string | null> | (string | null);
   /** Expected `iss` (issuer) claim.  Skipped if not set. */
   issuer?: string;
   /** Expected `aud` (audience) claim.  Skipped if not set. */
@@ -75,7 +77,8 @@ export interface AuthenticatableRequest {
 // ─── JWT Auth Middleware ──────────────────────────────────────────────────────
 
 export class JwtAuthMiddleware {
-  private readonly publicKey: string;
+  private readonly publicKey?: string;
+  private readonly publicKeyResolver?: (kid: string) => Promise<string | null> | (string | null);
   private readonly issuer?: string;
   private readonly audience?: string;
   private readonly clockSkew: number;
@@ -83,6 +86,7 @@ export class JwtAuthMiddleware {
 
   constructor(config: JwtConfig) {
     this.publicKey = config.publicKey;
+    this.publicKeyResolver = config.publicKeyResolver;
     this.issuer = config.issuer;
     this.audience = config.audience;
     this.clockSkew = config.clockSkewSeconds ?? 30;
@@ -92,7 +96,7 @@ export class JwtAuthMiddleware {
   /**
    * Verify the JWT on the incoming request.
    */
-  verify(request: AuthenticatableRequest): AuthResult {
+  async verify(request: AuthenticatableRequest): Promise<AuthResult> {
     // 1. Extract token
     const authValue = this.getHeader(request, this.authHeader);
     if (!authValue) {
@@ -121,7 +125,7 @@ export class JwtAuthMiddleware {
     ];
 
     // 3. Decode header
-    let header: { alg: string; typ?: string };
+    let header: { alg: string; typ?: string; kid?: string };
     try {
       header = JSON.parse(base64UrlDecode(headerB64));
     } catch {
@@ -135,6 +139,23 @@ export class JwtAuthMiddleware {
       );
     }
 
+    // Resolve key using resolver or fallback
+    let keyToUse = this.publicKey;
+    if (header.kid && this.publicKeyResolver) {
+      try {
+        const resolved = await this.publicKeyResolver(header.kid);
+        if (resolved) {
+          keyToUse = resolved;
+        }
+      } catch (err: unknown) {
+        return this.fail('INVALID_SIGNATURE', `Key resolution error: ${(err as Error).message}`);
+      }
+    }
+
+    if (!keyToUse) {
+      return this.fail('INVALID_SIGNATURE', 'Public key could not be resolved');
+    }
+
     // 4. Verify RS256 signature
     try {
       const signInput = `${headerB64}.${payloadB64}`;
@@ -142,7 +163,7 @@ export class JwtAuthMiddleware {
 
       const verifier = createVerify('RSA-SHA256');
       verifier.update(signInput);
-      const valid = verifier.verify(this.publicKey, signatureBuffer);
+      const valid = verifier.verify(keyToUse, signatureBuffer);
 
       if (!valid) {
         return this.fail('INVALID_SIGNATURE', 'JWT signature verification failed');

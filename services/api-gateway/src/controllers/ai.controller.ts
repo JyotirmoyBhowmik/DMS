@@ -1,6 +1,8 @@
 import { RequirePermissions } from '@dms/pkg-rbac';
+import { loadConfigSync } from '@dms/pkg-config';
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const config = loadConfigSync();
+const AI_SERVICE_URL = config.endpoints.aiServiceUrl;
 
 export class AIController {
 

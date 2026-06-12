@@ -7,6 +7,7 @@ export const OrderItemSchema = z.object({
 });
 
 export const PlaceOrderSchema = z.object({
+  id: z.string().uuid('id must be a valid UUID').optional(),
   outletId: z.string().uuid('outletId must be a valid UUID'),
   items: z.array(OrderItemSchema).min(1, 'Order must contain at least one item'),
   notes: z.string().optional(),

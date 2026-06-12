@@ -5,7 +5,11 @@ import { SchemePolicy } from '../../domain/policies/scheme_policy.js';
 import { Order } from '../../domain/entities/order.js';
 import { OrderLine } from '../../domain/value-objects/order-line.js';
 import { Money } from '../../domain/value-objects/money.js';
-import { makeEnvelope } from '@dms/pkg-events';
+import { makeEnvelope, OutboxRepository } from '@dms/pkg-events';
+import { PostgresDatabaseClient } from '@dms/pkg-database';
+import { IOrderRepository } from '../../domain/repositories/order.repository.js';
+import { OrderPgRepository } from '../../infrastructure/database/repositories/order.pg-repository.js';
+import { TransactionalDbClient } from '../../infrastructure/database/transactional-client.js';
 
 export interface ProcessOrderResult {
   orderId: string;
@@ -18,6 +22,12 @@ export interface ProcessOrderResult {
 
 export class ProcessOrderUseCase {
   private logger = new StructuredLogger('ProcessOrderUseCase');
+  private outboxRepo = new OutboxRepository({ tableName: 'sfa_outbox' });
+
+  constructor(
+    private readonly db?: PostgresDatabaseClient,
+    private readonly orderRepo?: IOrderRepository,
+  ) {}
 
   async execute(
     orderEntity: OrderEntity,
@@ -33,9 +43,9 @@ export class ProcessOrderUseCase {
     const orderDomain = Order.create({
       id: orderEntity.id,
       tenantId: orderEntity.tenantId,
-      agentId: 'agent-1',
+      agentId: orderEntity.agentId || 'agent-1',
       outletId: orderEntity.outletId,
-      distributorId: 'dist-1',
+      distributorId: orderEntity.distributorId || 'dist-1',
       creditLimit: Money.of(creditLimitAmount, 'INR'),
       outstandingBalance: Money.zero(),
     });
@@ -83,6 +93,27 @@ export class ProcessOrderUseCase {
         causationId: activeCtx?.causationId,
       }
     );
+
+    // If real Postgres DB client is injected, run database updates in transaction
+    if (this.db) {
+      await this.db.transaction(async (conn) => {
+        const txDb = new TransactionalDbClient(conn);
+        const txRepo = this.orderRepo || new OrderPgRepository(txDb);
+
+        // Update existing order in Postgres (includes version check / optimistic locking)
+        await txRepo.update(orderEntity, orderEntity.tenantId);
+
+        // Save outbox event
+        await this.outboxRepo.save(conn, {
+          eventId: event.eventId,
+          tenantId: orderEntity.tenantId,
+          type: event.type,
+          version: 'v1',
+          payload: event.payload,
+        }, 'Order', orderEntity.id);
+      }, orderEntity.tenantId);
+      this.logger.info('Order updated and outbox event registered in transaction');
+    }
 
     this.logger.info('Order successfully processed and confirmed. Outbox event raised.', {
       orderId: orderEntity.id,

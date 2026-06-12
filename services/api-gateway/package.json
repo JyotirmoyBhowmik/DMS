@@ -5,11 +5,13 @@
   "main": "./dist/main.js",
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"dist/**/*.test.js\""
   },
   "dependencies": {
     "@dms/dms-core-service": "workspace:^",
     "@dms/pkg-analytics": "workspace:^",
+    "@dms/pkg-config": "workspace:*",
     "@dms/pkg-crypto": "workspace:*",
     "@dms/pkg-database": "workspace:*",
     "@dms/pkg-events": "workspace:*",

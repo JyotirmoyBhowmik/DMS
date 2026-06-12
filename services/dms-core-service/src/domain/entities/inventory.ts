@@ -8,17 +8,23 @@ export class Inventory {
   public readonly productId: string;
   public readonly warehouseId: string;
   private _stock: number;
+  private _version: number;
 
-  constructor(id: string, tenantId: string, productId: string, warehouseId: string, stock: number) {
+  constructor(id: string, tenantId: string, productId: string, warehouseId: string, stock: number, version = 1) {
     this.id = id;
     this.tenantId = tenantId;
     this.productId = productId;
     this.warehouseId = warehouseId;
     this._stock = stock;
+    this._version = version;
   }
 
   get stock(): number {
     return this._stock;
+  }
+
+  get version(): number {
+    return this._version;
   }
 
   static create(props: {
@@ -27,8 +33,9 @@ export class Inventory {
     productId: string;
     warehouseId: string;
     stock: number;
+    version?: number;
   }): Inventory {
-    return new Inventory(props.id, props.tenantId, props.productId, props.warehouseId, props.stock);
+    return new Inventory(props.id, props.tenantId, props.productId, props.warehouseId, props.stock, props.version ?? 1);
   }
 
   replenish(quantity: number): void {
@@ -55,6 +62,7 @@ export class Inventory {
       productId: this.productId,
       warehouseId: this.warehouseId,
       stock: this._stock,
+      version: this._version,
     };
   }
 }

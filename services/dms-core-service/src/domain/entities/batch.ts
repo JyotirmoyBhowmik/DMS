@@ -33,6 +33,7 @@ export class Batch {
   private _status: BatchStatus;
   private _mfgLotNumber?: string;
   private _version: number;
+  private _originalVersion: number;
 
   constructor(props: BatchProps) {
     this.id = props.id;
@@ -46,6 +47,7 @@ export class Batch {
     this._status = props.status ?? 'ACTIVE';
     this._mfgLotNumber = props.mfgLotNumber;
     this._version = props.version ?? 1;
+    this._originalVersion = props.version ?? 1;
   }
 
   get quantity(): number { return this._quantity; }
@@ -53,6 +55,7 @@ export class Batch {
   get status(): BatchStatus { return this._status; }
   get mfgLotNumber(): string | undefined { return this._mfgLotNumber; }
   get version(): number { return this._version; }
+  get originalVersion(): number { return this._originalVersion; }
 
   /**
    * Available quantity = total - quarantined
@@ -176,6 +179,7 @@ export class Batch {
       mfgLotNumber: this._mfgLotNumber,
       daysUntilExpiry: this.daysUntilExpiry,
       version: this._version,
+      originalVersion: this._originalVersion,
     };
   }
 }
