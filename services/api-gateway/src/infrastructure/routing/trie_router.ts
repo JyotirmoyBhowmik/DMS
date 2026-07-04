@@ -230,7 +230,7 @@ export class InMemoryRouteRepository {
         'returns'
       ] },
       { prefix: 'schemes', service: 'schemes-service', paths: ['schemes'] },
-      { prefix: 'identity', service: 'identity-service', paths: ['auth', 'users', 'roles', 'tenants'] },
+      { prefix: 'identity', service: 'identity-service', paths: ['auth', 'users', 'roles', 'tenants', 'permissions', 'mfa-devices'] },
       { prefix: 'config', service: 'config-service', paths: ['flags', 'tenant-configs'] },
       { prefix: 'notifications', service: 'notification-service', paths: ['notifications', 'templates'] },
       { prefix: 'sync', service: 'sync-service', paths: ['sync'] },

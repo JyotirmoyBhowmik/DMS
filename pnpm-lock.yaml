@@ -261,6 +261,9 @@ importers:
       '@dms/dms-core-service':
         specifier: workspace:^
         version: link:../dms-core-service
+      '@dms/identity-service':
+        specifier: workspace:^
+        version: link:../identity-service
       '@dms/pkg-analytics':
         specifier: workspace:^
         version: link:../../packages/pkg-analytics
@@ -291,9 +294,15 @@ importers:
       '@dms/pkg-validation':
         specifier: workspace:*
         version: link:../../packages/pkg-validation
+      '@dms/schemes-service':
+        specifier: workspace:^
+        version: link:../schemes-service
       '@dms/sfa-service':
         specifier: workspace:^
         version: link:../sfa-service
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
     devDependencies:
       typescript:
         specifier: ^5.3.3

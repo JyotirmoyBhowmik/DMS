@@ -19,7 +19,24 @@ test('PostgresDatabaseClient: Integration Tests', async (t) => {
     database,
     max: 2,
     idleTimeoutMillis: 1000,
+    connectionTimeoutMillis: 500, // fast fail for reachability check
   });
+
+  // Verify PG connection is reachable before executing integration tests
+  let isDbAlive = false;
+  try {
+    const client = await pool.connect();
+    client.release();
+    isDbAlive = true;
+  } catch (err) {
+    // DB is offline/unavailable
+  }
+
+  if (!isDbAlive) {
+    console.log('Skipping PostgresDatabaseClient Integration Tests because live database is not reachable.');
+    await pool.end();
+    return;
+  }
 
   const driver = new PgDriver(pool, 2);
   const config = {

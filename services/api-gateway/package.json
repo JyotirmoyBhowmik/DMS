@@ -20,7 +20,10 @@
     "@dms/pkg-rbac": "workspace:*",
     "@dms/pkg-validation": "workspace:*",
     "@dms/pkg-mobile-sync": "workspace:*",
-    "@dms/sfa-service": "workspace:^"
+    "@dms/sfa-service": "workspace:^",
+    "@dms/schemes-service": "workspace:^",
+    "@dms/identity-service": "workspace:^",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "typescript": "^5.3.3"

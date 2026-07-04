@@ -14,6 +14,14 @@ import { DistributorOnboardingUseCases } from '../../../../../dms-core-service/s
 import { DistributorOnboardingPgRepository } from '../../../../../dms-core-service/src/infrastructure/database/repositories/distributor-onboarding.pg-repository.js';
 import { PostgresDatabaseClient, PgDriver } from '@dms/pkg-database';
 
+import { AuthController as IdentityAuthController } from '../../../../../identity-service/src/presentation/rest/controllers/auth.controller.js';
+import { UserController as IdentityUserController } from '../../../../../identity-service/src/presentation/rest/controllers/user.controller.js';
+import { RoleController as IdentityRoleController } from '../../../../../identity-service/src/presentation/rest/controllers/role.controller.js';
+import { TenantController as IdentityTenantController } from '../../../../../identity-service/src/presentation/rest/controllers/tenant.controller.js';
+import { PermissionController as IdentityPermissionController } from '../../../../../identity-service/src/presentation/rest/controllers/permission.controller.js';
+import { MFADeviceController as IdentityMfaController } from '../../../../../identity-service/src/presentation/rest/controllers/mfa_device.controller.js';
+
+
 const config = loadConfigSync();
 
 interface GatewayRequest {
@@ -39,6 +47,12 @@ export class GatewayController {
   private readonly schemesController: SchemeController;
   private readonly enterpriseDmsController: EnterpriseDmsController;
   private readonly distributorOnboardingController: DistributorOnboardingController;
+  private readonly identityAuthController: IdentityAuthController;
+  private readonly identityUserController: IdentityUserController;
+  private readonly identityRoleController: IdentityRoleController;
+  private readonly identityTenantController: IdentityTenantController;
+  private readonly identityPermissionController: IdentityPermissionController;
+  private readonly identityMfaController: IdentityMfaController;
 
   constructor() {
     this.router = new TrieRouter();
@@ -54,6 +68,12 @@ export class GatewayController {
     this.routeRepo = new InMemoryRouteRepository();
     this.sfaOrderController = new OrderController();
     this.schemesController = new SchemeController();
+    this.identityAuthController = new IdentityAuthController();
+    this.identityUserController = new IdentityUserController();
+    this.identityRoleController = new IdentityRoleController();
+    this.identityTenantController = new IdentityTenantController();
+    this.identityPermissionController = new IdentityPermissionController();
+    this.identityMfaController = new IdentityMfaController();
 
     const db = new PostgresDatabaseClient(config.db, new PgDriver());
     const onboardingRepo = new DistributorOnboardingPgRepository(db);
@@ -307,6 +327,154 @@ export class GatewayController {
       }
 
       return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'dms-core-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'identity-service') {
+      let resultBody: any = {};
+      let statusCode = 200;
+
+      if (handler.targetPath.startsWith('/users')) {
+        const id = params.id;
+        if (request.method === 'POST') {
+          const res = await this.identityUserController.handlePostUser(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'GET') {
+          if (id) {
+            const res = await this.identityUserController.handleGetUser(id, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          } else {
+            const res = await this.identityUserController.handleListUsers(request.body || {}, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          }
+        } else if (request.method === 'PUT') {
+          const res = await this.identityUserController.handlePutUser(id, request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'DELETE') {
+          const res = await this.identityUserController.handleDeleteUser(id, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (handler.targetPath.startsWith('/roles')) {
+        const id = params.id;
+        if (request.method === 'POST') {
+          const res = await this.identityRoleController.handlePostRole(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'GET') {
+          if (id) {
+            const res = await this.identityRoleController.handleGetRole(id, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          } else {
+            const res = await this.identityRoleController.handleListRoles(request.body || {}, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          }
+        } else if (request.method === 'PUT') {
+          const res = await this.identityRoleController.handlePutRole(id, request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'DELETE') {
+          const res = await this.identityRoleController.handleDeleteRole(id, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (handler.targetPath.startsWith('/tenants')) {
+        const id = params.id;
+        if (request.method === 'POST') {
+          const res = await this.identityTenantController.handlePostTenant(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'GET') {
+          if (id) {
+            const res = await this.identityTenantController.handleGetTenant(id, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          } else {
+            const res = await this.identityTenantController.handleListTenants(request.body || {}, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          }
+        } else if (request.method === 'PUT') {
+          const res = await this.identityTenantController.handlePutTenant(id, request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'DELETE') {
+          const res = await this.identityTenantController.handleDeleteTenant(id, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (handler.targetPath.startsWith('/permissions')) {
+        const id = params.id;
+        if (request.method === 'POST') {
+          const res = await this.identityPermissionController.handlePostPermission(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'GET') {
+          if (id) {
+            const res = await this.identityPermissionController.handleGetPermission(id, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          } else {
+            const res = await this.identityPermissionController.handleListPermissions(request.body || {}, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          }
+        } else if (request.method === 'PUT') {
+          const res = await this.identityPermissionController.handlePutPermission(id, request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'DELETE') {
+          const res = await this.identityPermissionController.handleDeletePermission(id, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (handler.targetPath.startsWith('/mfa-devices')) {
+        const id = params.id;
+        if (request.method === 'POST') {
+          const res = await this.identityMfaController.handlePostMFADevice(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'GET') {
+          if (id) {
+            const res = await this.identityMfaController.handleGetMFADevice(id, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          } else {
+            const res = await this.identityMfaController.handleListMFADevices(request.body || {}, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          }
+        } else if (request.method === 'PUT') {
+          const res = await this.identityMfaController.handlePutMFADevice(id, request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'DELETE') {
+          const res = await this.identityMfaController.handleDeleteMFADevice(id, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (handler.targetPath.startsWith('/auth')) {
+        if (request.path.endsWith('/login') && request.method === 'POST') {
+          const res = await this.identityAuthController.handlePostLogin(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.path.endsWith('/verify') && request.method === 'POST') {
+          const res = await this.identityAuthController.handlePostVerify(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.path.endsWith('/jwks') && request.method === 'GET') {
+          const res = await this.identityAuthController.handleGetJwks();
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'identity-service' }, body: resultBody };
     }
 
     const upstreamResponse = this.forwardToUpstream(handler, request, params);
