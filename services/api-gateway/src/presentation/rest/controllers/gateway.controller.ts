@@ -8,6 +8,7 @@ import { KeyManager } from '../../../../../identity-service/src/application/usec
 import { loadConfigSync } from '@dms/pkg-config';
 import { OrderController } from '../../../../../sfa-service/src/presentation/rest/controllers/order.controller.js';
 import { SchemeController } from '../../../../../schemes-service/src/presentation/rest/controllers/scheme.controller.js';
+import { ClaimController } from '../../../../../claims-service/src/presentation/rest/controllers/claim.controller.js';
 import { EnterpriseDmsController } from '../../../../../dms-core-service/src/presentation/rest/controllers/enterprise_dms.controller.js';
 import { DistributorOnboardingController } from '../../../../../dms-core-service/src/presentation/rest/controllers/distributor-onboarding.controller.js';
 import { DistributorOnboardingUseCases } from '../../../../../dms-core-service/src/application/usecases/distributor-onboarding/distributor-onboarding.usecases.js';
@@ -37,6 +38,7 @@ export class GatewayController {
   private readonly routeRepo: InMemoryRouteRepository;
   private readonly sfaOrderController: OrderController;
   private readonly schemesController: SchemeController;
+  private readonly claimsController: ClaimController;
   private readonly enterpriseDmsController: EnterpriseDmsController;
   private readonly distributorOnboardingController: DistributorOnboardingController;
 
@@ -54,6 +56,7 @@ export class GatewayController {
     this.routeRepo = new InMemoryRouteRepository();
     this.sfaOrderController = new OrderController();
     this.schemesController = new SchemeController();
+    this.claimsController = new ClaimController();
 
     const db = new PostgresDatabaseClient(config.db, new PgDriver());
     const onboardingRepo = new DistributorOnboardingPgRepository(db);
@@ -219,6 +222,72 @@ export class GatewayController {
       }
 
       return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'schemes-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'claims-service' && handler.targetPath.startsWith('/claims')) {
+      let resultBody: any;
+      let statusCode = 200;
+
+      if (request.method === 'POST') {
+        const subPath = request.path.replace('/api/v1/claims', '');
+        const id = params.id;
+        if (subPath.endsWith('/validate') && id) {
+          const res = await this.claimsController.handleValidateClaim(id, request.body, {
+            'x-tenant-id': tenantId,
+            'x-agent-id': principal?.id || 'unknown',
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (subPath.endsWith('/approve') && id) {
+          const res = await this.claimsController.handleApproveClaim(id, request.body, {
+            'x-tenant-id': tenantId,
+            'x-agent-id': principal?.id || 'unknown',
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (subPath.endsWith('/reject') && id) {
+          const res = await this.claimsController.handleRejectClaim(id, request.body, {
+            'x-tenant-id': tenantId,
+            'x-agent-id': principal?.id || 'unknown',
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (subPath.endsWith('/settle') && id) {
+          const res = await this.claimsController.handleSettleClaim(id, request.body, {
+            'x-tenant-id': tenantId,
+            'x-agent-id': principal?.id || 'unknown',
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.claimsController.handlePostClaim(request.body, {
+            'x-tenant-id': tenantId,
+            'x-agent-id': principal?.id || 'unknown',
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.claimsController.handleGetClaim(id, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.claimsController.handleListClaims(request.body || {}, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'claims-service' }, body: resultBody };
     }
 
     if (handler.targetService === 'dms-core-service' && handler.targetPath.startsWith('/distributors')) {
