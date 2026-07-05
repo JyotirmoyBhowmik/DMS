@@ -327,6 +327,46 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
+  services/claims-service:
+    dependencies:
+      '@dms/pkg-config':
+        specifier: workspace:*
+        version: link:../../packages/pkg-config
+      '@dms/pkg-crypto':
+        specifier: workspace:*
+        version: link:../../packages/pkg-crypto
+      '@dms/pkg-database':
+        specifier: workspace:*
+        version: link:../../packages/pkg-database
+      '@dms/pkg-events':
+        specifier: workspace:*
+        version: link:../../packages/pkg-events
+      '@dms/pkg-http':
+        specifier: workspace:*
+        version: link:../../packages/pkg-http
+      '@dms/pkg-logger':
+        specifier: workspace:*
+        version: link:../../packages/pkg-logger
+      '@dms/pkg-rbac':
+        specifier: workspace:*
+        version: link:../../packages/pkg-rbac
+      '@dms/pkg-validation':
+        specifier: workspace:*
+        version: link:../../packages/pkg-validation
+      pg:
+        specifier: ^8.21.0
+        version: 8.21.0
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.20.0
+        version: 8.20.0
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   services/config-service:
     dependencies:
       '@dms/pkg-crypto':
@@ -428,6 +468,43 @@ importers:
         specifier: workspace:*
         version: link:../../packages/pkg-validation
     devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  services/finance-service:
+    dependencies:
+      '@dms/pkg-config':
+        specifier: workspace:*
+        version: link:../../packages/pkg-config
+      '@dms/pkg-crypto':
+        specifier: workspace:*
+        version: link:../../packages/pkg-crypto
+      '@dms/pkg-database':
+        specifier: workspace:*
+        version: link:../../packages/pkg-database
+      '@dms/pkg-events':
+        specifier: workspace:*
+        version: link:../../packages/pkg-events
+      '@dms/pkg-http':
+        specifier: workspace:*
+        version: link:../../packages/pkg-http
+      '@dms/pkg-logger':
+        specifier: workspace:*
+        version: link:../../packages/pkg-logger
+      '@dms/pkg-rbac':
+        specifier: workspace:*
+        version: link:../../packages/pkg-rbac
+      '@dms/pkg-validation':
+        specifier: workspace:*
+        version: link:../../packages/pkg-validation
+      pg:
+        specifier: ^8.21.0
+        version: 8.21.0
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.20.0
+        version: 8.20.0
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
@@ -537,6 +614,46 @@ importers:
         specifier: workspace:*
         version: link:../../packages/pkg-validation
     devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  services/pricing-service:
+    dependencies:
+      '@dms/pkg-config':
+        specifier: workspace:*
+        version: link:../../packages/pkg-config
+      '@dms/pkg-crypto':
+        specifier: workspace:*
+        version: link:../../packages/pkg-crypto
+      '@dms/pkg-database':
+        specifier: workspace:*
+        version: link:../../packages/pkg-database
+      '@dms/pkg-events':
+        specifier: workspace:*
+        version: link:../../packages/pkg-events
+      '@dms/pkg-http':
+        specifier: workspace:*
+        version: link:../../packages/pkg-http
+      '@dms/pkg-logger':
+        specifier: workspace:*
+        version: link:../../packages/pkg-logger
+      '@dms/pkg-rbac':
+        specifier: workspace:*
+        version: link:../../packages/pkg-rbac
+      '@dms/pkg-validation':
+        specifier: workspace:*
+        version: link:../../packages/pkg-validation
+      pg:
+        specifier: ^8.21.0
+        version: 8.21.0
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.20.0
+        version: 8.20.0
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
@@ -669,6 +786,9 @@ importers:
       pg:
         specifier: ^8.21.0
         version: 8.21.0
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
     devDependencies:
       '@types/pg':
         specifier: ^8.20.0

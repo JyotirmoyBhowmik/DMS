@@ -1,5 +1,5 @@
 {
-  "name": "@dms/sfa-service",
+  "name": "@dms/pricing-service",
   "version": "1.0.0",
   "private": true,
   "main": "./dist/main.js",
@@ -9,7 +9,6 @@
     "test": "node --test \"dist/**/*.test.js\""
   },
   "dependencies": {
-    "@dms/pkg-analytics": "workspace:^",
     "@dms/pkg-config": "workspace:*",
     "@dms/pkg-crypto": "workspace:*",
     "@dms/pkg-database": "workspace:*",

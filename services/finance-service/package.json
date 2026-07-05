@@ -1,5 +1,5 @@
 {
-  "name": "@dms/sfa-service",
+  "name": "@dms/finance-service",
   "version": "1.0.0",
   "private": true,
   "main": "./dist/main.js",
@@ -9,7 +9,6 @@
     "test": "node --test \"dist/**/*.test.js\""
   },
   "dependencies": {
-    "@dms/pkg-analytics": "workspace:^",
     "@dms/pkg-config": "workspace:*",
     "@dms/pkg-crypto": "workspace:*",
     "@dms/pkg-database": "workspace:*",
@@ -18,8 +17,7 @@
     "@dms/pkg-logger": "workspace:*",
     "@dms/pkg-rbac": "workspace:*",
     "@dms/pkg-validation": "workspace:*",
-    "pg": "^8.21.0",
-    "zod": "^3.22.4"
+    "pg": "^8.21.0"
   },
   "devDependencies": {
     "@types/pg": "^8.20.0",

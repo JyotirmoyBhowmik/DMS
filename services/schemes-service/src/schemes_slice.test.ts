@@ -50,7 +50,7 @@ describe('Schemes Module & E2E Integration Tests', () => {
       : join(rootDir, '../../db/migrations/schemes');
 
     console.log(`[Schemes Test] Dropping and recreating public schema for clean tests`);
-    await db.query('DROP SCHEMA public CASCADE');
+    await db.query('DROP SCHEMA IF EXISTS public CASCADE');
     await db.query('CREATE SCHEMA public');
     await db.query('GRANT ALL ON SCHEMA public TO public');
 

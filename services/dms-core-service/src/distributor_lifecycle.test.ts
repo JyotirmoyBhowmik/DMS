@@ -75,7 +75,7 @@ describe('DMS Distributor Lifecycle Module & E2E Integration Tests', () => {
       : join(rootDir, '../../db/migrations/dms');
 
     console.log(`[DMS Test] Dropping and recreating public schema for clean tests`);
-    await db.query('DROP SCHEMA public CASCADE');
+    await db.query('DROP SCHEMA IF EXISTS public CASCADE');
     await db.query('CREATE SCHEMA public');
     await db.query('GRANT ALL ON SCHEMA public TO public');
 
