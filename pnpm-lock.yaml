@@ -676,6 +676,9 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
 
   services/sync-service:
     dependencies:
@@ -9350,4 +9353,3 @@ packages:
 
   /zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
-    dev: false
