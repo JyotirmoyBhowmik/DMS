@@ -225,11 +225,11 @@ export class InMemoryRouteRepository {
         'inventory/allocate',
         'inventory/alerts',
         'inventory/reconcile',
-        'price-lists',
-        'claims',
         'returns'
       ] },
       { prefix: 'schemes', service: 'schemes-service', paths: ['schemes'] },
+      { prefix: 'pricing', service: 'pricing-service', paths: ['pricing/price-lists', 'pricing/calculate'] },
+      { prefix: 'claims', service: 'claims-service', paths: ['claims', 'claims/:id/validate', 'claims/:id/approve', 'claims/:id/reject', 'claims/:id/settle'] },
       { prefix: 'identity', service: 'identity-service', paths: ['auth', 'users', 'roles', 'tenants', 'permissions', 'mfa-devices'] },
       { prefix: 'config', service: 'config-service', paths: ['flags', 'tenant-configs'] },
       { prefix: 'notifications', service: 'notification-service', paths: ['notifications', 'templates'] },
