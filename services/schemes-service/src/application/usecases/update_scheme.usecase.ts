@@ -8,6 +8,22 @@ import { TransactionalDbClient } from '../../infrastructure/database/transaction
 import { OutboxRepository, makeEnvelope } from '@dms/pkg-events';
 import { z } from 'zod';
 
+const SchemeSlabSchema = z.object({
+  minQuantity: z.number().int().nonnegative().optional(),
+  minAmount: z.number().int().nonnegative().optional(),
+  discountPercentage: z.number().min(0).max(100).optional(),
+  flatDiscountAmount: z.number().int().nonnegative().optional(),
+  freeGoods: z.array(z.object({
+    skuId: z.string().uuid(),
+    quantity: z.number().int().positive(),
+  })).optional(),
+});
+
+const ComboItemSchema = z.object({
+  skuId: z.string().uuid(),
+  minQty: z.number().int().positive(),
+});
+
 export const UpdateSchemeInputSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().optional(),
@@ -15,12 +31,20 @@ export const UpdateSchemeInputSchema = z.object({
   endDate: z.coerce.date().optional(),
   status: z.enum(['draft', 'active', 'suspended', 'expired']).optional(),
   rules: z.object({
-    minOrderAmount: z.number().nonnegative().optional(),
+    minOrderAmount: z.number().int().nonnegative().optional(),
     applicableSkuIds: z.array(z.string().uuid()).optional(),
+    slabs: z.array(SchemeSlabSchema).optional(),
+    comboItems: z.array(ComboItemSchema).optional(),
+    allowStacking: z.boolean().optional(),
+    exclusionGroup: z.string().optional(),
   }).optional(),
   payouts: z.object({
     discountPercentage: z.number().min(0).max(100).optional(),
-    flatDiscountAmount: z.number().nonnegative().optional(),
+    flatDiscountAmount: z.number().int().nonnegative().optional(),
+    freeGoods: z.array(z.object({
+      skuId: z.string().uuid(),
+      quantity: z.number().int().positive(),
+    })).optional(),
   }).optional(),
   version: z.number(), // required for optimistic locking
 });
