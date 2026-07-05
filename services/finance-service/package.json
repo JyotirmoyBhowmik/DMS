@@ -1,0 +1,26 @@
+{
+  "name": "@dms/finance-service",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"dist/**/*.test.js\""
+  },
+  "dependencies": {
+    "@dms/pkg-config": "workspace:*",
+    "@dms/pkg-crypto": "workspace:*",
+    "@dms/pkg-database": "workspace:*",
+    "@dms/pkg-events": "workspace:*",
+    "@dms/pkg-http": "workspace:*",
+    "@dms/pkg-logger": "workspace:*",
+    "@dms/pkg-rbac": "workspace:*",
+    "@dms/pkg-validation": "workspace:*",
+    "pg": "^8.21.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.20.0",
+    "typescript": "^5.3.3"
+  }
+}

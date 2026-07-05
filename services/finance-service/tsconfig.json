@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsonfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "experimentalDecorators": true
+  },
+  "include": ["src/**/*"]
+}
