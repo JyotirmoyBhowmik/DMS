@@ -2,6 +2,7 @@ import net from 'node:net';
 import { Pool, PoolClient } from 'pg';
 import { setTenantContext, clearTenantContext } from '../rls/policy_builder.js';
 import { DatabaseError } from '../errors.js';
+import { ICacheClient, CacheOptions } from '../cache/cache-client.js';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -332,6 +333,7 @@ export class PostgresDatabaseClient {
   private readonly driver: IDatabaseDriver;
   private readonly circuitBreaker: CircuitBreaker;
   private readonly preparedStatements = new PreparedStatementCache();
+  private cacheClient?: ICacheClient;
 
   // Resolved configuration values
   private readonly queryTimeoutMs: number;
@@ -373,6 +375,10 @@ export class PostgresDatabaseClient {
       resolvedConfig.circuitBreakerThreshold ?? 5,
       resolvedConfig.circuitBreakerResetMs ?? 30_000,
     );
+  }
+
+  setCacheClient(client: ICacheClient): void {
+    this.cacheClient = client;
   }
 
   // ── Health Check ──────────────────────────────────────────────────────────
@@ -436,7 +442,15 @@ export class PostgresDatabaseClient {
     sql: string,
     params?: unknown[],
     tenantId?: string,
+    cacheOpts?: CacheOptions,
   ): Promise<QueryResult<T>> {
+    if (cacheOpts && this.cacheClient) {
+      const cached = await this.cacheClient.get<QueryResult<T>>(cacheOpts.key);
+      if (cached) {
+        return cached;
+      }
+    }
+
     this.circuitBreaker.guard();
 
     let client: IConnectionClient;
@@ -468,6 +482,11 @@ export class PostgresDatabaseClient {
       }
 
       this.circuitBreaker.recordSuccess();
+
+      if (cacheOpts && this.cacheClient) {
+        await this.cacheClient.set(cacheOpts.key, result, cacheOpts.ttlSeconds);
+      }
+
       return result;
     } catch (err) {
       this.circuitBreaker.recordFailure();

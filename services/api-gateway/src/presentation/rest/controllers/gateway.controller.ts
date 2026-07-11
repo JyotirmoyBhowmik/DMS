@@ -310,6 +310,28 @@ export class GatewayController {
       return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'claims-service' }, body: resultBody };
     }
 
+    if (handler.targetService === 'audit-service') {
+      let resultBody: any;
+      let statusCode = 200;
+      const auditController = AuditController.getInstance();
+
+      if (handler.targetPath === '/audit/verify') {
+        const res = await auditController.handleVerifyChain();
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (handler.targetPath === '/audit/tamper') {
+        const { blockNumber, alteredData } = request.body as any;
+        await auditController.simulateTampering(Number(blockNumber), alteredData);
+        statusCode = 200;
+        resultBody = { success: true, message: `Block #${blockNumber} tampered successfully` };
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'audit-service' }, body: resultBody };
+    }
+
     if (handler.targetService === 'dms-core-service' && handler.targetPath.startsWith('/distributors')) {
       let resultBody: any = {};
       let statusCode = 200;

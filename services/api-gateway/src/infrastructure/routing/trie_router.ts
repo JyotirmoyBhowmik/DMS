@@ -235,7 +235,7 @@ export class InMemoryRouteRepository {
       { prefix: 'notifications', service: 'notification-service', paths: ['notifications', 'templates'] },
       { prefix: 'sync', service: 'sync-service', paths: ['sync'] },
       { prefix: 'files', service: 'file-service', paths: ['files'] },
-      { prefix: 'audit', service: 'audit-service', paths: ['audit'] },
+      { prefix: 'audit', service: 'audit-service', paths: ['audit', 'audit/verify', 'audit/tamper'] },
       { prefix: 'ai', service: 'ai-gateway-service', paths: ['inference', 'models', 'prompts'] },
       { prefix: 'forecasts', service: 'forecasting-service', paths: ['forecasts'] },
       { prefix: 'recommendations', service: 'recommendation-service', paths: ['recommendations'] },
