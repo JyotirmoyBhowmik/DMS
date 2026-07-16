@@ -11,7 +11,7 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 export interface HttpRequestOptions {
   method?: HttpMethod;
   headers?: Record<string, string>;
-  body?: string;
+  body?: any;
   timeoutMs?: number;
   idempotent?: boolean;
 }

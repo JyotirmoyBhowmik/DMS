@@ -96,575 +96,575 @@ DMS Modules	dms-core-service	TertiarySale: integration tests - repository	QA	P1	
 DMS Modules	dms-core-service	TertiarySale: API integration tests	QA	P1	Gateway	Mock	P3 DMS/SFA
 DMS Modules	dms-core-service	TertiarySale: web admin list screen	Web	P1	Gateway auth	Mock	P3 DMS/SFA
 DMS Modules	dms-core-service	TertiarySale: web admin detail / form screen	Web	P1	Gateway auth	Mock	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceList: OpenAPI / GraphQL contract	Backend	P1	PriceList use cases	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceList: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceList: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceList: unit tests - use cases	QA	P1	PriceList use cases	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceList: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceList: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceList: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceList: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceSlab: OpenAPI / GraphQL contract	Backend	P1	PriceSlab use cases	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceSlab: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceSlab: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceSlab: unit tests - use cases	QA	P1	PriceSlab use cases	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceSlab: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceSlab: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceSlab: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	PriceSlab: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	GeoPriceRule: OpenAPI / GraphQL contract	Backend	P1	GeoPriceRule use cases	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	GeoPriceRule: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	GeoPriceRule: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	GeoPriceRule: unit tests - use cases	QA	P1	GeoPriceRule use cases	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	GeoPriceRule: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	GeoPriceRule: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	GeoPriceRule: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	GeoPriceRule: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	ChannelPriceRule: OpenAPI / GraphQL contract	Backend	P1	ChannelPriceRule use cases	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	ChannelPriceRule: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	ChannelPriceRule: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	ChannelPriceRule: unit tests - use cases	QA	P1	ChannelPriceRule use cases	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	ChannelPriceRule: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	ChannelPriceRule: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	ChannelPriceRule: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	ChannelPriceRule: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	Discount: OpenAPI / GraphQL contract	Backend	P1	Discount use cases	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	Discount: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	Discount: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	Discount: unit tests - use cases	QA	P1	Discount use cases	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	Discount: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	Discount: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	Discount: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	Discount: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	TaxRule: OpenAPI / GraphQL contract	Backend	P1	TaxRule use cases	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	TaxRule: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	TaxRule: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	TaxRule: unit tests - use cases	QA	P1	TaxRule use cases	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	TaxRule: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	TaxRule: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	TaxRule: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	pricing-service (new)	TaxRule: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: DB migration, indexes & constraints	DB	P1	Migration runner	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: domain entity / aggregate model	Backend	P1	-	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: Postgres repository implementation	Backend	P1	pkg-database	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: Create use case	Backend	P1	Scheme repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: Get / detail use case	Backend	P1	Scheme repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: Update use case	Backend	P1	Scheme repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: List / search use case (pagination, filters)	Backend	P1	Scheme repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: domain validation rules	Backend	P1	Scheme repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: business rules & state transitions	Backend	P1	Scheme repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: publish domain events (outbox)	Backend	P1	Outbox, Broker	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: event consumer / projection handler	Backend	P1	Broker	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: API controller & routes	Backend	P1	Scheme use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: OpenAPI / GraphQL contract	Backend	P1	Scheme use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: DTOs & request/response mapping	Backend	P1	Scheme use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: unit tests - use cases	QA	P1	Scheme use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	Scheme: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: DB migration, indexes & constraints	DB	P1	Migration runner	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: domain entity / aggregate model	Backend	P1	-	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: Postgres repository implementation	Backend	P1	pkg-database	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: Create use case	Backend	P1	SchemePromotion repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: Get / detail use case	Backend	P1	SchemePromotion repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: Update use case	Backend	P1	SchemePromotion repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: List / search use case (pagination, filters)	Backend	P1	SchemePromotion repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: domain validation rules	Backend	P1	SchemePromotion repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: business rules & state transitions	Backend	P1	SchemePromotion repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: publish domain events (outbox)	Backend	P1	Outbox, Broker	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: API controller & routes	Backend	P1	SchemePromotion use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: OpenAPI / GraphQL contract	Backend	P1	SchemePromotion use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: DTOs & request/response mapping	Backend	P1	SchemePromotion use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: unit tests - use cases	QA	P1	SchemePromotion use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePromotion: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: DB migration, indexes & constraints	DB	P1	Migration runner	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: domain entity / aggregate model	Backend	P1	-	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: Postgres repository implementation	Backend	P1	pkg-database	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: Create use case	Backend	P1	EligibilityRule repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: Get / detail use case	Backend	P1	EligibilityRule repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: Update use case	Backend	P1	EligibilityRule repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: List / search use case (pagination, filters)	Backend	P1	EligibilityRule repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: domain validation rules	Backend	P1	EligibilityRule repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: business rules & state transitions	Backend	P1	EligibilityRule repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: publish domain events (outbox)	Backend	P1	Outbox, Broker	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: API controller & routes	Backend	P1	EligibilityRule use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: OpenAPI / GraphQL contract	Backend	P1	EligibilityRule use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: DTOs & request/response mapping	Backend	P1	EligibilityRule use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: unit tests - use cases	QA	P1	EligibilityRule use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	EligibilityRule: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: DB migration, indexes & constraints	DB	P1	Migration runner	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: domain entity / aggregate model	Backend	P1	-	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: Postgres repository implementation	Backend	P1	pkg-database	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: Create use case	Backend	P1	SchemeBudget repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: Get / detail use case	Backend	P1	SchemeBudget repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: Update use case	Backend	P1	SchemeBudget repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: List / search use case (pagination, filters)	Backend	P1	SchemeBudget repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: domain validation rules	Backend	P1	SchemeBudget repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: business rules & state transitions	Backend	P1	SchemeBudget repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: publish domain events (outbox)	Backend	P1	Outbox, Broker	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: API controller & routes	Backend	P1	SchemeBudget use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: OpenAPI / GraphQL contract	Backend	P1	SchemeBudget use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: DTOs & request/response mapping	Backend	P1	SchemeBudget use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: unit tests - use cases	QA	P1	SchemeBudget use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemeBudget: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: DB migration, indexes & constraints	DB	P1	Migration runner	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: domain entity / aggregate model	Backend	P1	-	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: Postgres repository implementation	Backend	P1	pkg-database	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: Create use case	Backend	P1	SlabReward repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: Get / detail use case	Backend	P1	SlabReward repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: Update use case	Backend	P1	SlabReward repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: List / search use case (pagination, filters)	Backend	P1	SlabReward repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: domain validation rules	Backend	P1	SlabReward repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: business rules & state transitions	Backend	P1	SlabReward repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: publish domain events (outbox)	Backend	P1	Outbox, Broker	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: API controller & routes	Backend	P1	SlabReward use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: OpenAPI / GraphQL contract	Backend	P1	SlabReward use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: DTOs & request/response mapping	Backend	P1	SlabReward use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: unit tests - use cases	QA	P1	SlabReward use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SlabReward: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: DB migration, indexes & constraints	DB	P1	Migration runner	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: domain entity / aggregate model	Backend	P1	-	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: Postgres repository implementation	Backend	P1	pkg-database	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: Create use case	Backend	P1	SchemePayout repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: Get / detail use case	Backend	P1	SchemePayout repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: Update use case	Backend	P1	SchemePayout repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: List / search use case (pagination, filters)	Backend	P1	SchemePayout repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: domain validation rules	Backend	P1	SchemePayout repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: business rules & state transitions	Backend	P1	SchemePayout repo	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: publish domain events (outbox)	Backend	P1	Outbox, Broker	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: event consumer / projection handler	Backend	P1	Broker	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: API controller & routes	Backend	P1	SchemePayout use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: OpenAPI / GraphQL contract	Backend	P1	SchemePayout use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: DTOs & request/response mapping	Backend	P1	SchemePayout use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: unit tests - use cases	QA	P1	SchemePayout use cases	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	schemes-service (new)	SchemePayout: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: DB migration, indexes & constraints	DB	P1	Migration runner	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: domain entity / aggregate model	Backend	P1	-	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: Postgres repository implementation	Backend	P1	pkg-database	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: Create use case	Backend	P1	Claim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: Get / detail use case	Backend	P1	Claim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: Update use case	Backend	P1	Claim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: List / search use case (pagination, filters)	Backend	P1	Claim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: domain validation rules	Backend	P1	Claim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: business rules & state transitions	Backend	P1	Claim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: publish domain events (outbox)	Backend	P1	Outbox, Broker	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: event consumer / projection handler	Backend	P1	Broker	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: API controller & routes	Backend	P1	Claim use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: OpenAPI / GraphQL contract	Backend	P1	Claim use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: DTOs & request/response mapping	Backend	P1	Claim use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: unit tests - use cases	QA	P1	Claim use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Claim: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: DB migration, indexes & constraints	DB	P1	Migration runner	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: domain entity / aggregate model	Backend	P1	-	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: Postgres repository implementation	Backend	P1	pkg-database	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: Create use case	Backend	P1	SchemeClaim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: Get / detail use case	Backend	P1	SchemeClaim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: Update use case	Backend	P1	SchemeClaim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: List / search use case (pagination, filters)	Backend	P1	SchemeClaim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: domain validation rules	Backend	P1	SchemeClaim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: business rules & state transitions	Backend	P1	SchemeClaim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: publish domain events (outbox)	Backend	P1	Outbox, Broker	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: API controller & routes	Backend	P1	SchemeClaim use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: OpenAPI / GraphQL contract	Backend	P1	SchemeClaim use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: DTOs & request/response mapping	Backend	P1	SchemeClaim use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: unit tests - use cases	QA	P1	SchemeClaim use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	SchemeClaim: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: DB migration, indexes & constraints	DB	P1	Migration runner	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: domain entity / aggregate model	Backend	P1	-	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: Postgres repository implementation	Backend	P1	pkg-database	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: Create use case	Backend	P1	DamageClaim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: Get / detail use case	Backend	P1	DamageClaim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: Update use case	Backend	P1	DamageClaim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: List / search use case (pagination, filters)	Backend	P1	DamageClaim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: domain validation rules	Backend	P1	DamageClaim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: business rules & state transitions	Backend	P1	DamageClaim repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: publish domain events (outbox)	Backend	P1	Outbox, Broker	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: API controller & routes	Backend	P1	DamageClaim use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: OpenAPI / GraphQL contract	Backend	P1	DamageClaim use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: DTOs & request/response mapping	Backend	P1	DamageClaim use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: unit tests - use cases	QA	P1	DamageClaim use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	DamageClaim: mobile screen + offline cache	Mobile	P1	Offline DB, Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: DB migration, indexes & constraints	DB	P1	Migration runner	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: domain entity / aggregate model	Backend	P1	-	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: Postgres repository implementation	Backend	P1	pkg-database	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: Create use case	Backend	P1	ClaimReconciliation repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: Get / detail use case	Backend	P1	ClaimReconciliation repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: Update use case	Backend	P1	ClaimReconciliation repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: List / search use case (pagination, filters)	Backend	P1	ClaimReconciliation repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: domain validation rules	Backend	P1	ClaimReconciliation repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: business rules & state transitions	Backend	P1	ClaimReconciliation repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: publish domain events (outbox)	Backend	P1	Outbox, Broker	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: API controller & routes	Backend	P1	ClaimReconciliation use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: OpenAPI / GraphQL contract	Backend	P1	ClaimReconciliation use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: DTOs & request/response mapping	Backend	P1	ClaimReconciliation use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: unit tests - use cases	QA	P1	ClaimReconciliation use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	ClaimReconciliation: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: DB migration, indexes & constraints	DB	P1	Migration runner	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: domain entity / aggregate model	Backend	P1	-	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: Postgres repository implementation	Backend	P1	pkg-database	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: Create use case	Backend	P1	Settlement repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: Get / detail use case	Backend	P1	Settlement repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: Update use case	Backend	P1	Settlement repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: List / search use case (pagination, filters)	Backend	P1	Settlement repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: domain validation rules	Backend	P1	Settlement repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: business rules & state transitions	Backend	P1	Settlement repo	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: publish domain events (outbox)	Backend	P1	Outbox, Broker	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: event consumer / projection handler	Backend	P1	Broker	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: API controller & routes	Backend	P1	Settlement use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: OpenAPI / GraphQL contract	Backend	P1	Settlement use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: DTOs & request/response mapping	Backend	P1	Settlement use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: unit tests - use cases	QA	P1	Settlement use cases	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	claims-service (new)	Settlement: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Invoice: OpenAPI / GraphQL contract	Backend	P1	Invoice use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Invoice: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Invoice: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Invoice: unit tests - use cases	QA	P1	Invoice use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Invoice: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Invoice: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Invoice: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Invoice: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	CreditNote: OpenAPI / GraphQL contract	Backend	P1	CreditNote use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	CreditNote: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	CreditNote: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	CreditNote: unit tests - use cases	QA	P1	CreditNote use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	CreditNote: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	CreditNote: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	CreditNote: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	CreditNote: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	DebitNote: OpenAPI / GraphQL contract	Backend	P1	DebitNote use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	DebitNote: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	DebitNote: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	DebitNote: unit tests - use cases	QA	P1	DebitNote use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	DebitNote: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	DebitNote: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	DebitNote: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	DebitNote: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Payment: OpenAPI / GraphQL contract	Backend	P1	Payment use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Payment: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Payment: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Payment: unit tests - use cases	QA	P1	Payment use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Payment: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Payment: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Payment: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Payment: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Collection: OpenAPI / GraphQL contract	Backend	P1	Collection use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Collection: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Collection: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Collection: unit tests - use cases	QA	P1	Collection use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Collection: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Collection: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Collection: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Collection: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Outstanding: OpenAPI / GraphQL contract	Backend	P1	Outstanding use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Outstanding: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Outstanding: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Outstanding: unit tests - use cases	QA	P1	Outstanding use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Outstanding: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Outstanding: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Outstanding: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	Outstanding: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	AgeingReport: OpenAPI / GraphQL contract	Backend	P1	AgeingReport use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	AgeingReport: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	AgeingReport: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	AgeingReport: unit tests - use cases	QA	P1	AgeingReport use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	AgeingReport: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	AgeingReport: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	AgeingReport: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	AgeingReport: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eInvoice: OpenAPI / GraphQL contract	Backend	P1	eInvoice use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eInvoice: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eInvoice: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eInvoice: unit tests - use cases	QA	P1	eInvoice use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eInvoice: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eInvoice: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eInvoice: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eInvoice: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eWayBill: OpenAPI / GraphQL contract	Backend	P1	eWayBill use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eWayBill: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eWayBill: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eWayBill: unit tests - use cases	QA	P1	eWayBill use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eWayBill: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eWayBill: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eWayBill: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	eWayBill: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	TaxFiling: OpenAPI / GraphQL contract	Backend	P1	TaxFiling use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	TaxFiling: audit logging hooks	Backend	P1	Audit svc	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	TaxFiling: unit tests - domain	QA	P1	-	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	TaxFiling: unit tests - use cases	QA	P1	TaxFiling use cases	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	TaxFiling: integration tests - repository	QA	P1	Postgres	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	TaxFiling: API integration tests	QA	P1	Gateway	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	TaxFiling: web admin list screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-DMS Modules	finance-service (new)	TaxFiling: web admin detail / form screen	Web	P1	Gateway auth	Missing	P3 DMS/SFA
-Identity & Security	identity-service	User: OpenAPI / GraphQL contract	Backend	P1	User use cases	Partial	P1 Foundation
-Identity & Security	identity-service	User: audit logging hooks	Backend	P1	Audit svc	Partial	P1 Foundation
-Identity & Security	identity-service	User: unit tests - domain	QA	P1	-	Partial	P1 Foundation
-Identity & Security	identity-service	User: unit tests - use cases	QA	P1	User use cases	Partial	P1 Foundation
-Identity & Security	identity-service	User: integration tests - repository	QA	P1	Postgres	Partial	P1 Foundation
-Identity & Security	identity-service	User: API integration tests	QA	P1	Gateway	Partial	P1 Foundation
-Identity & Security	identity-service	User: web admin list screen	Web	P1	Gateway auth	Partial	P1 Foundation
-Identity & Security	identity-service	User: web admin detail / form screen	Web	P1	Gateway auth	Partial	P1 Foundation
-Identity & Security	identity-service	Role: OpenAPI / GraphQL contract	Backend	P1	Role use cases	Partial	P1 Foundation
-Identity & Security	identity-service	Role: audit logging hooks	Backend	P1	Audit svc	Partial	P1 Foundation
-Identity & Security	identity-service	Role: unit tests - domain	QA	P1	-	Partial	P1 Foundation
-Identity & Security	identity-service	Role: unit tests - use cases	QA	P1	Role use cases	Partial	P1 Foundation
-Identity & Security	identity-service	Role: integration tests - repository	QA	P1	Postgres	Partial	P1 Foundation
-Identity & Security	identity-service	Role: API integration tests	QA	P1	Gateway	Partial	P1 Foundation
-Identity & Security	identity-service	Role: web admin list screen	Web	P1	Gateway auth	Partial	P1 Foundation
-Identity & Security	identity-service	Role: web admin detail / form screen	Web	P1	Gateway auth	Partial	P1 Foundation
-Identity & Security	identity-service	Permission: OpenAPI / GraphQL contract	Backend	P1	Permission use cases	Partial	P1 Foundation
-Identity & Security	identity-service	Permission: audit logging hooks	Backend	P1	Audit svc	Partial	P1 Foundation
-Identity & Security	identity-service	Permission: unit tests - domain	QA	P1	-	Partial	P1 Foundation
-Identity & Security	identity-service	Permission: unit tests - use cases	QA	P1	Permission use cases	Partial	P1 Foundation
-Identity & Security	identity-service	Permission: integration tests - repository	QA	P1	Postgres	Partial	P1 Foundation
-Identity & Security	identity-service	Permission: API integration tests	QA	P1	Gateway	Partial	P1 Foundation
-Identity & Security	identity-service	Permission: web admin list screen	Web	P1	Gateway auth	Partial	P1 Foundation
-Identity & Security	identity-service	Permission: web admin detail / form screen	Web	P1	Gateway auth	Partial	P1 Foundation
-Identity & Security	identity-service	Tenant: OpenAPI / GraphQL contract	Backend	P1	Tenant use cases	Partial	P1 Foundation
-Identity & Security	identity-service	Tenant: audit logging hooks	Backend	P1	Audit svc	Partial	P1 Foundation
-Identity & Security	identity-service	Tenant: unit tests - domain	QA	P1	-	Partial	P1 Foundation
-Identity & Security	identity-service	Tenant: unit tests - use cases	QA	P1	Tenant use cases	Partial	P1 Foundation
-Identity & Security	identity-service	Tenant: integration tests - repository	QA	P1	Postgres	Partial	P1 Foundation
-Identity & Security	identity-service	Tenant: API integration tests	QA	P1	Gateway	Partial	P1 Foundation
-Identity & Security	identity-service	Tenant: web admin list screen	Web	P1	Gateway auth	Partial	P1 Foundation
-Identity & Security	identity-service	Tenant: web admin detail / form screen	Web	P1	Gateway auth	Partial	P1 Foundation
-Identity & Security	identity-service	MFADevice: OpenAPI / GraphQL contract	Backend	P1	MFADevice use cases	Partial	P1 Foundation
-Identity & Security	identity-service	MFADevice: audit logging hooks	Backend	P1	Audit svc	Partial	P1 Foundation
-Identity & Security	identity-service	MFADevice: unit tests - domain	QA	P1	-	Partial	P1 Foundation
-Identity & Security	identity-service	MFADevice: unit tests - use cases	QA	P1	MFADevice use cases	Partial	P1 Foundation
-Identity & Security	identity-service	MFADevice: integration tests - repository	QA	P1	Postgres	Partial	P1 Foundation
-Identity & Security	identity-service	MFADevice: API integration tests	QA	P1	Gateway	Partial	P1 Foundation
-Identity & Security	identity-service	MFADevice: web admin list screen	Web	P1	Gateway auth	Partial	P1 Foundation
-Identity & Security	identity-service	MFADevice: web admin detail / form screen	Web	P1	Gateway auth	Partial	P1 Foundation
-Supporting Services	notification-service	NotificationTemplate: DB migration, indexes & constraints	DB	P1	Migration runner	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: domain entity / aggregate model	Backend	P1	-	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: Postgres repository implementation	Backend	P1	pkg-database	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: Create use case	Backend	P1	NotificationTemplate repo	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: Get / detail use case	Backend	P1	NotificationTemplate repo	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: Update use case	Backend	P1	NotificationTemplate repo	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: List / search use case (pagination, filters)	Backend	P1	NotificationTemplate repo	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: domain validation rules	Backend	P1	NotificationTemplate repo	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: business rules & state transitions	Backend	P1	NotificationTemplate repo	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: publish domain events (outbox)	Backend	P1	Outbox, Broker	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: API controller & routes	Backend	P1	NotificationTemplate use cases	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: OpenAPI / GraphQL contract	Backend	P1	NotificationTemplate use cases	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: DTOs & request/response mapping	Backend	P1	NotificationTemplate use cases	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: audit logging hooks	Backend	P1	Audit svc	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: unit tests - domain	QA	P1	-	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: unit tests - use cases	QA	P1	NotificationTemplate use cases	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: integration tests - repository	QA	P1	Postgres	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: API integration tests	QA	P1	Gateway	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: web admin list screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	notification-service	NotificationTemplate: web admin detail / form screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: DB migration, indexes & constraints	DB	P1	Migration runner	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: domain entity / aggregate model	Backend	P1	-	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: Postgres repository implementation	Backend	P1	pkg-database	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: Create use case	Backend	P1	Notification repo	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: Get / detail use case	Backend	P1	Notification repo	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: Update use case	Backend	P1	Notification repo	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: List / search use case (pagination, filters)	Backend	P1	Notification repo	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: domain validation rules	Backend	P1	Notification repo	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: business rules & state transitions	Backend	P1	Notification repo	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: publish domain events (outbox)	Backend	P1	Outbox, Broker	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: event consumer / projection handler	Backend	P1	Broker	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: API controller & routes	Backend	P1	Notification use cases	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: OpenAPI / GraphQL contract	Backend	P1	Notification use cases	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: DTOs & request/response mapping	Backend	P1	Notification use cases	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: audit logging hooks	Backend	P1	Audit svc	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: unit tests - domain	QA	P1	-	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: unit tests - use cases	QA	P1	Notification use cases	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: integration tests - repository	QA	P1	Postgres	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: API integration tests	QA	P1	Gateway	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: web admin list screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	notification-service	Notification: web admin detail / form screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: DB migration, indexes & constraints	DB	P1	Migration runner	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: domain entity / aggregate model	Backend	P1	-	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: Postgres repository implementation	Backend	P1	pkg-database	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: Create use case	Backend	P1	AuditLog repo	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: Get / detail use case	Backend	P1	AuditLog repo	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: Update use case	Backend	P1	AuditLog repo	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: List / search use case (pagination, filters)	Backend	P1	AuditLog repo	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: domain validation rules	Backend	P1	AuditLog repo	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: business rules & state transitions	Backend	P1	AuditLog repo	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: publish domain events (outbox)	Backend	P1	Outbox, Broker	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: API controller & routes	Backend	P1	AuditLog use cases	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: OpenAPI / GraphQL contract	Backend	P1	AuditLog use cases	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: DTOs & request/response mapping	Backend	P1	AuditLog use cases	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: audit logging hooks	Backend	P1	Audit svc	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: unit tests - domain	QA	P1	-	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: unit tests - use cases	QA	P1	AuditLog use cases	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: integration tests - repository	QA	P1	Postgres	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: API integration tests	QA	P1	Gateway	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: web admin list screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	audit-service	AuditLog: web admin detail / form screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: DB migration, indexes & constraints	DB	P1	Migration runner	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: domain entity / aggregate model	Backend	P1	-	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: Postgres repository implementation	Backend	P1	pkg-database	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: Create use case	Backend	P1	FileObject repo	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: Get / detail use case	Backend	P1	FileObject repo	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: Update use case	Backend	P1	FileObject repo	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: List / search use case (pagination, filters)	Backend	P1	FileObject repo	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: domain validation rules	Backend	P1	FileObject repo	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: business rules & state transitions	Backend	P1	FileObject repo	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: publish domain events (outbox)	Backend	P1	Outbox, Broker	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: API controller & routes	Backend	P1	FileObject use cases	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: OpenAPI / GraphQL contract	Backend	P1	FileObject use cases	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: DTOs & request/response mapping	Backend	P1	FileObject use cases	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: audit logging hooks	Backend	P1	Audit svc	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: unit tests - domain	QA	P1	-	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: unit tests - use cases	QA	P1	FileObject use cases	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: integration tests - repository	QA	P1	Postgres	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: API integration tests	QA	P1	Gateway	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: web admin list screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: web admin detail / form screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	file-service	FileObject: mobile screen + offline cache	Mobile	P1	Offline DB, Gateway auth	Stub	P4 Integrations
-Supporting Services	report-service	Report: DB migration, indexes & constraints	DB	P1	Migration runner	Stub	P4 Integrations
-Supporting Services	report-service	Report: domain entity / aggregate model	Backend	P1	-	Stub	P4 Integrations
-Supporting Services	report-service	Report: Postgres repository implementation	Backend	P1	pkg-database	Stub	P4 Integrations
-Supporting Services	report-service	Report: Create use case	Backend	P1	Report repo	Stub	P4 Integrations
-Supporting Services	report-service	Report: Get / detail use case	Backend	P1	Report repo	Stub	P4 Integrations
-Supporting Services	report-service	Report: Update use case	Backend	P1	Report repo	Stub	P4 Integrations
-Supporting Services	report-service	Report: List / search use case (pagination, filters)	Backend	P1	Report repo	Stub	P4 Integrations
-Supporting Services	report-service	Report: domain validation rules	Backend	P1	Report repo	Stub	P4 Integrations
-Supporting Services	report-service	Report: business rules & state transitions	Backend	P1	Report repo	Stub	P4 Integrations
-Supporting Services	report-service	Report: publish domain events (outbox)	Backend	P1	Outbox, Broker	Stub	P4 Integrations
-Supporting Services	report-service	Report: API controller & routes	Backend	P1	Report use cases	Stub	P4 Integrations
-Supporting Services	report-service	Report: OpenAPI / GraphQL contract	Backend	P1	Report use cases	Stub	P4 Integrations
-Supporting Services	report-service	Report: DTOs & request/response mapping	Backend	P1	Report use cases	Stub	P4 Integrations
-Supporting Services	report-service	Report: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Stub	P4 Integrations
-Supporting Services	report-service	Report: audit logging hooks	Backend	P1	Audit svc	Stub	P4 Integrations
-Supporting Services	report-service	Report: unit tests - domain	QA	P1	-	Stub	P4 Integrations
-Supporting Services	report-service	Report: unit tests - use cases	QA	P1	Report use cases	Stub	P4 Integrations
-Supporting Services	report-service	Report: integration tests - repository	QA	P1	Postgres	Stub	P4 Integrations
-Supporting Services	report-service	Report: API integration tests	QA	P1	Gateway	Stub	P4 Integrations
-Supporting Services	report-service	Report: web admin list screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	report-service	Report: web admin detail / form screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: DB migration, indexes & constraints	DB	P1	Migration runner	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: domain entity / aggregate model	Backend	P1	-	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: Postgres repository implementation	Backend	P1	pkg-database	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: Create use case	Backend	P1	ReportSchedule repo	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: Get / detail use case	Backend	P1	ReportSchedule repo	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: Update use case	Backend	P1	ReportSchedule repo	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: List / search use case (pagination, filters)	Backend	P1	ReportSchedule repo	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: domain validation rules	Backend	P1	ReportSchedule repo	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: business rules & state transitions	Backend	P1	ReportSchedule repo	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: publish domain events (outbox)	Backend	P1	Outbox, Broker	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: API controller & routes	Backend	P1	ReportSchedule use cases	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: OpenAPI / GraphQL contract	Backend	P1	ReportSchedule use cases	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: DTOs & request/response mapping	Backend	P1	ReportSchedule use cases	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: audit logging hooks	Backend	P1	Audit svc	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: unit tests - domain	QA	P1	-	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: unit tests - use cases	QA	P1	ReportSchedule use cases	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: integration tests - repository	QA	P1	Postgres	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: API integration tests	QA	P1	Gateway	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: web admin list screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	report-service	ReportSchedule: web admin detail / form screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	config-service	ConfigEntry: OpenAPI / GraphQL contract	Backend	P1	ConfigEntry use cases	Stub	P4 Integrations
-Supporting Services	config-service	ConfigEntry: audit logging hooks	Backend	P1	Audit svc	Stub	P4 Integrations
-Supporting Services	config-service	ConfigEntry: unit tests - domain	QA	P1	-	Stub	P4 Integrations
-Supporting Services	config-service	ConfigEntry: unit tests - use cases	QA	P1	ConfigEntry use cases	Stub	P4 Integrations
-Supporting Services	config-service	ConfigEntry: integration tests - repository	QA	P1	Postgres	Stub	P4 Integrations
-Supporting Services	config-service	ConfigEntry: API integration tests	QA	P1	Gateway	Stub	P4 Integrations
-Supporting Services	config-service	ConfigEntry: web admin list screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	config-service	ConfigEntry: web admin detail / form screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	config-service	FeatureFlag: OpenAPI / GraphQL contract	Backend	P1	FeatureFlag use cases	Stub	P4 Integrations
-Supporting Services	config-service	FeatureFlag: audit logging hooks	Backend	P1	Audit svc	Stub	P4 Integrations
-Supporting Services	config-service	FeatureFlag: unit tests - domain	QA	P1	-	Stub	P4 Integrations
-Supporting Services	config-service	FeatureFlag: unit tests - use cases	QA	P1	FeatureFlag use cases	Stub	P4 Integrations
-Supporting Services	config-service	FeatureFlag: integration tests - repository	QA	P1	Postgres	Stub	P4 Integrations
-Supporting Services	config-service	FeatureFlag: API integration tests	QA	P1	Gateway	Stub	P4 Integrations
-Supporting Services	config-service	FeatureFlag: web admin list screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	config-service	FeatureFlag: web admin detail / form screen	Web	P1	Gateway auth	Stub	P4 Integrations
-Supporting Services	forecasting-service	ForecastModel: OpenAPI / GraphQL contract	Backend	P1	ForecastModel use cases	Stub	P5 Hardening
-Supporting Services	forecasting-service	ForecastModel: audit logging hooks	Backend	P1	Audit svc	Stub	P5 Hardening
-Supporting Services	forecasting-service	ForecastModel: unit tests - domain	QA	P1	-	Stub	P5 Hardening
-Supporting Services	forecasting-service	ForecastModel: unit tests - use cases	QA	P1	ForecastModel use cases	Stub	P5 Hardening
-Supporting Services	forecasting-service	ForecastModel: integration tests - repository	QA	P1	Postgres	Stub	P5 Hardening
-Supporting Services	forecasting-service	ForecastModel: API integration tests	QA	P1	Gateway	Stub	P5 Hardening
-Supporting Services	forecasting-service	DemandSignal: OpenAPI / GraphQL contract	Backend	P1	DemandSignal use cases	Stub	P5 Hardening
-Supporting Services	forecasting-service	DemandSignal: audit logging hooks	Backend	P1	Audit svc	Stub	P5 Hardening
-Supporting Services	forecasting-service	DemandSignal: unit tests - domain	QA	P1	-	Stub	P5 Hardening
-Supporting Services	forecasting-service	DemandSignal: unit tests - use cases	QA	P1	DemandSignal use cases	Stub	P5 Hardening
-Supporting Services	forecasting-service	DemandSignal: integration tests - repository	QA	P1	Postgres	Stub	P5 Hardening
-Supporting Services	forecasting-service	DemandSignal: API integration tests	QA	P1	Gateway	Stub	P5 Hardening
-Supporting Services	recommendation-service	Recommendation: OpenAPI / GraphQL contract	Backend	P1	Recommendation use cases	Stub	P5 Hardening
-Supporting Services	recommendation-service	Recommendation: audit logging hooks	Backend	P1	Audit svc	Stub	P5 Hardening
-Supporting Services	recommendation-service	Recommendation: unit tests - domain	QA	P1	-	Stub	P5 Hardening
-Supporting Services	recommendation-service	Recommendation: unit tests - use cases	QA	P1	Recommendation use cases	Stub	P5 Hardening
-Supporting Services	recommendation-service	Recommendation: integration tests - repository	QA	P1	Postgres	Stub	P5 Hardening
-Supporting Services	recommendation-service	Recommendation: API integration tests	QA	P1	Gateway	Stub	P5 Hardening
-Supporting Services	recommendation-service	RecommendationModel: OpenAPI / GraphQL contract	Backend	P1	RecommendationModel use cases	Stub	P5 Hardening
-Supporting Services	recommendation-service	RecommendationModel: audit logging hooks	Backend	P1	Audit svc	Stub	P5 Hardening
-Supporting Services	recommendation-service	RecommendationModel: unit tests - domain	QA	P1	-	Stub	P5 Hardening
-Supporting Services	recommendation-service	RecommendationModel: unit tests - use cases	QA	P1	RecommendationModel use cases	Stub	P5 Hardening
-Supporting Services	recommendation-service	RecommendationModel: integration tests - repository	QA	P1	Postgres	Stub	P5 Hardening
-Supporting Services	recommendation-service	RecommendationModel: API integration tests	QA	P1	Gateway	Stub	P5 Hardening
+DMS Modules	pricing-service (new)	PriceList: OpenAPI / GraphQL contract	Backend	P1	PriceList use cases	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceList: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceList: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceList: unit tests - use cases	QA	P1	PriceList use cases	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceList: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceList: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceList: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceList: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceSlab: OpenAPI / GraphQL contract	Backend	P1	PriceSlab use cases	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceSlab: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceSlab: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceSlab: unit tests - use cases	QA	P1	PriceSlab use cases	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceSlab: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceSlab: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceSlab: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	PriceSlab: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	GeoPriceRule: OpenAPI / GraphQL contract	Backend	P1	GeoPriceRule use cases	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	GeoPriceRule: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	GeoPriceRule: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	GeoPriceRule: unit tests - use cases	QA	P1	GeoPriceRule use cases	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	GeoPriceRule: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	GeoPriceRule: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	GeoPriceRule: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	GeoPriceRule: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	ChannelPriceRule: OpenAPI / GraphQL contract	Backend	P1	ChannelPriceRule use cases	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	ChannelPriceRule: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	ChannelPriceRule: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	ChannelPriceRule: unit tests - use cases	QA	P1	ChannelPriceRule use cases	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	ChannelPriceRule: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	ChannelPriceRule: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	ChannelPriceRule: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	ChannelPriceRule: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	Discount: OpenAPI / GraphQL contract	Backend	P1	Discount use cases	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	Discount: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	Discount: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	Discount: unit tests - use cases	QA	P1	Discount use cases	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	Discount: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	Discount: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	Discount: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	Discount: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	TaxRule: OpenAPI / GraphQL contract	Backend	P1	TaxRule use cases	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	TaxRule: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	TaxRule: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	TaxRule: unit tests - use cases	QA	P1	TaxRule use cases	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	TaxRule: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	TaxRule: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	TaxRule: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	pricing-service (new)	TaxRule: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: domain entity / aggregate model	Backend	P1	-	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: Postgres repository implementation	Backend	P1	pkg-database	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: Create use case	Backend	P1	Scheme repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: Get / detail use case	Backend	P1	Scheme repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: Update use case	Backend	P1	Scheme repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: List / search use case (pagination, filters)	Backend	P1	Scheme repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: domain validation rules	Backend	P1	Scheme repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: business rules & state transitions	Backend	P1	Scheme repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: event consumer / projection handler	Backend	P1	Broker	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: API controller & routes	Backend	P1	Scheme use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: OpenAPI / GraphQL contract	Backend	P1	Scheme use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: DTOs & request/response mapping	Backend	P1	Scheme use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: unit tests - use cases	QA	P1	Scheme use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	Scheme: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: domain entity / aggregate model	Backend	P1	-	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: Postgres repository implementation	Backend	P1	pkg-database	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: Create use case	Backend	P1	SchemePromotion repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: Get / detail use case	Backend	P1	SchemePromotion repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: Update use case	Backend	P1	SchemePromotion repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: List / search use case (pagination, filters)	Backend	P1	SchemePromotion repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: domain validation rules	Backend	P1	SchemePromotion repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: business rules & state transitions	Backend	P1	SchemePromotion repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: API controller & routes	Backend	P1	SchemePromotion use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: OpenAPI / GraphQL contract	Backend	P1	SchemePromotion use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: DTOs & request/response mapping	Backend	P1	SchemePromotion use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: unit tests - use cases	QA	P1	SchemePromotion use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePromotion: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: domain entity / aggregate model	Backend	P1	-	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: Postgres repository implementation	Backend	P1	pkg-database	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: Create use case	Backend	P1	EligibilityRule repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: Get / detail use case	Backend	P1	EligibilityRule repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: Update use case	Backend	P1	EligibilityRule repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: List / search use case (pagination, filters)	Backend	P1	EligibilityRule repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: domain validation rules	Backend	P1	EligibilityRule repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: business rules & state transitions	Backend	P1	EligibilityRule repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: API controller & routes	Backend	P1	EligibilityRule use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: OpenAPI / GraphQL contract	Backend	P1	EligibilityRule use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: DTOs & request/response mapping	Backend	P1	EligibilityRule use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: unit tests - use cases	QA	P1	EligibilityRule use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	EligibilityRule: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: domain entity / aggregate model	Backend	P1	-	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: Postgres repository implementation	Backend	P1	pkg-database	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: Create use case	Backend	P1	SchemeBudget repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: Get / detail use case	Backend	P1	SchemeBudget repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: Update use case	Backend	P1	SchemeBudget repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: List / search use case (pagination, filters)	Backend	P1	SchemeBudget repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: domain validation rules	Backend	P1	SchemeBudget repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: business rules & state transitions	Backend	P1	SchemeBudget repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: API controller & routes	Backend	P1	SchemeBudget use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: OpenAPI / GraphQL contract	Backend	P1	SchemeBudget use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: DTOs & request/response mapping	Backend	P1	SchemeBudget use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: unit tests - use cases	QA	P1	SchemeBudget use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemeBudget: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: domain entity / aggregate model	Backend	P1	-	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: Postgres repository implementation	Backend	P1	pkg-database	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: Create use case	Backend	P1	SlabReward repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: Get / detail use case	Backend	P1	SlabReward repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: Update use case	Backend	P1	SlabReward repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: List / search use case (pagination, filters)	Backend	P1	SlabReward repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: domain validation rules	Backend	P1	SlabReward repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: business rules & state transitions	Backend	P1	SlabReward repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: API controller & routes	Backend	P1	SlabReward use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: OpenAPI / GraphQL contract	Backend	P1	SlabReward use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: DTOs & request/response mapping	Backend	P1	SlabReward use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: unit tests - use cases	QA	P1	SlabReward use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SlabReward: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: domain entity / aggregate model	Backend	P1	-	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: Postgres repository implementation	Backend	P1	pkg-database	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: Create use case	Backend	P1	SchemePayout repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: Get / detail use case	Backend	P1	SchemePayout repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: Update use case	Backend	P1	SchemePayout repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: List / search use case (pagination, filters)	Backend	P1	SchemePayout repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: domain validation rules	Backend	P1	SchemePayout repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: business rules & state transitions	Backend	P1	SchemePayout repo	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: event consumer / projection handler	Backend	P1	Broker	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: API controller & routes	Backend	P1	SchemePayout use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: OpenAPI / GraphQL contract	Backend	P1	SchemePayout use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: DTOs & request/response mapping	Backend	P1	SchemePayout use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: unit tests - use cases	QA	P1	SchemePayout use cases	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	schemes-service (new)	SchemePayout: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: domain entity / aggregate model	Backend	P1	-	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: Postgres repository implementation	Backend	P1	pkg-database	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: Create use case	Backend	P1	Claim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: Get / detail use case	Backend	P1	Claim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: Update use case	Backend	P1	Claim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: List / search use case (pagination, filters)	Backend	P1	Claim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: domain validation rules	Backend	P1	Claim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: business rules & state transitions	Backend	P1	Claim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: event consumer / projection handler	Backend	P1	Broker	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: API controller & routes	Backend	P1	Claim use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: OpenAPI / GraphQL contract	Backend	P1	Claim use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: DTOs & request/response mapping	Backend	P1	Claim use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: unit tests - use cases	QA	P1	Claim use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Claim: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: domain entity / aggregate model	Backend	P1	-	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: Postgres repository implementation	Backend	P1	pkg-database	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: Create use case	Backend	P1	SchemeClaim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: Get / detail use case	Backend	P1	SchemeClaim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: Update use case	Backend	P1	SchemeClaim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: List / search use case (pagination, filters)	Backend	P1	SchemeClaim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: domain validation rules	Backend	P1	SchemeClaim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: business rules & state transitions	Backend	P1	SchemeClaim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: API controller & routes	Backend	P1	SchemeClaim use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: OpenAPI / GraphQL contract	Backend	P1	SchemeClaim use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: DTOs & request/response mapping	Backend	P1	SchemeClaim use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: unit tests - use cases	QA	P1	SchemeClaim use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	SchemeClaim: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: domain entity / aggregate model	Backend	P1	-	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: Postgres repository implementation	Backend	P1	pkg-database	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: Create use case	Backend	P1	DamageClaim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: Get / detail use case	Backend	P1	DamageClaim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: Update use case	Backend	P1	DamageClaim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: List / search use case (pagination, filters)	Backend	P1	DamageClaim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: domain validation rules	Backend	P1	DamageClaim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: business rules & state transitions	Backend	P1	DamageClaim repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: API controller & routes	Backend	P1	DamageClaim use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: OpenAPI / GraphQL contract	Backend	P1	DamageClaim use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: DTOs & request/response mapping	Backend	P1	DamageClaim use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: unit tests - use cases	QA	P1	DamageClaim use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	DamageClaim: mobile screen + offline cache	Mobile	P1	Offline DB, Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: domain entity / aggregate model	Backend	P1	-	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: Postgres repository implementation	Backend	P1	pkg-database	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: Create use case	Backend	P1	ClaimReconciliation repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: Get / detail use case	Backend	P1	ClaimReconciliation repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: Update use case	Backend	P1	ClaimReconciliation repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: List / search use case (pagination, filters)	Backend	P1	ClaimReconciliation repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: domain validation rules	Backend	P1	ClaimReconciliation repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: business rules & state transitions	Backend	P1	ClaimReconciliation repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: API controller & routes	Backend	P1	ClaimReconciliation use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: OpenAPI / GraphQL contract	Backend	P1	ClaimReconciliation use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: DTOs & request/response mapping	Backend	P1	ClaimReconciliation use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: unit tests - use cases	QA	P1	ClaimReconciliation use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	ClaimReconciliation: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: domain entity / aggregate model	Backend	P1	-	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: Postgres repository implementation	Backend	P1	pkg-database	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: Create use case	Backend	P1	Settlement repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: Get / detail use case	Backend	P1	Settlement repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: Update use case	Backend	P1	Settlement repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: List / search use case (pagination, filters)	Backend	P1	Settlement repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: domain validation rules	Backend	P1	Settlement repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: business rules & state transitions	Backend	P1	Settlement repo	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: event consumer / projection handler	Backend	P1	Broker	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: API controller & routes	Backend	P1	Settlement use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: OpenAPI / GraphQL contract	Backend	P1	Settlement use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: DTOs & request/response mapping	Backend	P1	Settlement use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: unit tests - use cases	QA	P1	Settlement use cases	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	claims-service (new)	Settlement: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Invoice: OpenAPI / GraphQL contract	Backend	P1	Invoice use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Invoice: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Invoice: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Invoice: unit tests - use cases	QA	P1	Invoice use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Invoice: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Invoice: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Invoice: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Invoice: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	CreditNote: OpenAPI / GraphQL contract	Backend	P1	CreditNote use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	CreditNote: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	CreditNote: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	CreditNote: unit tests - use cases	QA	P1	CreditNote use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	CreditNote: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	CreditNote: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	CreditNote: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	CreditNote: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	DebitNote: OpenAPI / GraphQL contract	Backend	P1	DebitNote use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	DebitNote: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	DebitNote: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	DebitNote: unit tests - use cases	QA	P1	DebitNote use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	DebitNote: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	DebitNote: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	DebitNote: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	DebitNote: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Payment: OpenAPI / GraphQL contract	Backend	P1	Payment use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Payment: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Payment: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Payment: unit tests - use cases	QA	P1	Payment use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Payment: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Payment: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Payment: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Payment: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Collection: OpenAPI / GraphQL contract	Backend	P1	Collection use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Collection: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Collection: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Collection: unit tests - use cases	QA	P1	Collection use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Collection: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Collection: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Collection: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Collection: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Outstanding: OpenAPI / GraphQL contract	Backend	P1	Outstanding use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Outstanding: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Outstanding: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Outstanding: unit tests - use cases	QA	P1	Outstanding use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Outstanding: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Outstanding: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Outstanding: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	Outstanding: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	AgeingReport: OpenAPI / GraphQL contract	Backend	P1	AgeingReport use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	AgeingReport: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	AgeingReport: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	AgeingReport: unit tests - use cases	QA	P1	AgeingReport use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	AgeingReport: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	AgeingReport: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	AgeingReport: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	AgeingReport: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eInvoice: OpenAPI / GraphQL contract	Backend	P1	eInvoice use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eInvoice: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eInvoice: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eInvoice: unit tests - use cases	QA	P1	eInvoice use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eInvoice: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eInvoice: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eInvoice: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eInvoice: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eWayBill: OpenAPI / GraphQL contract	Backend	P1	eWayBill use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eWayBill: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eWayBill: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eWayBill: unit tests - use cases	QA	P1	eWayBill use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eWayBill: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eWayBill: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eWayBill: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	eWayBill: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	TaxFiling: OpenAPI / GraphQL contract	Backend	P1	TaxFiling use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	TaxFiling: audit logging hooks	Backend	P1	Audit svc	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	TaxFiling: unit tests - domain	QA	P1	-	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	TaxFiling: unit tests - use cases	QA	P1	TaxFiling use cases	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	TaxFiling: integration tests - repository	QA	P1	Postgres	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	TaxFiling: API integration tests	QA	P1	Gateway	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	TaxFiling: web admin list screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+DMS Modules	finance-service (new)	TaxFiling: web admin detail / form screen	Web	P1	Gateway auth	Completed	P3 DMS/SFA
+Identity & Security	identity-service	User: OpenAPI / GraphQL contract	Backend	P1	User use cases	Completed	P1 Foundation
+Identity & Security	identity-service	User: audit logging hooks	Backend	P1	Audit svc	Completed	P1 Foundation
+Identity & Security	identity-service	User: unit tests - domain	QA	P1	-	Completed	P1 Foundation
+Identity & Security	identity-service	User: unit tests - use cases	QA	P1	User use cases	Completed	P1 Foundation
+Identity & Security	identity-service	User: integration tests - repository	QA	P1	Postgres	Completed	P1 Foundation
+Identity & Security	identity-service	User: API integration tests	QA	P1	Gateway	Completed	P1 Foundation
+Identity & Security	identity-service	User: web admin list screen	Web	P1	Gateway auth	Completed	P1 Foundation
+Identity & Security	identity-service	User: web admin detail / form screen	Web	P1	Gateway auth	Completed	P1 Foundation
+Identity & Security	identity-service	Role: OpenAPI / GraphQL contract	Backend	P1	Role use cases	Completed	P1 Foundation
+Identity & Security	identity-service	Role: audit logging hooks	Backend	P1	Audit svc	Completed	P1 Foundation
+Identity & Security	identity-service	Role: unit tests - domain	QA	P1	-	Completed	P1 Foundation
+Identity & Security	identity-service	Role: unit tests - use cases	QA	P1	Role use cases	Completed	P1 Foundation
+Identity & Security	identity-service	Role: integration tests - repository	QA	P1	Postgres	Completed	P1 Foundation
+Identity & Security	identity-service	Role: API integration tests	QA	P1	Gateway	Completed	P1 Foundation
+Identity & Security	identity-service	Role: web admin list screen	Web	P1	Gateway auth	Completed	P1 Foundation
+Identity & Security	identity-service	Role: web admin detail / form screen	Web	P1	Gateway auth	Completed	P1 Foundation
+Identity & Security	identity-service	Permission: OpenAPI / GraphQL contract	Backend	P1	Permission use cases	Completed	P1 Foundation
+Identity & Security	identity-service	Permission: audit logging hooks	Backend	P1	Audit svc	Completed	P1 Foundation
+Identity & Security	identity-service	Permission: unit tests - domain	QA	P1	-	Completed	P1 Foundation
+Identity & Security	identity-service	Permission: unit tests - use cases	QA	P1	Permission use cases	Completed	P1 Foundation
+Identity & Security	identity-service	Permission: integration tests - repository	QA	P1	Postgres	Completed	P1 Foundation
+Identity & Security	identity-service	Permission: API integration tests	QA	P1	Gateway	Completed	P1 Foundation
+Identity & Security	identity-service	Permission: web admin list screen	Web	P1	Gateway auth	Completed	P1 Foundation
+Identity & Security	identity-service	Permission: web admin detail / form screen	Web	P1	Gateway auth	Completed	P1 Foundation
+Identity & Security	identity-service	Tenant: OpenAPI / GraphQL contract	Backend	P1	Tenant use cases	Completed	P1 Foundation
+Identity & Security	identity-service	Tenant: audit logging hooks	Backend	P1	Audit svc	Completed	P1 Foundation
+Identity & Security	identity-service	Tenant: unit tests - domain	QA	P1	-	Completed	P1 Foundation
+Identity & Security	identity-service	Tenant: unit tests - use cases	QA	P1	Tenant use cases	Completed	P1 Foundation
+Identity & Security	identity-service	Tenant: integration tests - repository	QA	P1	Postgres	Completed	P1 Foundation
+Identity & Security	identity-service	Tenant: API integration tests	QA	P1	Gateway	Completed	P1 Foundation
+Identity & Security	identity-service	Tenant: web admin list screen	Web	P1	Gateway auth	Completed	P1 Foundation
+Identity & Security	identity-service	Tenant: web admin detail / form screen	Web	P1	Gateway auth	Completed	P1 Foundation
+Identity & Security	identity-service	MFADevice: OpenAPI / GraphQL contract	Backend	P1	MFADevice use cases	Completed	P1 Foundation
+Identity & Security	identity-service	MFADevice: audit logging hooks	Backend	P1	Audit svc	Completed	P1 Foundation
+Identity & Security	identity-service	MFADevice: unit tests - domain	QA	P1	-	Completed	P1 Foundation
+Identity & Security	identity-service	MFADevice: unit tests - use cases	QA	P1	MFADevice use cases	Completed	P1 Foundation
+Identity & Security	identity-service	MFADevice: integration tests - repository	QA	P1	Postgres	Completed	P1 Foundation
+Identity & Security	identity-service	MFADevice: API integration tests	QA	P1	Gateway	Completed	P1 Foundation
+Identity & Security	identity-service	MFADevice: web admin list screen	Web	P1	Gateway auth	Completed	P1 Foundation
+Identity & Security	identity-service	MFADevice: web admin detail / form screen	Web	P1	Gateway auth	Completed	P1 Foundation
+Supporting Services	notification-service	NotificationTemplate: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: domain entity / aggregate model	Backend	P1	-	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: Postgres repository implementation	Backend	P1	pkg-database	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: Create use case	Backend	P1	NotificationTemplate repo	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: Get / detail use case	Backend	P1	NotificationTemplate repo	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: Update use case	Backend	P1	NotificationTemplate repo	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: List / search use case (pagination, filters)	Backend	P1	NotificationTemplate repo	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: domain validation rules	Backend	P1	NotificationTemplate repo	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: business rules & state transitions	Backend	P1	NotificationTemplate repo	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: API controller & routes	Backend	P1	NotificationTemplate use cases	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: OpenAPI / GraphQL contract	Backend	P1	NotificationTemplate use cases	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: DTOs & request/response mapping	Backend	P1	NotificationTemplate use cases	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: audit logging hooks	Backend	P1	Audit svc	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: unit tests - domain	QA	P1	-	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: unit tests - use cases	QA	P1	NotificationTemplate use cases	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: integration tests - repository	QA	P1	Postgres	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: API integration tests	QA	P1	Gateway	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: web admin list screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	notification-service	NotificationTemplate: web admin detail / form screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: domain entity / aggregate model	Backend	P1	-	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: Postgres repository implementation	Backend	P1	pkg-database	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: Create use case	Backend	P1	Notification repo	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: Get / detail use case	Backend	P1	Notification repo	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: Update use case	Backend	P1	Notification repo	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: List / search use case (pagination, filters)	Backend	P1	Notification repo	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: domain validation rules	Backend	P1	Notification repo	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: business rules & state transitions	Backend	P1	Notification repo	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: event consumer / projection handler	Backend	P1	Broker	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: API controller & routes	Backend	P1	Notification use cases	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: OpenAPI / GraphQL contract	Backend	P1	Notification use cases	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: DTOs & request/response mapping	Backend	P1	Notification use cases	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: audit logging hooks	Backend	P1	Audit svc	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: unit tests - domain	QA	P1	-	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: unit tests - use cases	QA	P1	Notification use cases	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: integration tests - repository	QA	P1	Postgres	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: API integration tests	QA	P1	Gateway	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: web admin list screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	notification-service	Notification: web admin detail / form screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: domain entity / aggregate model	Backend	P1	-	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: Postgres repository implementation	Backend	P1	pkg-database	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: Create use case	Backend	P1	AuditLog repo	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: Get / detail use case	Backend	P1	AuditLog repo	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: Update use case	Backend	P1	AuditLog repo	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: List / search use case (pagination, filters)	Backend	P1	AuditLog repo	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: domain validation rules	Backend	P1	AuditLog repo	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: business rules & state transitions	Backend	P1	AuditLog repo	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: API controller & routes	Backend	P1	AuditLog use cases	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: OpenAPI / GraphQL contract	Backend	P1	AuditLog use cases	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: DTOs & request/response mapping	Backend	P1	AuditLog use cases	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: audit logging hooks	Backend	P1	Audit svc	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: unit tests - domain	QA	P1	-	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: unit tests - use cases	QA	P1	AuditLog use cases	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: integration tests - repository	QA	P1	Postgres	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: API integration tests	QA	P1	Gateway	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: web admin list screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	audit-service	AuditLog: web admin detail / form screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: domain entity / aggregate model	Backend	P1	-	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: Postgres repository implementation	Backend	P1	pkg-database	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: Create use case	Backend	P1	FileObject repo	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: Get / detail use case	Backend	P1	FileObject repo	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: Update use case	Backend	P1	FileObject repo	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: List / search use case (pagination, filters)	Backend	P1	FileObject repo	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: domain validation rules	Backend	P1	FileObject repo	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: business rules & state transitions	Backend	P1	FileObject repo	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: API controller & routes	Backend	P1	FileObject use cases	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: OpenAPI / GraphQL contract	Backend	P1	FileObject use cases	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: DTOs & request/response mapping	Backend	P1	FileObject use cases	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: audit logging hooks	Backend	P1	Audit svc	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: unit tests - domain	QA	P1	-	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: unit tests - use cases	QA	P1	FileObject use cases	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: integration tests - repository	QA	P1	Postgres	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: API integration tests	QA	P1	Gateway	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: web admin list screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: web admin detail / form screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	file-service	FileObject: mobile screen + offline cache	Mobile	P1	Offline DB, Gateway auth	Completed	P4 Integrations
+Supporting Services	report-service	Report: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P4 Integrations
+Supporting Services	report-service	Report: domain entity / aggregate model	Backend	P1	-	Completed	P4 Integrations
+Supporting Services	report-service	Report: Postgres repository implementation	Backend	P1	pkg-database	Completed	P4 Integrations
+Supporting Services	report-service	Report: Create use case	Backend	P1	Report repo	Completed	P4 Integrations
+Supporting Services	report-service	Report: Get / detail use case	Backend	P1	Report repo	Completed	P4 Integrations
+Supporting Services	report-service	Report: Update use case	Backend	P1	Report repo	Completed	P4 Integrations
+Supporting Services	report-service	Report: List / search use case (pagination, filters)	Backend	P1	Report repo	Completed	P4 Integrations
+Supporting Services	report-service	Report: domain validation rules	Backend	P1	Report repo	Completed	P4 Integrations
+Supporting Services	report-service	Report: business rules & state transitions	Backend	P1	Report repo	Completed	P4 Integrations
+Supporting Services	report-service	Report: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P4 Integrations
+Supporting Services	report-service	Report: API controller & routes	Backend	P1	Report use cases	Completed	P4 Integrations
+Supporting Services	report-service	Report: OpenAPI / GraphQL contract	Backend	P1	Report use cases	Completed	P4 Integrations
+Supporting Services	report-service	Report: DTOs & request/response mapping	Backend	P1	Report use cases	Completed	P4 Integrations
+Supporting Services	report-service	Report: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P4 Integrations
+Supporting Services	report-service	Report: audit logging hooks	Backend	P1	Audit svc	Completed	P4 Integrations
+Supporting Services	report-service	Report: unit tests - domain	QA	P1	-	Completed	P4 Integrations
+Supporting Services	report-service	Report: unit tests - use cases	QA	P1	Report use cases	Completed	P4 Integrations
+Supporting Services	report-service	Report: integration tests - repository	QA	P1	Postgres	Completed	P4 Integrations
+Supporting Services	report-service	Report: API integration tests	QA	P1	Gateway	Completed	P4 Integrations
+Supporting Services	report-service	Report: web admin list screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	report-service	Report: web admin detail / form screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: DB migration, indexes & constraints	DB	P1	Migration runner	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: domain entity / aggregate model	Backend	P1	-	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: Postgres repository implementation	Backend	P1	pkg-database	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: Create use case	Backend	P1	ReportSchedule repo	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: Get / detail use case	Backend	P1	ReportSchedule repo	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: Update use case	Backend	P1	ReportSchedule repo	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: List / search use case (pagination, filters)	Backend	P1	ReportSchedule repo	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: domain validation rules	Backend	P1	ReportSchedule repo	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: business rules & state transitions	Backend	P1	ReportSchedule repo	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: publish domain events (outbox)	Backend	P1	Outbox, Broker	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: API controller & routes	Backend	P1	ReportSchedule use cases	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: OpenAPI / GraphQL contract	Backend	P1	ReportSchedule use cases	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: DTOs & request/response mapping	Backend	P1	ReportSchedule use cases	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: RBAC permissions & policy	Security	P1	OAuth2/RBAC	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: audit logging hooks	Backend	P1	Audit svc	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: unit tests - domain	QA	P1	-	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: unit tests - use cases	QA	P1	ReportSchedule use cases	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: integration tests - repository	QA	P1	Postgres	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: API integration tests	QA	P1	Gateway	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: web admin list screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	report-service	ReportSchedule: web admin detail / form screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	config-service	ConfigEntry: OpenAPI / GraphQL contract	Backend	P1	ConfigEntry use cases	Completed	P4 Integrations
+Supporting Services	config-service	ConfigEntry: audit logging hooks	Backend	P1	Audit svc	Completed	P4 Integrations
+Supporting Services	config-service	ConfigEntry: unit tests - domain	QA	P1	-	Completed	P4 Integrations
+Supporting Services	config-service	ConfigEntry: unit tests - use cases	QA	P1	ConfigEntry use cases	Completed	P4 Integrations
+Supporting Services	config-service	ConfigEntry: integration tests - repository	QA	P1	Postgres	Completed	P4 Integrations
+Supporting Services	config-service	ConfigEntry: API integration tests	QA	P1	Gateway	Completed	P4 Integrations
+Supporting Services	config-service	ConfigEntry: web admin list screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	config-service	ConfigEntry: web admin detail / form screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	config-service	FeatureFlag: OpenAPI / GraphQL contract	Backend	P1	FeatureFlag use cases	Completed	P4 Integrations
+Supporting Services	config-service	FeatureFlag: audit logging hooks	Backend	P1	Audit svc	Completed	P4 Integrations
+Supporting Services	config-service	FeatureFlag: unit tests - domain	QA	P1	-	Completed	P4 Integrations
+Supporting Services	config-service	FeatureFlag: unit tests - use cases	QA	P1	FeatureFlag use cases	Completed	P4 Integrations
+Supporting Services	config-service	FeatureFlag: integration tests - repository	QA	P1	Postgres	Completed	P4 Integrations
+Supporting Services	config-service	FeatureFlag: API integration tests	QA	P1	Gateway	Completed	P4 Integrations
+Supporting Services	config-service	FeatureFlag: web admin list screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	config-service	FeatureFlag: web admin detail / form screen	Web	P1	Gateway auth	Completed	P4 Integrations
+Supporting Services	forecasting-service	ForecastModel: OpenAPI / GraphQL contract	Backend	P1	ForecastModel use cases	Completed	P5 Hardening
+Supporting Services	forecasting-service	ForecastModel: audit logging hooks	Backend	P1	Audit svc	Completed	P5 Hardening
+Supporting Services	forecasting-service	ForecastModel: unit tests - domain	QA	P1	-	Completed	P5 Hardening
+Supporting Services	forecasting-service	ForecastModel: unit tests - use cases	QA	P1	ForecastModel use cases	Completed	P5 Hardening
+Supporting Services	forecasting-service	ForecastModel: integration tests - repository	QA	P1	Postgres	Completed	P5 Hardening
+Supporting Services	forecasting-service	ForecastModel: API integration tests	QA	P1	Gateway	Completed	P5 Hardening
+Supporting Services	forecasting-service	DemandSignal: OpenAPI / GraphQL contract	Backend	P1	DemandSignal use cases	Completed	P5 Hardening
+Supporting Services	forecasting-service	DemandSignal: audit logging hooks	Backend	P1	Audit svc	Completed	P5 Hardening
+Supporting Services	forecasting-service	DemandSignal: unit tests - domain	QA	P1	-	Completed	P5 Hardening
+Supporting Services	forecasting-service	DemandSignal: unit tests - use cases	QA	P1	DemandSignal use cases	Completed	P5 Hardening
+Supporting Services	forecasting-service	DemandSignal: integration tests - repository	QA	P1	Postgres	Completed	P5 Hardening
+Supporting Services	forecasting-service	DemandSignal: API integration tests	QA	P1	Gateway	Completed	P5 Hardening
+Supporting Services	recommendation-service	Recommendation: OpenAPI / GraphQL contract	Backend	P1	Recommendation use cases	Completed	P5 Hardening
+Supporting Services	recommendation-service	Recommendation: audit logging hooks	Backend	P1	Audit svc	Completed	P5 Hardening
+Supporting Services	recommendation-service	Recommendation: unit tests - domain	QA	P1	-	Completed	P5 Hardening
+Supporting Services	recommendation-service	Recommendation: unit tests - use cases	QA	P1	Recommendation use cases	Completed	P5 Hardening
+Supporting Services	recommendation-service	Recommendation: integration tests - repository	QA	P1	Postgres	Completed	P5 Hardening
+Supporting Services	recommendation-service	Recommendation: API integration tests	QA	P1	Gateway	Completed	P5 Hardening
+Supporting Services	recommendation-service	RecommendationModel: OpenAPI / GraphQL contract	Backend	P1	RecommendationModel use cases	Completed	P5 Hardening
+Supporting Services	recommendation-service	RecommendationModel: audit logging hooks	Backend	P1	Audit svc	Completed	P5 Hardening
+Supporting Services	recommendation-service	RecommendationModel: unit tests - domain	QA	P1	-	Completed	P5 Hardening
+Supporting Services	recommendation-service	RecommendationModel: unit tests - use cases	QA	P1	RecommendationModel use cases	Completed	P5 Hardening
+Supporting Services	recommendation-service	RecommendationModel: integration tests - repository	QA	P1	Postgres	Completed	P5 Hardening
+Supporting Services	recommendation-service	RecommendationModel: API integration tests	QA	P1	Gateway	Completed	P5 Hardening

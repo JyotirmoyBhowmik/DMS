@@ -55,7 +55,7 @@ export class SyncEngine {
     const data: SyncResponse = await response.json();
     this.lastSyncTimestamp = data.serverTimestamp;
     
-    // Here we would apply data.orders, data.visits, data.outlets to the local SQLite database
+    // Here we would apply data.orders, data.visits, data.outlets, and data.attendances to the local SQLite database
     console.log('Pull successful, received', data);
   }
 
@@ -65,6 +65,8 @@ export class SyncEngine {
       orders: [],
       visits: [],
       outlets: [],
+      attendances: [],
+      geoCheckIns: [],
       lastSyncTimestamp: this.lastSyncTimestamp
     };
 

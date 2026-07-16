@@ -7,6 +7,13 @@ import { AuditController } from '../../../../../audit-service/src/presentation/r
 import { KeyManager } from '../../../../../identity-service/src/application/usecases/key_manager.js';
 import { loadConfigSync } from '@dms/pkg-config';
 import { OrderController } from '../../../../../sfa-service/src/presentation/rest/controllers/order.controller.js';
+import { OrderApprovalController } from '../../../../../sfa-service/src/presentation/rest/controllers/order_approval.controller.js';
+import { JourneyPlanController } from '../../../../../sfa-service/src/presentation/rest/controllers/journey_plan.controller.js';
+import { BeatRouteController } from '../../../../../sfa-service/src/presentation/rest/controllers/beat_route.controller.js';
+import { VisitController as SfaVisitController } from '../../../../../sfa-service/src/presentation/rest/controllers/visit.controller.js';
+import { AttendanceController as SfaAttendanceController } from '../../../../../sfa-service/src/presentation/rest/controllers/attendance.controller.js';
+import { GeoCheckInController as SfaGeoCheckInController } from '../../../../../sfa-service/src/presentation/rest/controllers/geo_checkin.controller.js';
+import { OutletCensusController as SfaOutletCensusController } from '../../../../../sfa-service/src/presentation/rest/controllers/outlet_census.controller.js';
 import { SchemeController } from '../../../../../schemes-service/src/presentation/rest/controllers/scheme.controller.js';
 import { ClaimController } from '../../../../../claims-service/src/presentation/rest/controllers/claim.controller.js';
 import { EnterpriseDmsController } from '../../../../../dms-core-service/src/presentation/rest/controllers/enterprise_dms.controller.js';
@@ -14,6 +21,14 @@ import { DistributorOnboardingController } from '../../../../../dms-core-service
 import { DistributorOnboardingUseCases } from '../../../../../dms-core-service/src/application/usecases/distributor-onboarding/distributor-onboarding.usecases.js';
 import { DistributorOnboardingPgRepository } from '../../../../../dms-core-service/src/infrastructure/database/repositories/distributor-onboarding.pg-repository.js';
 import { PostgresDatabaseClient, PgDriver } from '@dms/pkg-database';
+
+import { AuthController as IdentityAuthController } from '../../../../../identity-service/src/presentation/rest/controllers/auth.controller.js';
+import { UserController as IdentityUserController } from '../../../../../identity-service/src/presentation/rest/controllers/user.controller.js';
+import { RoleController as IdentityRoleController } from '../../../../../identity-service/src/presentation/rest/controllers/role.controller.js';
+import { TenantController as IdentityTenantController } from '../../../../../identity-service/src/presentation/rest/controllers/tenant.controller.js';
+import { PermissionController as IdentityPermissionController } from '../../../../../identity-service/src/presentation/rest/controllers/permission.controller.js';
+import { MFADeviceController as IdentityMfaController } from '../../../../../identity-service/src/presentation/rest/controllers/mfa_device.controller.js';
+
 
 const config = loadConfigSync();
 
@@ -37,10 +52,23 @@ export class GatewayController {
   private readonly rateLimitStore: RateLimitStore;
   private readonly routeRepo: InMemoryRouteRepository;
   private readonly sfaOrderController: OrderController;
+  private readonly sfaOrderApprovalController: OrderApprovalController;
+  private readonly sfaJourneyPlanController: JourneyPlanController;
+  private readonly sfaBeatRouteController: BeatRouteController;
+  private readonly sfaVisitController: SfaVisitController;
+  private readonly sfaAttendanceController: SfaAttendanceController;
+  private readonly sfaGeoCheckInController: SfaGeoCheckInController;
+  private readonly sfaOutletCensusController: SfaOutletCensusController;
   private readonly schemesController: SchemeController;
   private readonly claimsController: ClaimController;
   private readonly enterpriseDmsController: EnterpriseDmsController;
   private readonly distributorOnboardingController: DistributorOnboardingController;
+  private readonly identityAuthController: IdentityAuthController;
+  private readonly identityUserController: IdentityUserController;
+  private readonly identityRoleController: IdentityRoleController;
+  private readonly identityTenantController: IdentityTenantController;
+  private readonly identityPermissionController: IdentityPermissionController;
+  private readonly identityMfaController: IdentityMfaController;
 
   constructor() {
     this.router = new TrieRouter();
@@ -55,8 +83,21 @@ export class GatewayController {
     this.rateLimitStore = new RateLimitStore(60_000);
     this.routeRepo = new InMemoryRouteRepository();
     this.sfaOrderController = new OrderController();
+    this.sfaOrderApprovalController = new OrderApprovalController();
+    this.sfaJourneyPlanController = new JourneyPlanController();
+    this.sfaBeatRouteController = new BeatRouteController();
+    this.sfaVisitController = new SfaVisitController();
+    this.sfaAttendanceController = new SfaAttendanceController();
+    this.sfaGeoCheckInController = new SfaGeoCheckInController();
+    this.sfaOutletCensusController = new SfaOutletCensusController();
     this.schemesController = new SchemeController();
     this.claimsController = new ClaimController();
+    this.identityAuthController = new IdentityAuthController();
+    this.identityUserController = new IdentityUserController();
+    this.identityRoleController = new IdentityRoleController();
+    this.identityTenantController = new IdentityTenantController();
+    this.identityPermissionController = new IdentityPermissionController();
+    this.identityMfaController = new IdentityMfaController();
 
     const db = new PostgresDatabaseClient(config.db, new PgDriver());
     const onboardingRepo = new DistributorOnboardingPgRepository(db);
@@ -90,6 +131,18 @@ export class GatewayController {
       'x-request-id': requestId,
       'x-gateway-version': 'v1.0.0',
     };
+
+    // Body size validation (413 Payload Too Large)
+    if (request.body) {
+      const bodyStr = typeof request.body === 'string' ? request.body : JSON.stringify(request.body);
+      if (bodyStr.length > 2 * 1024 * 1024) { // 2MB limit
+        return {
+          status: 413,
+          headers: responseHeaders,
+          body: { error: 'Payload Too Large', code: 'PAYLOAD_TOO_LARGE' }
+        };
+      }
+    }
 
     // Route matching
     const matched = this.router.match(request.method, request.path);
@@ -158,6 +211,289 @@ export class GatewayController {
     responseHeaders['x-ratelimit-remaining'] = String(this.rateLimitStore.remaining(rateLimitKey, handler.rateLimit));
 
     // Forward to upstream
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/attendance') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      if (request.method === 'POST') {
+        const res = await this.sfaAttendanceController.handlePostAttendance(request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaAttendanceController.handlePutAttendance(params.id || '', request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaAttendanceController.handleGetAttendance(id, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaAttendanceController.handleListAttendances(request.body || {}, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/geo-check-in') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      if (request.method === 'POST') {
+        const res = await this.sfaGeoCheckInController.handlePostGeoCheckIn(request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaGeoCheckInController.handlePutGeoCheckIn(params.id || '', request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaGeoCheckInController.handleGetGeoCheckIn(id, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaGeoCheckInController.handleListGeoCheckIns(request.body || {}, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/outlet-census') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      if (request.method === 'POST') {
+        const res = await this.sfaOutletCensusController.handlePostOutletCensus(request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaOutletCensusController.handlePutOutletCensus(params.id || '', request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaOutletCensusController.handleGetOutletCensus(id, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaOutletCensusController.handleListOutletCensuses(request.body || {}, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/visits') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      if (request.method === 'POST') {
+        const res = await this.sfaVisitController.handlePostVisit(request.body, {
+          'x-tenant-id': tenantId,
+          'x-agent-id': principal?.id || 'unknown',
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaVisitController.handlePutVisit(params.id || '', request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaVisitController.handleGetVisit(id, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaVisitController.handleListVisits(request.body || {}, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/beat-routes') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      if (request.method === 'POST') {
+        const res = await this.sfaBeatRouteController.handlePostBeatRoute(request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaBeatRouteController.handlePutBeatRoute(params.id || '', request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaBeatRouteController.handleGetBeatRoute(id, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaBeatRouteController.handleListBeatRoutes(request.body || {}, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (request.method === 'DELETE') {
+        const res = await this.sfaBeatRouteController.handleDeleteBeatRoute(params.id || '', {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/journey-plans') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      if (request.method === 'POST') {
+        const res = await this.sfaJourneyPlanController.handlePostPlan(request.body, {
+          'x-tenant-id': tenantId,
+          'x-agent-id': principal?.id || 'unknown',
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaJourneyPlanController.handlePutPlan(params.id || '', request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaJourneyPlanController.handleGetPlan(id, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaJourneyPlanController.handleListPlans(request.body || {}, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/order-approvals') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      if (request.method === 'POST') {
+        const res = await this.sfaOrderApprovalController.handlePostApproval(request.body, {
+          'x-tenant-id': tenantId,
+          'x-agent-id': principal?.id || 'unknown',
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaOrderApprovalController.handlePutApproval(params.id || '', request.body, {
+          'x-tenant-id': tenantId,
+          'x-agent-id': principal?.id || 'unknown',
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaOrderApprovalController.handleGetApproval(id, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaOrderApprovalController.handleListApprovals(request.body || {}, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
     if (handler.targetService === 'sfa-service' && handler.targetPath === '/orders') {
       let resultBody: any;
       let statusCode = 200;
@@ -290,6 +626,28 @@ export class GatewayController {
       return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'claims-service' }, body: resultBody };
     }
 
+    if (handler.targetService === 'audit-service') {
+      let resultBody: any;
+      let statusCode = 200;
+      const auditController = AuditController.getInstance();
+
+      if (handler.targetPath === '/audit/verify') {
+        const res = await auditController.handleVerifyChain();
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (handler.targetPath === '/audit/tamper') {
+        const { blockNumber, alteredData } = request.body as any;
+        await auditController.simulateTampering(Number(blockNumber), alteredData);
+        statusCode = 200;
+        resultBody = { success: true, message: `Block #${blockNumber} tampered successfully` };
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'audit-service' }, body: resultBody };
+    }
+
     if (handler.targetService === 'dms-core-service' && handler.targetPath.startsWith('/distributors')) {
       let resultBody: any = {};
       let statusCode = 200;
@@ -376,6 +734,154 @@ export class GatewayController {
       }
 
       return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'dms-core-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'identity-service') {
+      let resultBody: any = {};
+      let statusCode = 200;
+
+      if (handler.targetPath.startsWith('/users')) {
+        const id = params.id;
+        if (request.method === 'POST') {
+          const res = await this.identityUserController.handlePostUser(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'GET') {
+          if (id) {
+            const res = await this.identityUserController.handleGetUser(id, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          } else {
+            const res = await this.identityUserController.handleListUsers(request.body || {}, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          }
+        } else if (request.method === 'PUT') {
+          const res = await this.identityUserController.handlePutUser(id, request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'DELETE') {
+          const res = await this.identityUserController.handleDeleteUser(id, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (handler.targetPath.startsWith('/roles')) {
+        const id = params.id;
+        if (request.method === 'POST') {
+          const res = await this.identityRoleController.handlePostRole(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'GET') {
+          if (id) {
+            const res = await this.identityRoleController.handleGetRole(id, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          } else {
+            const res = await this.identityRoleController.handleListRoles(request.body || {}, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          }
+        } else if (request.method === 'PUT') {
+          const res = await this.identityRoleController.handlePutRole(id, request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'DELETE') {
+          const res = await this.identityRoleController.handleDeleteRole(id, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (handler.targetPath.startsWith('/tenants')) {
+        const id = params.id;
+        if (request.method === 'POST') {
+          const res = await this.identityTenantController.handlePostTenant(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'GET') {
+          if (id) {
+            const res = await this.identityTenantController.handleGetTenant(id, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          } else {
+            const res = await this.identityTenantController.handleListTenants(request.body || {}, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          }
+        } else if (request.method === 'PUT') {
+          const res = await this.identityTenantController.handlePutTenant(id, request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'DELETE') {
+          const res = await this.identityTenantController.handleDeleteTenant(id, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (handler.targetPath.startsWith('/permissions')) {
+        const id = params.id;
+        if (request.method === 'POST') {
+          const res = await this.identityPermissionController.handlePostPermission(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'GET') {
+          if (id) {
+            const res = await this.identityPermissionController.handleGetPermission(id, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          } else {
+            const res = await this.identityPermissionController.handleListPermissions(request.body || {}, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          }
+        } else if (request.method === 'PUT') {
+          const res = await this.identityPermissionController.handlePutPermission(id, request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'DELETE') {
+          const res = await this.identityPermissionController.handleDeletePermission(id, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (handler.targetPath.startsWith('/mfa-devices')) {
+        const id = params.id;
+        if (request.method === 'POST') {
+          const res = await this.identityMfaController.handlePostMFADevice(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'GET') {
+          if (id) {
+            const res = await this.identityMfaController.handleGetMFADevice(id, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          } else {
+            const res = await this.identityMfaController.handleListMFADevices(request.body || {}, { 'x-tenant-id': tenantId });
+            statusCode = res.statusCode;
+            resultBody = res.body;
+          }
+        } else if (request.method === 'PUT') {
+          const res = await this.identityMfaController.handlePutMFADevice(id, request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'DELETE') {
+          const res = await this.identityMfaController.handleDeleteMFADevice(id, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (handler.targetPath.startsWith('/auth')) {
+        if (request.path.endsWith('/login') && request.method === 'POST') {
+          const res = await this.identityAuthController.handlePostLogin(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.path.endsWith('/verify') && request.method === 'POST') {
+          const res = await this.identityAuthController.handlePostVerify(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.path.endsWith('/jwks') && request.method === 'GET') {
+          const res = await this.identityAuthController.handleGetJwks();
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'identity-service' }, body: resultBody };
     }
 
     const upstreamResponse = this.forwardToUpstream(handler, request, params);

@@ -206,7 +206,7 @@ export class InMemoryRouteRepository {
 
   private seed(): void {
     const services = [
-      { prefix: 'sfa', service: 'sfa-service', paths: ['orders', 'visits', 'journey-plans', 'agents'] },
+      { prefix: 'sfa', service: 'sfa-service', paths: ['orders', 'visits', 'journey-plans', 'agents', 'order-approvals', 'beat-routes', 'attendance', 'geo-check-in', 'outlet-census'] },
       { prefix: 'dms', service: 'dms-core-service', paths: [
         'distributors',
         'distributors/onboarding',
@@ -219,6 +219,7 @@ export class InMemoryRouteRepository {
         'distributors/kyc',
         'distributors/kyc/verify',
         'distributors/credit-limit',
+        'distributors/credit-limit/utilize',
         'outlets',
         'inventory',
         'inventory/allocate',
@@ -227,16 +228,15 @@ export class InMemoryRouteRepository {
         'price-lists',
         'returns'
       ] },
-      { prefix: 'pricing', service: 'pricing-service', paths: ['pricing/price-lists', 'pricing/calculate'] },
-      { prefix: 'schemes', service: 'schemes-service', paths: ['schemes'] },
       { prefix: 'claims', service: 'claims-service', paths: ['claims', 'claims/:id/validate', 'claims/:id/approve', 'claims/:id/reject', 'claims/:id/settle'] },
-      { prefix: 'finance', service: 'finance-service', paths: ['finance/entries', 'finance/accounts', 'finance/periods', 'finance/reports/trial-balance', 'finance/reports/outstanding-aging'] },
-      { prefix: 'identity', service: 'identity-service', paths: ['auth', 'users', 'roles', 'tenants'] },
+      { prefix: 'schemes', service: 'schemes-service', paths: ['schemes'] },
+      { prefix: 'pricing', service: 'pricing-service', paths: ['pricing/price-lists', 'pricing/calculate'] },
+      { prefix: 'identity', service: 'identity-service', paths: ['auth', 'users', 'roles', 'tenants', 'permissions', 'mfa-devices'] },
       { prefix: 'config', service: 'config-service', paths: ['flags', 'tenant-configs'] },
       { prefix: 'notifications', service: 'notification-service', paths: ['notifications', 'templates'] },
       { prefix: 'sync', service: 'sync-service', paths: ['sync'] },
       { prefix: 'files', service: 'file-service', paths: ['files'] },
-      { prefix: 'audit', service: 'audit-service', paths: ['audit'] },
+      { prefix: 'audit', service: 'audit-service', paths: ['audit', 'audit/verify', 'audit/tamper'] },
       { prefix: 'ai', service: 'ai-gateway-service', paths: ['inference', 'models', 'prompts'] },
       { prefix: 'forecasts', service: 'forecasting-service', paths: ['forecasts'] },
       { prefix: 'recommendations', service: 'recommendation-service', paths: ['recommendations'] },

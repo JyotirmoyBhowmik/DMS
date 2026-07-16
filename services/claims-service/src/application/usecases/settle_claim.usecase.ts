@@ -69,7 +69,7 @@ export class SettleClaimUseCase {
       const prevSettledAmount = entity.settledAmount;
 
       // 3. Perform state transition and validate
-      aggregate.settle(idempotencyKey, amount);
+      aggregate.settle(amount);
 
       // 4. Update in database (optimistic locking checked via version)
       await txRepo.update(entity, tenantId);

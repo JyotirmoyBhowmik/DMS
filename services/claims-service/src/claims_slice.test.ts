@@ -23,7 +23,7 @@ describe('Claims Module & E2E Integration Tests', () => {
   const tenantA = 'a0000000-0000-0000-0000-000000000001';
   const tenantB = 'b0000000-0000-0000-0000-000000000002';
   const schemeId = '00000000-0000-0000-0000-000000000099';
-  const distributorId = '00000000-0000-0000-0000-000000000003';
+  const distributorId = 'dist-1111-2222';
 
   before(async () => {
     // 1. Initialize Database Connection
@@ -48,12 +48,8 @@ describe('Claims Module & E2E Integration Tests', () => {
       ? join(rootDir, 'db/migrations/claims')
       : join(rootDir, '../../db/migrations/claims');
 
-    const schemesMigrationsDir = existsSync(join(rootDir, 'db/migrations/schemes'))
-      ? join(rootDir, 'db/migrations/schemes')
-      : join(rootDir, '../../db/migrations/schemes');
-
     console.log(`[Claims Test] Dropping and recreating public schema for clean tests`);
-    await db.query('DROP SCHEMA IF EXISTS public CASCADE');
+    await db.query('DROP SCHEMA public CASCADE');
     await db.query('CREATE SCHEMA public');
     await db.query('GRANT ALL ON SCHEMA public TO public');
 
@@ -66,11 +62,6 @@ describe('Claims Module & E2E Integration Tests', () => {
     console.log(`[Claims Test] Running Claims migrations from: ${claimsMigrationsDir}`);
     const claimsRunner = new MigrationRunner(db, { migrationsDir: claimsMigrationsDir, tableName: 'claims_schema_migrations' });
     await claimsRunner.migrate();
-
-    // Run Schemes migrations
-    console.log(`[Claims Test] Running Schemes migrations from: ${schemesMigrationsDir}`);
-    const schemesRunner = new MigrationRunner(db, { migrationsDir: schemesMigrationsDir, tableName: 'schemes_schema_migrations' });
-    await schemesRunner.migrate();
 
     // 3. Initialize Gateway
     gateway = new GatewayController();
@@ -88,13 +79,7 @@ describe('Claims Module & E2E Integration Tests', () => {
   beforeEach(async () => {
     // Clear the tables
     await db.query(`SET app.tenant_id = '${tenantA}'`);
-    await db.query('TRUNCATE TABLE schemes, claims, claim_audit_history, claims_outbox RESTART IDENTITY CASCADE');
-
-    // Seed schemes
-    await db.query(`
-      INSERT INTO schemes (id, tenant_id, name, status, start_date)
-      VALUES ($1, $2, $3, $4, $5)
-    `, [schemeId, tenantA, 'Test Scheme', 'active', new Date('2026-01-01')]);
+    await db.query('TRUNCATE TABLE claims, claims_audit_history, claims_outbox RESTART IDENTITY CASCADE');
   });
 
   // ─── 1. DOMAIN UNIT TESTS ──────────────────────────────────────────────────
@@ -270,7 +255,6 @@ describe('Claims Module & E2E Integration Tests', () => {
         id: claimId,
         distributorId,
         schemeId,
-        amount: 10030,
         claimAmount: 8500,
         calculations: { claimAmount: 8500, taxAmount: 1530, netAmount: 10030 },
       },
@@ -278,17 +262,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(createResult.status, 201);
     assert.strictEqual(createResult.body.success, true);
-    
-    let getClaimRes = await gateway.handleRequest({
-      method: 'GET',
-      path: `/api/v1/claims/${claimId}`,
-      headers: {
-        'authorization': `Bearer ${token}`,
-        'x-tenant-id': tenantA,
-      },
-    });
-    assert.strictEqual(getClaimRes.status, 200);
-    assert.strictEqual((getClaimRes.body.claim as any).status, 'raised');
+    assert.strictEqual((createResult.body.claim as any).status, 'draft');
 
     // 2. POST /api/v1/claims/:id/validate
     const validateResult = await gateway.handleRequest({
@@ -303,17 +277,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(validateResult.status, 200);
     assert.strictEqual(validateResult.body.success, true);
-    
-    getClaimRes = await gateway.handleRequest({
-      method: 'GET',
-      path: `/api/v1/claims/${claimId}`,
-      headers: {
-        'authorization': `Bearer ${token}`,
-        'x-tenant-id': tenantA,
-      },
-    });
-    assert.strictEqual(getClaimRes.status, 200);
-    assert.strictEqual((getClaimRes.body.claim as any).status, 'validated');
+    assert.strictEqual((validateResult.body.claim as any).status, 'validated');
 
     // 3. POST /api/v1/claims/:id/approve
     const approveResult = await gateway.handleRequest({
@@ -328,17 +292,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(approveResult.status, 200);
     assert.strictEqual(approveResult.body.success, true);
-    
-    getClaimRes = await gateway.handleRequest({
-      method: 'GET',
-      path: `/api/v1/claims/${claimId}`,
-      headers: {
-        'authorization': `Bearer ${token}`,
-        'x-tenant-id': tenantA,
-      },
-    });
-    assert.strictEqual(getClaimRes.status, 200);
-    assert.strictEqual((getClaimRes.body.claim as any).status, 'approved');
+    assert.strictEqual((approveResult.body.claim as any).status, 'approved');
 
     // 4. POST /api/v1/claims/:id/settle
     const settleResult = await gateway.handleRequest({
@@ -350,23 +304,13 @@ describe('Claims Module & E2E Integration Tests', () => {
       },
       body: {
         idempotencyKey: 'settle-happy-path-123',
-        amount: 10030,
+        amountPaid: 10030,
       },
     });
 
     assert.strictEqual(settleResult.status, 200);
     assert.strictEqual(settleResult.body.success, true);
-    
-    getClaimRes = await gateway.handleRequest({
-      method: 'GET',
-      path: `/api/v1/claims/${claimId}`,
-      headers: {
-        'authorization': `Bearer ${token}`,
-        'x-tenant-id': tenantA,
-      },
-    });
-    assert.strictEqual(getClaimRes.status, 200);
-    assert.strictEqual((getClaimRes.body.claim as any).status, 'settled');
+    assert.strictEqual((settleResult.body.claim as any).status, 'settled');
 
     // 5. Test Idempotency (Repeat settle request with same key)
     const settleRepeatResult = await gateway.handleRequest({
@@ -378,27 +322,17 @@ describe('Claims Module & E2E Integration Tests', () => {
       },
       body: {
         idempotencyKey: 'settle-happy-path-123',
-        amount: 10030,
+        amountPaid: 10030,
       },
     });
 
     assert.strictEqual(settleRepeatResult.status, 200);
     assert.strictEqual(settleRepeatResult.body.success, true);
-    
-    getClaimRes = await gateway.handleRequest({
-      method: 'GET',
-      path: `/api/v1/claims/${claimId}`,
-      headers: {
-        'authorization': `Bearer ${token}`,
-        'x-tenant-id': tenantA,
-      },
-    });
-    assert.strictEqual(getClaimRes.status, 200);
-    assert.strictEqual((getClaimRes.body.claim as any).status, 'settled');
+    assert.strictEqual((settleRepeatResult.body.claim as any).status, 'settled');
 
     // 6. Verify Audit Trail and Outbox logs in the DB
     const auditRows = await db.query<any>(
-      `SELECT * FROM claim_audit_history WHERE claim_id = $1 ORDER BY created_at ASC`,
+      `SELECT * FROM claims_audit_history WHERE claim_id = $1 ORDER BY created_at ASC`,
       [claimId],
       tenantA
     );

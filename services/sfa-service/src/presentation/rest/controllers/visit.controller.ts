@@ -5,12 +5,23 @@ import { CompleteVisitUseCase } from '../../../application/usecases/complete_vis
 import { JourneyPolicy } from '../../../domain/policies/journey_policy.js';
 import { StructuredLogger } from '@dms/pkg-logger';
 import { loadConfigSync } from '@dms/pkg-config';
+import { CreateVisitUseCase } from '../../../application/usecases/visit/create_visit.usecase.js';
+import { GetVisitUseCase } from '../../../application/usecases/visit/get_visit.usecase.js';
+import { UpdateVisitUseCase } from '../../../application/usecases/visit/update_visit.usecase.js';
+import { ListVisitsUseCase } from '../../../application/usecases/visit/list_visits.usecase.js';
+import { CreateVisitSchema, UpdateVisitSchema } from '@dms/pkg-validation';
+import { PostgresDatabaseClient, PgDriver } from '@dms/pkg-database';
 
 const config = loadConfigSync();
 
 export class VisitController {
-  private repo = new VisitRepository();
+  private db = new PostgresDatabaseClient(config.db, new PgDriver());
+  private repo = new VisitRepository(this.db);
   private completeUseCase = new CompleteVisitUseCase();
+  private createUseCase = new CreateVisitUseCase(this.db, this.repo);
+  private getUseCase = new GetVisitUseCase(this.db, this.repo);
+  private updateUseCase = new UpdateVisitUseCase(this.db, this.repo);
+  private listUseCase = new ListVisitsUseCase(this.db, this.repo);
   private logger = new StructuredLogger('VisitController');
 
   // Dynamic outlet location for Delhi check-in geofence
@@ -21,6 +32,10 @@ export class VisitController {
     if (config.seeds.seedMockData) {
       this.seedMockData();
     }
+  }
+
+  static clearStore(): void {
+    VisitRepository.clearStore();
   }
 
   private seedMockData() {
@@ -34,6 +49,139 @@ export class VisitController {
       plannedDate: new Date()
     });
     void this.repo.save(visit);
+  }
+
+  async handlePostVisit(requestBody: any, headers: Record<string, string>): Promise<any> {
+    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+    const agentId = headers['x-agent-id'] || 'mock-agent';
+    this.logger.info('Received HTTP POST visit request', { tenantId, agentId });
+
+    const validationResult = CreateVisitSchema.safeParse(requestBody);
+    if (!validationResult.success) {
+      this.logger.warn('Validation failed for create visit', { errors: validationResult.error.errors });
+      return {
+        statusCode: 400,
+        body: {
+          message: 'Bad Request',
+          errors: validationResult.error.errors,
+        },
+      };
+    }
+
+    try {
+      const result = await this.createUseCase.execute(tenantId, agentId, validationResult.data);
+      return {
+        statusCode: 201,
+        body: {
+          success: true,
+          visitId: result.visitId,
+          status: result.status,
+        },
+      };
+    } catch (err: any) {
+      this.logger.error('Failed to create visit', { error: err.message });
+      if (err.message.includes('already scheduled')) {
+        return {
+          statusCode: 409,
+          body: {
+            success: false,
+            message: err.message,
+          },
+        };
+      }
+      return {
+        statusCode: 500,
+        body: {
+          message: err.message || 'Internal Server Error',
+        },
+      };
+    }
+  }
+
+  async handlePutVisit(id: string, requestBody: any, headers: Record<string, string>): Promise<any> {
+    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+    this.logger.info('Received HTTP PUT visit request', { id, tenantId });
+
+    const validationResult = UpdateVisitSchema.safeParse(requestBody);
+    if (!validationResult.success) {
+      return {
+        statusCode: 400,
+        body: {
+          message: 'Bad Request',
+          errors: validationResult.error.errors,
+        },
+      };
+    }
+
+    try {
+      const result = await this.updateUseCase.execute(tenantId, id, validationResult.data);
+      return {
+        statusCode: 200,
+        body: {
+          success: true,
+          visitId: result.visitId,
+          status: result.status,
+        },
+      };
+    } catch (err: any) {
+      this.logger.error('Failed to update visit', { error: err.message });
+      return {
+        statusCode: err.message.includes('not found') ? 404 : 500,
+        body: {
+          message: err.message || 'Internal Server Error',
+        },
+      };
+    }
+  }
+
+  async handleGetVisit(id: string, headers: Record<string, string>): Promise<any> {
+    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+    this.logger.info('Received HTTP GET visit request', { id, tenantId });
+
+    try {
+      const visit = await this.getUseCase.execute(tenantId, id);
+      return {
+        statusCode: 200,
+        body: {
+          success: true,
+          visit: visit.toJSON(),
+        },
+      };
+    } catch (err: any) {
+      this.logger.error('Failed to get visit', { error: err.message });
+      return {
+        statusCode: err.message.includes('not found') ? 404 : 500,
+        body: {
+          message: err.message || 'Internal Server Error',
+        },
+      };
+    }
+  }
+
+  async handleListVisits(requestBody: any, headers: Record<string, string>): Promise<any> {
+    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+    this.logger.info('Received HTTP GET visits list request', { tenantId });
+
+    try {
+      const result = await this.listUseCase.execute(tenantId, requestBody || {});
+      return {
+        statusCode: 200,
+        body: {
+          success: true,
+          data: result.data.map(v => v.toJSON()),
+          page: result.page,
+          pageSize: result.pageSize,
+        },
+      };
+    } catch (err: any) {
+      this.logger.error('Failed to list visits', { error: err.message });
+      return {
+        statusCode: 500,
+        body: {
+          message: err.message || 'Internal Server Error',
+        },
+      };
+    }
   }
 
   async handleCheckIn(

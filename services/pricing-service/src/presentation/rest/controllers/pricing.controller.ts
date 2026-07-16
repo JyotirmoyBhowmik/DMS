@@ -203,7 +203,7 @@ export class PricingController {
       };
     } catch (err: any) {
       this.logger.warn('Price list entry database write failed, using fallback store', { error: err.message });
-      const entryId = randomUUID();
+            const entryId = randomUUID();
       const entry = new PriceListEntryEntity({
         id: entryId,
         priceListId,
@@ -220,6 +220,7 @@ export class PricingController {
           discountFlat: t.discountFlat !== undefined ? BigInt(t.discountFlat.toString()) : undefined,
         })),
       });
+
 
       const list = PricingController.entriesDb.get(priceListId) || [];
       const idx = list.findIndex(e => e.productId === entry.productId);

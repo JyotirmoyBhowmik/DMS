@@ -34,4 +34,8 @@ export { MigrationRunner } from './migrations/runner.js';
 // Errors
 export { DatabaseError, EntityNotFoundError, ConcurrencyError } from './errors.js';
 
+// Caching
+export { InMemoryCacheClient } from './cache/cache-client.js';
+export type { ICacheClient, CacheOptions } from './cache/cache-client.js';
+
 

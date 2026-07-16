@@ -27,6 +27,7 @@ export const AddPriceListEntryInputSchema = z.object({
 
 export type AddPriceListEntryInput = z.input<typeof AddPriceListEntryInputSchema>;
 
+
 export class AddPriceListEntryUseCase {
   private logger = new StructuredLogger('AddPriceListEntryUseCase');
   private outboxRepo = new OutboxRepository({ tableName: 'pricing_outbox' });
@@ -61,7 +62,7 @@ export class AddPriceListEntryUseCase {
       const oldBasePrice = existingEntry?.basePrice;
       const oldMrp = existingEntry?.mrp;
 
-      const entryId = existingEntry?.id || randomUUID();
+            const entryId = existingEntry?.id || randomUUID();
       const entry = new PriceListEntryEntity({
         id: entryId,
         priceListId,
@@ -78,6 +79,7 @@ export class AddPriceListEntryUseCase {
           discountFlat: t.discountFlat !== undefined ? BigInt(t.discountFlat.toString()) : undefined,
         })),
       });
+
 
       // Temporary pricing aggregate to validate entry invariants
       const testPriceList = { ...priceList, entries: [entry] };

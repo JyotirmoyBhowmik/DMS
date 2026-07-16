@@ -77,6 +77,9 @@ export class Visit {
 
   /** Mark check-in. Only valid from 'planned' state. */
   checkIn(location: GeoPoint): void {
+    if (this.props.status !== 'planned') {
+      throw new Error(`Cannot check in from state: ${this.props.status}`);
+    }
     this.props.checkInTime = new Date();
     this.props.checkInLocation = location;
     this.props.status = 'in_progress';
@@ -84,11 +87,17 @@ export class Visit {
 
   /** Record a completed task during the visit. */
   recordTask(task: VisitTask): void {
+    if (this.props.status !== 'in_progress') {
+      throw new Error(`Cannot record tasks unless visit is in_progress (current state: ${this.props.status})`);
+    }
     this.props.tasksCompleted.push(task);
   }
 
   /** Mark check-out and transition to 'completed'. */
   checkOut(location: GeoPoint): void {
+    if (this.props.status !== 'in_progress') {
+      throw new Error(`Cannot check out from state: ${this.props.status}`);
+    }
     this.props.checkOutTime = new Date();
     this.props.checkOutLocation = location;
     this.props.status = 'completed';
@@ -96,6 +105,9 @@ export class Visit {
 
   /** Skip the visit entirely. */
   skip(): void {
+    if (this.props.status !== 'planned') {
+      throw new Error(`Cannot skip visit from state: ${this.props.status}`);
+    }
     this.props.status = 'skipped';
   }
 

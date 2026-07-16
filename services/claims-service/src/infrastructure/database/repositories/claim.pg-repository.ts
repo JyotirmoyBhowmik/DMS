@@ -31,7 +31,7 @@ export class ClaimPgRepository extends BasePostgresRepository<ClaimEntity> imple
       scheme_id: entity.schemeId,
       amount: entity.amount,
       settled_amount: entity.settledAmount,
-      status: entity.status === 'draft' ? 'raised' : entity.status,
+      status: entity.status,
       duplicate_check_key: entity.duplicateCheckKey || null,
       version: entity.version || 0,
       created_at: entity.createdAt || new Date(),

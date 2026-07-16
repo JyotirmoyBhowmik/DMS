@@ -384,6 +384,37 @@ describe('SFA Sales Force Automation Tests', () => {
     }, headers);
     assert.strictEqual(auditRes.statusCode, 201);
     assert.strictEqual((auditRes.body.audit as any).planogramCompliance, 85);
+
+    // 8. GeoCheckInController
+    const geoCtrl = new (await import('./presentation/rest/controllers/geo_checkin.controller.js')).GeoCheckInController();
+    const checkInRes = await geoCtrl.handlePostGeoCheckIn({
+      agentId: '00000000-0000-0000-0000-000000000002',
+      outletId: '00000000-0000-0000-0000-000000000003',
+      checkInCoords: { latitude: 28.6139, longitude: 77.2090 },
+      outletCoords: { latitude: 28.6139, longitude: 77.2090 },
+      deviceInfo: { model: 'iPhone 14', os: 'iOS 16', batteryLevel: 85 }
+    }, headers);
+    assert.strictEqual(checkInRes.statusCode, 201);
+    assert.strictEqual(checkInRes.body.success, true);
+    assert.ok(checkInRes.body.geoCheckInId);
+
+    // 9. OutletCensusController
+    const censusCtrl = new (await import('./presentation/rest/controllers/outlet_census.controller.js')).OutletCensusController();
+    const newCensusRes = await censusCtrl.handlePostOutletCensus({
+      agentId: '00000000-0000-0000-0000-000000000002',
+      outletId: '00000000-0000-0000-0000-000000000003',
+      censusDate: '2026-07-17',
+      outletName: 'Sagar Store CP',
+      outletType: 'kirana',
+      ownerName: 'Sagar Kumar',
+      ownerPhone: '9876543210',
+      address: 'Shop 5, New Delhi',
+      geoCoords: { latitude: 28.6139, longitude: 77.2090 },
+      tradeCategory: 'Groceries'
+    }, headers);
+    assert.strictEqual(newCensusRes.statusCode, 201);
+    assert.strictEqual(newCensusRes.body.success, true);
+    assert.ok(newCensusRes.body.outletCensusId);
   });
 });
 

@@ -1,6 +1,5 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
-import { PostgresDatabaseClient, InMemoryDriver } from '@dms/pkg-database';
 import { PriceListEntity } from './domain/entities/price-list.entity.js';
 import { PriceListEntryEntity } from './domain/entities/price-list-entry.entity.js';
 import { PriceListAssignmentEntity } from './domain/entities/price-list-assignment.entity.js';
@@ -164,13 +163,13 @@ describe('Pricing Service - Unit Tests', () => {
         this.priceLists.set(priceList.id, priceList);
         return priceList;
       }
-      async findAll(tenantId: string): Promise<any> {
+      async findAll(): Promise<any> {
         return { data: Array.from(this.priceLists.values()) };
       }
-      async delete(id: string, tenantId: string): Promise<boolean> {
+      async delete(id: string): Promise<boolean> {
         return this.priceLists.delete(id);
       }
-      async saveAssignment(assignment: PriceListAssignmentEntity, tenantId: string): Promise<PriceListAssignmentEntity> {
+            async saveAssignment(assignment: PriceListAssignmentEntity, tenantId: string): Promise<PriceListAssignmentEntity> {
         const list = this.assignments.get(assignment.priceListId) || [];
         list.push(assignment);
         this.assignments.set(assignment.priceListId, list);
@@ -235,12 +234,12 @@ describe('Pricing Service - Unit Tests', () => {
       async saveAuditLog(log: any, tenantId: string): Promise<void> {
         this.auditLogs.push(log);
       }
+
     }
 
     test('CreatePriceListUseCase execution flow', async () => {
       const repo = new MockPriceListRepository();
-      const db = new PostgresDatabaseClient(new InMemoryDriver());
-      const usecase = new CreatePriceListUseCase(db, repo);
+      const usecase = new CreatePriceListUseCase(undefined, repo);
 
       const res = await usecase.execute(tenantId, {
         id: priceListId,
@@ -258,7 +257,6 @@ describe('Pricing Service - Unit Tests', () => {
 
     test('AddPriceListEntryUseCase and CalculatePriceUseCase', async () => {
       const repo = new MockPriceListRepository();
-      const db = new PostgresDatabaseClient(new InMemoryDriver());
       
       // Seed a price list
       const pl = new PriceListEntity({
@@ -276,7 +274,7 @@ describe('Pricing Service - Unit Tests', () => {
       }), tenantId);
 
       // Add entry
-      const addUsecase = new AddPriceListEntryUseCase(db, repo);
+      const addUsecase = new AddPriceListEntryUseCase(undefined, repo);
       await addUsecase.execute(tenantId, priceListId, {
         productId,
         basePrice: 5000n,
@@ -290,7 +288,7 @@ describe('Pricing Service - Unit Tests', () => {
       assert.strictEqual(repo.auditLogs[0].actionType, 'CREATE_ENTRY');
 
       // Calculate price
-      const calcUsecase = new CalculatePriceUseCase(db, repo);
+      const calcUsecase = new CalculatePriceUseCase(undefined, repo);
       const pricing = await calcUsecase.execute(tenantId, {
         productId,
         quantity: 10,

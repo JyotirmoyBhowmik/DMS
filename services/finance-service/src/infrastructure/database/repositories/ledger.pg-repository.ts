@@ -1,9 +1,9 @@
 import { BasePostgresRepository, BaseRow, PostgresDatabaseClient } from '@dms/pkg-database';
-import { LedgerRepository, AgingReportBucket } from '../../../domain/repositories/ledger.repository.js';
-import { LedgerAccount } from '../../../domain/entities/ledger-account.entity.js';
-import { LedgerPeriod } from '../../../domain/entities/ledger-period.entity.js';
-import { LedgerEntry } from '../../../domain/entities/ledger-entry.entity.js';
-import { LedgerPosting } from '../../../domain/entities/ledger-posting.entity.js';
+import { LedgerRepository, AgingReportBucket } from '../../domain/repositories/ledger.repository.js';
+import { LedgerAccount } from '../../domain/entities/ledger-account.entity.js';
+import { LedgerPeriod } from '../../domain/entities/ledger-period.entity.js';
+import { LedgerEntry } from '../../domain/entities/ledger-entry.entity.js';
+import { LedgerPosting } from '../../domain/entities/ledger-posting.entity.js';
 
 // ─── Sub-Repositories ─────────────────────────────────────────────────────────
 
