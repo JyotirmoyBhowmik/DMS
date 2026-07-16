@@ -75,32 +75,48 @@ export class JourneyPlan {
 
   /** Start the journey. */
   startJourney(): void {
+    if (this.props.status !== 'planned') {
+      throw new Error(`Cannot start journey from state: ${this.props.status}`);
+    }
     this.props.status = 'in_progress';
     this.props.actualStartTime = new Date();
   }
 
   /** Mark an outlet as visited. */
   markOutletVisited(outletId: string): void {
-    const outlet = this.props.plannedOutlets.find((o) => o.outletId === outletId);
-    if (outlet) {
-      outlet.visited = true;
+    if (this.props.status !== 'in_progress') {
+      throw new Error(`Cannot record visits unless journey plan is in_progress (current state: ${this.props.status})`);
     }
+    const outlet = this.props.plannedOutlets.find((o) => o.outletId === outletId);
+    if (!outlet) {
+      throw new Error(`Outlet stop with ID ${outletId} not found in this journey plan`);
+    }
+    outlet.visited = true;
   }
 
   /** Complete the journey. */
   completeJourney(): void {
+    if (this.props.status !== 'in_progress') {
+      throw new Error(`Cannot complete journey unless it is in_progress (current state: ${this.props.status})`);
+    }
     this.props.status = 'completed';
     this.props.actualEndTime = new Date();
   }
 
   /** Add an ad-hoc outlet stop. */
   addOutlet(outlet: PlannedOutlet): void {
+    if (this.props.status === 'completed') {
+      throw new Error('Cannot add outlets to a completed journey plan');
+    }
     this.props.plannedOutlets.push(outlet);
     this.props.plannedOutlets.sort((a, b) => a.sequence - b.sequence);
   }
 
   /** Remove an outlet from the plan. */
   removeOutlet(outletId: string): void {
+    if (this.props.status === 'completed') {
+      throw new Error('Cannot remove outlets from a completed journey plan');
+    }
     this.props.plannedOutlets = this.props.plannedOutlets.filter(
       (o) => o.outletId !== outletId,
     );

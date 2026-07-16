@@ -130,9 +130,11 @@ export class BeatRoute {
     if (this.props.outlets.some((o) => o.outletId === outlet.outletId)) {
       throw new Error(`Outlet ${outlet.outletId} already exists in this beat route`);
     }
+    const tempOutlets = [...this.props.outlets, { ...outlet }].sort((a, b) => a.sequence - b.sequence);
+    BeatRoute.validateOutlets(tempOutlets);
+
     this.props.outlets.push({ ...outlet });
     this.props.outlets.sort((a, b) => a.sequence - b.sequence);
-    this.validateSequenceContiguity();
     this.props.updatedAt = new Date();
   }
 

@@ -27,6 +27,311 @@ paths:
                     format: uuid
                   status:
                     type: string
+  /order-approvals:
+    post:
+      summary: Create a new order approval request
+      operationId: createOrderApproval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderApprovalInput'
+      responses:
+        '201':
+          description: Order approval request created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  approvalId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+  /order-approvals/{id}:
+    put:
+      summary: Update order approval status (approve/reject/escalate)
+      operationId: updateOrderApproval
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrderApprovalInput'
+      responses:
+        '200':
+          description: Order approval updated successfully
+    get:
+      summary: Retrieve order approval request details
+      operationId: getOrderApproval
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Order approval request details
+  /journey-plans:
+    post:
+      summary: Create a new beat journey plan
+      operationId: createJourneyPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateJourneyPlanInput'
+      responses:
+        '201':
+          description: Journey plan created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  planId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+  /journey-plans/{id}:
+    put:
+      summary: Update journey plan status or modify stops
+      operationId: updateJourneyPlan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateJourneyPlanInput'
+      responses:
+        '200':
+          description: Journey plan updated successfully
+    get:
+      summary: Get details of a journey plan
+      operationId: getJourneyPlan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Journey plan details
+  /beat-routes:
+    post:
+      summary: Create a new territory beat route
+      operationId: createBeatRoute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBeatRouteInput'
+      responses:
+        '201':
+          description: Beat route created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  beatRouteId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+  /beat-routes/{id}:
+    put:
+      summary: Update beat route status, metadata or outlet stop lists
+      operationId: updateBeatRoute
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBeatRouteInput'
+      responses:
+        '200':
+          description: Beat route updated successfully
+    get:
+      summary: Get details of a beat route
+      operationId: getBeatRoute
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Beat route details
+    delete:
+      summary: Delete a beat route
+      operationId: deleteBeatRoute
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Beat route deleted successfully
+  /visits:
+    post:
+      summary: Create a new retail outlet visit
+      operationId: createVisit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVisitInput'
+      responses:
+        '201':
+          description: Visit created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  visitId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+    get:
+      summary: List visits
+      operationId: listVisits
+      responses:
+        '200':
+          description: List of visits
+  /visits/{id}:
+    put:
+      summary: Update visit status or record tasks
+      operationId: updateVisit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateVisitInput'
+      responses:
+        '200':
+          description: Visit updated successfully
+    get:
+      summary: Get details of a visit
+      operationId: getVisit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Visit details
+  /attendance:
+    post:
+      summary: Create a daily attendance record
+      operationId: createAttendance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAttendanceInput'
+      responses:
+        '201':
+          description: Attendance created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  attendanceId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+    get:
+      summary: List attendance records
+      operationId: listAttendances
+      responses:
+        '200':
+          description: List of attendance records
+  /attendance/{id}:
+    put:
+      summary: Update attendance state (check-in, check-out, approve, set leave)
+      operationId: updateAttendance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAttendanceInput'
+      responses:
+        '200':
+          description: Attendance updated successfully
+    get:
+      summary: Get details of an attendance record
+      operationId: getAttendance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Attendance details
 components:
   schemas:
     PlaceOrderInput:
@@ -61,3 +366,242 @@ components:
         price:
           type: number
           minimum: 0.01
+    CreateOrderApprovalInput:
+      type: object
+      required:
+        - orderId
+        - requestedBy
+        - amount
+        - thresholdAmount
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        requestedBy:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          minimum: 0.01
+        thresholdAmount:
+          type: number
+          minimum: 0.01
+    UpdateOrderApprovalInput:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [approved, rejected, escalated]
+        comments:
+          type: string
+    CreateJourneyPlanInput:
+      type: object
+      required:
+        - date
+        - beatId
+        - beatName
+        - plannedOutlets
+      properties:
+        date:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        beatId:
+          type: string
+          format: uuid
+        beatName:
+          type: string
+        plannedOutlets:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlannedOutletInput'
+    PlannedOutletInput:
+      type: object
+      required:
+        - outletId
+        - outletName
+        - sequence
+        - latitude
+        - longitude
+        - estimatedArrival
+      properties:
+        outletId:
+          type: string
+          format: uuid
+        outletName:
+          type: string
+        sequence:
+          type: integer
+        latitude:
+          type: number
+        longitude:
+          type: number
+        estimatedArrival:
+          type: string
+          format: date-time
+    UpdateJourneyPlanInput:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [start, complete, visit_outlet, add_outlet, remove_outlet]
+        outletId:
+          type: string
+          format: uuid
+        outletData:
+          $ref: '#/components/schemas/PlannedOutletInput'
+    CreateBeatRouteInput:
+      type: object
+      required:
+        - name
+        - region
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        region:
+          type: string
+        assignedAgentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        frequency:
+          type: string
+          enum: [daily, weekly, monthly]
+        outlets:
+          type: array
+          items:
+            $ref: '#/components/schemas/BeatOutletInput'
+    BeatOutletInput:
+      type: object
+      required:
+        - outletId
+        - sequence
+        - lat
+        - lng
+      properties:
+        outletId:
+          type: string
+          format: uuid
+        sequence:
+          type: integer
+        lat:
+          type: number
+        lng:
+          type: number
+    UpdateBeatRouteInput:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [activate, suspend, archive, assign_agent, remove_agent, add_outlet, remove_outlet, update_name, update_frequency]
+        name:
+          type: string
+        frequency:
+          type: string
+          enum: [daily, weekly, monthly]
+        agentId:
+          type: string
+          format: uuid
+        outletId:
+          type: string
+          format: uuid
+        outlet:
+          $ref: '#/components/schemas/BeatOutletInput'
+    CreateVisitInput:
+      type: object
+      required:
+        - outletId
+        - journeyPlanId
+        - plannedDate
+      properties:
+        id:
+          type: string
+          format: uuid
+        outletId:
+          type: string
+          format: uuid
+        journeyPlanId:
+          type: string
+          format: uuid
+        plannedDate:
+          type: string
+          format: date-time
+    UpdateVisitInput:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [check_in, check_out, record_task, skip]
+        location:
+          $ref: '#/components/schemas/GeoPoint'
+        task:
+          $ref: '#/components/schemas/VisitTaskInput'
+    VisitTaskInput:
+      type: object
+      required:
+        - taskId
+        - taskType
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        taskType:
+          type: string
+        notes:
+          type: string
+    GeoPoint:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+        longitude:
+          type: number
+    CreateAttendanceInput:
+      type: object
+      required:
+        - agentId
+        - date
+      properties:
+        id:
+          type: string
+          format: uuid
+        agentId:
+          type: string
+          format: uuid
+        date:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        shiftStart:
+          type: string
+          format: date-time
+        shiftEnd:
+          type: string
+          format: date-time
+    UpdateAttendanceInput:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [check_in, check_out, approve, set_leave]
+        location:
+          $ref: '#/components/schemas/GeoPoint'
+        leaveType:
+          type: string
+
+
