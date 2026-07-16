@@ -332,6 +332,132 @@ paths:
       responses:
         '200':
           description: Attendance details
+  /geo-check-in:
+    post:
+      summary: Create a daily geo-checkin record
+      operationId: createGeoCheckIn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGeoCheckInInput'
+      responses:
+        '201':
+          description: GeoCheckIn created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  geoCheckInId:
+                    type: string
+                    format: uuid
+                  isWithinGeofence:
+                    type: boolean
+    get:
+      summary: List geo-checkin records
+      operationId: listGeoCheckIns
+      responses:
+        '200':
+          description: List of geo-checkin records
+  /geo-check-in/{id}:
+    put:
+      summary: Update geo-checkin state (check-out, flag spoofing)
+      operationId: updateGeoCheckIn
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGeoCheckInInput'
+      responses:
+        '200':
+          description: GeoCheckIn updated successfully
+    get:
+      summary: Get details of a geo-checkin record
+      operationId: getGeoCheckIn
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: GeoCheckIn details
+  /outlet-census:
+    post:
+      summary: Create a new outlet census record
+      operationId: createOutletCensus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOutletCensusInput'
+      responses:
+        '201':
+          description: OutletCensus created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  outletCensusId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+        '409':
+          description: Conflict (census already exists for outlet)
+    get:
+      summary: List outlet census records
+      operationId: listOutletCensuses
+      responses:
+        '200':
+          description: List of outlet census records
+  /outlet-census/{id}:
+    put:
+      summary: Update outlet census state or details
+      operationId: updateOutletCensus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOutletCensusInput'
+      responses:
+        '200':
+          description: OutletCensus updated successfully
+    get:
+      summary: Get details of an outlet census record
+      operationId: getOutletCensus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OutletCensus details
 components:
   schemas:
     PlaceOrderInput:
@@ -603,5 +729,137 @@ components:
           $ref: '#/components/schemas/GeoPoint'
         leaveType:
           type: string
+    CreateGeoCheckInInput:
+      type: object
+      required:
+        - agentId
+        - outletId
+        - checkInCoords
+        - outletCoords
+        - deviceInfo
+      properties:
+        id:
+          type: string
+          format: uuid
+        agentId:
+          type: string
+          format: uuid
+        outletId:
+          type: string
+          format: uuid
+        visitId:
+          type: string
+          format: uuid
+        checkInCoords:
+          $ref: '#/components/schemas/GeoPoint'
+        outletCoords:
+          $ref: '#/components/schemas/GeoPoint'
+        deviceInfo:
+          type: object
+          required:
+            - model
+            - os
+            - batteryLevel
+          properties:
+            model:
+              type: string
+            os:
+              type: string
+            batteryLevel:
+              type: integer
+        geofenceRadiusM:
+          type: number
+        spoofingDetected:
+          type: boolean
+    UpdateGeoCheckInInput:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [check_out, flag_spoofing]
+        coords:
+          $ref: '#/components/schemas/GeoPoint'
+    CreateOutletCensusInput:
+      type: object
+      required:
+        - agentId
+        - outletId
+        - censusDate
+        - outletName
+        - outletType
+        - ownerName
+        - ownerPhone
+        - address
+        - geoCoords
+        - tradeCategory
+      properties:
+        id:
+          type: string
+          format: uuid
+        agentId:
+          type: string
+          format: uuid
+        outletId:
+          type: string
+          format: uuid
+        censusDate:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        outletName:
+          type: string
+        outletType:
+          type: string
+          enum: [kirana, supermarket, pharmacy, general]
+        ownerName:
+          type: string
+        ownerPhone:
+          type: string
+        address:
+          type: string
+        geoCoords:
+          $ref: '#/components/schemas/GeoPoint'
+        photoUrls:
+          type: array
+          items:
+            type: string
+        gstin:
+          type: string
+        panNumber:
+          type: string
+        tradeCategory:
+          type: string
+        annualTurnoverEstimate:
+          type: number
+        competitorPresence:
+          type: array
+          items:
+            type: string
+    UpdateOutletCensusInput:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [submit, verify, approve, reject, update_kyc, add_photo, update_competitors]
+        kycStatus:
+          type: string
+          enum: [pending, verified, rejected]
+        gstin:
+          type: string
+        panNumber:
+          type: string
+        photoUrl:
+          type: string
+        competitors:
+          type: array
+          items:
+            type: string
+        version:
+          type: integer
+
+
 
 

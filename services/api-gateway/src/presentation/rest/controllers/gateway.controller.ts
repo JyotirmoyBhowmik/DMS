@@ -12,6 +12,8 @@ import { JourneyPlanController } from '../../../../../sfa-service/src/presentati
 import { BeatRouteController } from '../../../../../sfa-service/src/presentation/rest/controllers/beat_route.controller.js';
 import { VisitController as SfaVisitController } from '../../../../../sfa-service/src/presentation/rest/controllers/visit.controller.js';
 import { AttendanceController as SfaAttendanceController } from '../../../../../sfa-service/src/presentation/rest/controllers/attendance.controller.js';
+import { GeoCheckInController as SfaGeoCheckInController } from '../../../../../sfa-service/src/presentation/rest/controllers/geo_checkin.controller.js';
+import { OutletCensusController as SfaOutletCensusController } from '../../../../../sfa-service/src/presentation/rest/controllers/outlet_census.controller.js';
 import { SchemeController } from '../../../../../schemes-service/src/presentation/rest/controllers/scheme.controller.js';
 import { ClaimController } from '../../../../../claims-service/src/presentation/rest/controllers/claim.controller.js';
 import { EnterpriseDmsController } from '../../../../../dms-core-service/src/presentation/rest/controllers/enterprise_dms.controller.js';
@@ -55,6 +57,8 @@ export class GatewayController {
   private readonly sfaBeatRouteController: BeatRouteController;
   private readonly sfaVisitController: SfaVisitController;
   private readonly sfaAttendanceController: SfaAttendanceController;
+  private readonly sfaGeoCheckInController: SfaGeoCheckInController;
+  private readonly sfaOutletCensusController: SfaOutletCensusController;
   private readonly schemesController: SchemeController;
   private readonly claimsController: ClaimController;
   private readonly enterpriseDmsController: EnterpriseDmsController;
@@ -84,6 +88,8 @@ export class GatewayController {
     this.sfaBeatRouteController = new BeatRouteController();
     this.sfaVisitController = new SfaVisitController();
     this.sfaAttendanceController = new SfaAttendanceController();
+    this.sfaGeoCheckInController = new SfaGeoCheckInController();
+    this.sfaOutletCensusController = new SfaOutletCensusController();
     this.schemesController = new SchemeController();
     this.claimsController = new ClaimController();
     this.identityAuthController = new IdentityAuthController();
@@ -125,6 +131,18 @@ export class GatewayController {
       'x-request-id': requestId,
       'x-gateway-version': 'v1.0.0',
     };
+
+    // Body size validation (413 Payload Too Large)
+    if (request.body) {
+      const bodyStr = typeof request.body === 'string' ? request.body : JSON.stringify(request.body);
+      if (bodyStr.length > 2 * 1024 * 1024) { // 2MB limit
+        return {
+          status: 413,
+          headers: responseHeaders,
+          body: { error: 'Payload Too Large', code: 'PAYLOAD_TOO_LARGE' }
+        };
+      }
+    }
 
     // Route matching
     const matched = this.router.match(request.method, request.path);
@@ -219,6 +237,84 @@ export class GatewayController {
           resultBody = res.body;
         } else {
           const res = await this.sfaAttendanceController.handleListAttendances(request.body || {}, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/geo-check-in') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      if (request.method === 'POST') {
+        const res = await this.sfaGeoCheckInController.handlePostGeoCheckIn(request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaGeoCheckInController.handlePutGeoCheckIn(params.id || '', request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaGeoCheckInController.handleGetGeoCheckIn(id, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaGeoCheckInController.handleListGeoCheckIns(request.body || {}, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/outlet-census') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      if (request.method === 'POST') {
+        const res = await this.sfaOutletCensusController.handlePostOutletCensus(request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaOutletCensusController.handlePutOutletCensus(params.id || '', request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaOutletCensusController.handleGetOutletCensus(id, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaOutletCensusController.handleListOutletCensuses(request.body || {}, {
             'x-tenant-id': tenantId,
           });
           statusCode = res.statusCode;

@@ -206,7 +206,7 @@ export class InMemoryRouteRepository {
 
   private seed(): void {
     const services = [
-      { prefix: 'sfa', service: 'sfa-service', paths: ['orders', 'visits', 'journey-plans', 'agents', 'order-approvals', 'beat-routes', 'attendance'] },
+      { prefix: 'sfa', service: 'sfa-service', paths: ['orders', 'visits', 'journey-plans', 'agents', 'order-approvals', 'beat-routes', 'attendance', 'geo-check-in', 'outlet-census'] },
       { prefix: 'dms', service: 'dms-core-service', paths: [
         'distributors',
         'distributors/onboarding',

@@ -9,6 +9,8 @@ export class SyncController {
       orders: { changed: [], deleted: [] },
       visits: { changed: [], deleted: [] },
       outlets: { changed: [], deleted: [] },
+      attendances: { changed: [], deleted: [] },
+      geoCheckIns: { changed: [], deleted: [] },
       serverTimestamp: Date.now()
     };
   }
