@@ -104,7 +104,7 @@ export class PostLedgerEntryUseCase {
           referenceId: saved.referenceId,
           description: saved.description,
           postedAt: saved.postedAt.toISOString(),
-          postings: saved.postings.map((p: LedgerPosting) => ({
+          postings: saved.postings.map(p => ({
             accountId: p.accountId,
             type: p.type,
             amount: p.amount,

@@ -73,7 +73,7 @@ export class ReverseLedgerEntryUseCase {
       }
 
       // 4. Create inverse postings
-      const reversalPostings = originalEntry.postings.map((origPosting: LedgerPosting) => new LedgerPosting({
+      const reversalPostings = originalEntry.postings.map(origPosting => new LedgerPosting({
         id: randomUUID(),
         tenantId,
         entryId: reversalEntryId,
