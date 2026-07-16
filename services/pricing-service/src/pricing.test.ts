@@ -237,18 +237,9 @@ describe('Pricing Service - Unit Tests', () => {
 
     }
 
-    const mockDb = {
-      transaction: async (cb: (conn: any) => Promise<any>) => {
-        const mockConn = {
-          query: async () => ({ rows: [] })
-        };
-        return cb(mockConn);
-      }
-    } as any;
-
     test('CreatePriceListUseCase execution flow', async () => {
       const repo = new MockPriceListRepository();
-      const usecase = new CreatePriceListUseCase(mockDb, repo);
+      const usecase = new CreatePriceListUseCase(undefined, repo);
 
       const res = await usecase.execute(tenantId, {
         id: priceListId,
@@ -283,7 +274,7 @@ describe('Pricing Service - Unit Tests', () => {
       }), tenantId);
 
       // Add entry
-      const addUsecase = new AddPriceListEntryUseCase(mockDb, repo);
+      const addUsecase = new AddPriceListEntryUseCase(undefined, repo);
       await addUsecase.execute(tenantId, priceListId, {
         productId,
         basePrice: 5000n,
