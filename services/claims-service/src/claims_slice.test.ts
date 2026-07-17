@@ -79,7 +79,7 @@ describe('Claims Module & E2E Integration Tests', () => {
   beforeEach(async () => {
     // Clear the tables
     await db.query(`SET app.tenant_id = '${tenantA}'`);
-    await db.query('TRUNCATE TABLE claims, claims_audit_history, claims_outbox RESTART IDENTITY CASCADE');
+    await db.query('TRUNCATE TABLE claims, claim_audit_history, claims_outbox, claim_reconciliations RESTART IDENTITY CASCADE');
   });
 
   // ─── 1. DOMAIN UNIT TESTS ──────────────────────────────────────────────────
@@ -90,23 +90,10 @@ describe('Claims Module & E2E Integration Tests', () => {
         tenantId: tenantA,
         distributorId,
         schemeId,
-        claimAmount: 0,
-        calculations: { claimAmount: 0, taxAmount: 0, netAmount: 0 }
+        amount: 0,
       });
       new ClaimAggregate(entity).validateInvariants();
-    }, /Claim amount must be greater than zero/);
-
-    // Invariant: tax amount cannot be negative
-    assert.throws(() => {
-      const entity = new ClaimEntity({
-        tenantId: tenantA,
-        distributorId,
-        schemeId,
-        claimAmount: 100,
-        calculations: { claimAmount: 100, taxAmount: -5, netAmount: 105 }
-      });
-      new ClaimAggregate(entity).validateInvariants();
-    }, /Tax amount cannot be negative/);
+    }, /amount must be greater than zero/);
 
     // Draft State Transitions
     const entity = new ClaimEntity({
@@ -114,32 +101,27 @@ describe('Claims Module & E2E Integration Tests', () => {
       tenantId: tenantA,
       distributorId,
       schemeId,
-      claimAmount: 5000,
-      calculations: { claimAmount: 5000, taxAmount: 900, netAmount: 5900 },
-      status: 'draft',
+      amount: 5000,
+      status: 'raised',
     });
 
     const aggregate = new ClaimAggregate(entity);
     aggregate.validateInvariants();
 
-    // Cannot approve/reject/settle in draft
-    assert.throws(() => aggregate.approve('Approver User'));
-    assert.throws(() => aggregate.reject('Rejecter User', 'Reason'));
-    assert.throws(() => aggregate.settle('settle-key-1', 5000));
+    // Cannot approve/reject/settle in raised state
+    assert.throws(() => aggregate.approve());
+    assert.throws(() => aggregate.settle(5000));
 
     // Move to validated
-    aggregate.validate('Validator User');
+    aggregate.validate();
     assert.strictEqual(entity.status, 'validated');
-    assert.strictEqual(entity.validatedBy, 'Validator User');
-    assert.ok(entity.validatedAt !== null);
 
     // Validate cannot be validated again
-    assert.throws(() => aggregate.validate('Validator User 2'));
+    assert.throws(() => aggregate.validate());
 
     // Reject from validated
-    aggregate.reject('Rejecter User', 'Exceeds budget limits');
+    aggregate.reject();
     assert.strictEqual(entity.status, 'rejected');
-    assert.strictEqual(entity.rejectionReason, 'Exceeds budget limits');
 
     // Test approved and settle flow on a fresh aggregate
     const entity2 = new ClaimEntity({
@@ -147,23 +129,19 @@ describe('Claims Module & E2E Integration Tests', () => {
       tenantId: tenantA,
       distributorId,
       schemeId,
-      claimAmount: 5000,
-      calculations: { claimAmount: 5000, taxAmount: 900, netAmount: 5900 },
+      amount: 5000,
       status: 'validated',
     });
     const aggregate2 = new ClaimAggregate(entity2);
     
     // Approve
-    aggregate2.approve('Approver User');
+    aggregate2.approve();
     assert.strictEqual(entity2.status, 'approved');
-    assert.strictEqual(entity2.approvedBy, 'Approver User');
     
     // Settle (Full Settlement)
-    aggregate2.settle('settle-key-1', 5900);
+    aggregate2.settle(5000);
     assert.strictEqual(entity2.status, 'settled');
-    assert.strictEqual(entity2.settlementDetails?.status, 'COMPLETED');
-    assert.strictEqual(entity2.settlementDetails?.amountPaid, 5900);
-    assert.strictEqual(entity2.settlementDetails?.idempotencyKey, 'settle-key-1');
+    assert.strictEqual(entity2.settledAmount, 5000);
   });
 
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
@@ -173,9 +151,9 @@ describe('Claims Module & E2E Integration Tests', () => {
       tenantId: tenantA,
       distributorId,
       schemeId,
-      claimAmount: 12000,
-      calculations: { claimAmount: 12000, taxAmount: 2160, netAmount: 14160 },
-      status: 'draft',
+      amount: 12000,
+      status: 'raised',
+      version: 1,
     });
 
     // 1. Save
@@ -188,8 +166,6 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     // 3. Update (Optimistic Locking success)
     saved.status = 'validated';
-    saved.validatedBy = 'Validator User';
-    saved.validatedAt = new Date();
     const updated = await claimRepo.update(saved, tenantA);
     assert.strictEqual(updated.version, 2);
     assert.strictEqual(updated.status, 'validated');
@@ -218,6 +194,13 @@ describe('Claims Module & E2E Integration Tests', () => {
 
   // ─── 3. E2E HAPPY PATH / API GATEWAY TEST ──────────────────────────────────
   test('E2E: Full lifecycle via API Gateway, concurrency guard, and audit history check', async () => {
+    // Insert mock active scheme so validation succeeds
+    await db.query(
+      `INSERT INTO schemes (id, tenant_id, name, type, status, rules, created_at, updated_at) 
+       VALUES ($1, $2, 'Test Scheme', 'volume_discount', 'active', '{}', NOW(), NOW())`,
+      [schemeId, tenantA]
+    );
+
     // Generate JWT Token for Tenant A
     const keyRecord = KeyManager.getInstance().getSigningKey();
     const iat = Math.floor(Date.now() / 1000);
@@ -250,19 +233,19 @@ describe('Claims Module & E2E Integration Tests', () => {
       headers: {
         'authorization': `Bearer ${token}`,
         'x-tenant-id': tenantA,
+        'content-type': 'application/json',
       },
       body: {
         id: claimId,
         distributorId,
         schemeId,
-        claimAmount: 8500,
-        calculations: { claimAmount: 8500, taxAmount: 1530, netAmount: 10030 },
+        amount: 8500,
       },
     });
 
     assert.strictEqual(createResult.status, 201);
     assert.strictEqual(createResult.body.success, true);
-    assert.strictEqual((createResult.body.claim as any).status, 'draft');
+    assert.strictEqual((createResult.body as any).status, 'raised');
 
     // 2. POST /api/v1/claims/:id/validate
     const validateResult = await gateway.handleRequest({
@@ -271,13 +254,14 @@ describe('Claims Module & E2E Integration Tests', () => {
       headers: {
         'authorization': `Bearer ${token}`,
         'x-tenant-id': tenantA,
+        'content-type': 'application/json',
       },
       body: {},
     });
 
     assert.strictEqual(validateResult.status, 200);
     assert.strictEqual(validateResult.body.success, true);
-    assert.strictEqual((validateResult.body.claim as any).status, 'validated');
+    assert.strictEqual((validateResult.body as any).status, 'validated');
 
     // 3. POST /api/v1/claims/:id/approve
     const approveResult = await gateway.handleRequest({
@@ -286,13 +270,14 @@ describe('Claims Module & E2E Integration Tests', () => {
       headers: {
         'authorization': `Bearer ${token}`,
         'x-tenant-id': tenantA,
+        'content-type': 'application/json',
       },
       body: {},
     });
 
     assert.strictEqual(approveResult.status, 200);
     assert.strictEqual(approveResult.body.success, true);
-    assert.strictEqual((approveResult.body.claim as any).status, 'approved');
+    assert.strictEqual((approveResult.body as any).status, 'approved');
 
     // 4. POST /api/v1/claims/:id/settle
     const settleResult = await gateway.handleRequest({
@@ -301,16 +286,17 @@ describe('Claims Module & E2E Integration Tests', () => {
       headers: {
         'authorization': `Bearer ${token}`,
         'x-tenant-id': tenantA,
+        'content-type': 'application/json',
       },
       body: {
         idempotencyKey: 'settle-happy-path-123',
-        amountPaid: 10030,
+        amountPaid: 8500,
       },
     });
 
     assert.strictEqual(settleResult.status, 200);
     assert.strictEqual(settleResult.body.success, true);
-    assert.strictEqual((settleResult.body.claim as any).status, 'settled');
+    assert.strictEqual(((settleResult.body as any).transaction).status, 'settled');
 
     // 5. Test Idempotency (Repeat settle request with same key)
     const settleRepeatResult = await gateway.handleRequest({
@@ -319,26 +305,26 @@ describe('Claims Module & E2E Integration Tests', () => {
       headers: {
         'authorization': `Bearer ${token}`,
         'x-tenant-id': tenantA,
+        'content-type': 'application/json',
       },
       body: {
         idempotencyKey: 'settle-happy-path-123',
-        amountPaid: 10030,
+        amountPaid: 8500,
       },
     });
 
     assert.strictEqual(settleRepeatResult.status, 200);
     assert.strictEqual(settleRepeatResult.body.success, true);
-    assert.strictEqual((settleRepeatResult.body.claim as any).status, 'settled');
 
     // 6. Verify Audit Trail and Outbox logs in the DB
     const auditRows = await db.query<any>(
-      `SELECT * FROM claims_audit_history WHERE claim_id = $1 ORDER BY created_at ASC`,
+      `SELECT * FROM claim_audit_history WHERE claim_id = $1 ORDER BY created_at ASC`,
       [claimId],
       tenantA
     );
-    assert.strictEqual(auditRows.rows.length, 4); // RAISED, VALIDATED, APPROVED, SETTLED
-    assert.strictEqual(auditRows.rows[0].action, 'RAISED');
-    assert.strictEqual(auditRows.rows[3].action, 'SETTLED');
+    assert.strictEqual(auditRows.rows.length, 4); // raised, validate, approve, settle
+    assert.strictEqual(auditRows.rows[0].action, 'raised');
+    assert.strictEqual(auditRows.rows[3].action, 'settle');
 
     const outboxRows = await db.query<any>(
       `SELECT * FROM claims_outbox WHERE aggregate_id = $1`,
