@@ -29,7 +29,6 @@ export class FinanceEventConsumer {
       }
     }, {
       queueName: 'finance-service.order.placed',
-      consumerGroup: 'finance-service',
     });
 
     this.broker.subscribe('claim.created.v1', async (event: any) => {
@@ -41,7 +40,6 @@ export class FinanceEventConsumer {
       }
     }, {
       queueName: 'finance-service.claim.created',
-      consumerGroup: 'finance-service',
     });
 
     this.broker.subscribe('scheme.allocated.v1', async (event: any) => {
@@ -53,14 +51,13 @@ export class FinanceEventConsumer {
       }
     }, {
       queueName: 'finance-service.scheme.allocated',
-      consumerGroup: 'finance-service',
     });
   }
 
   private async isEventProcessed(eventId: string, tenantId: string): Promise<boolean> {
     const checkSql = 'SELECT result FROM finance_processed_events WHERE tenant_id = $1 AND event_id = $2 LIMIT 1';
     const checkResult = await this.db.query(checkSql, [tenantId, eventId], tenantId);
-    return checkResult.rows.length > 0 && checkResult.rows[0].result === 'SUCCESS';
+    return checkResult.rows.length > 0 && (checkResult.rows[0] as any).result === 'SUCCESS';
   }
 
   private async markEventProcessed(eventId: string, tenantId: string, eventType: string, sourceService: string, aggregateId: string): Promise<void> {
@@ -68,7 +65,7 @@ export class FinanceEventConsumer {
     await this.db.query(insertSql, [eventId, tenantId, eventType, sourceService, aggregateId], tenantId);
   }
 
-  private async getOrCreateAccount(repo: LedgerPgRepository, accountNumber: string, name: string, type: \'ASSET\' | \'LIABILITY\' | \'EQUITY\' | \'REVENUE\' | \'EXPENSE\', tenantId: string): Promise<LedgerAccount> {
+  private async getOrCreateAccount(repo: LedgerPgRepository, accountNumber: string, name: string, type: 'ASSET' | 'LIABILITY' | 'EQUITY' | 'REVENUE' | 'EXPENSE', tenantId: string): Promise<LedgerAccount> {
     let account = await repo.findAccountByNumber(accountNumber, tenantId);
     if (!account) {
       account = new LedgerAccount({

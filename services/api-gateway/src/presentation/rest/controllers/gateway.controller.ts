@@ -14,6 +14,7 @@ import { VisitController as SfaVisitController } from '../../../../../sfa-servic
 import { AttendanceController as SfaAttendanceController } from '../../../../../sfa-service/src/presentation/rest/controllers/attendance.controller.js';
 import { GeoCheckInController as SfaGeoCheckInController } from '../../../../../sfa-service/src/presentation/rest/controllers/geo_checkin.controller.js';
 import { OutletCensusController as SfaOutletCensusController } from '../../../../../sfa-service/src/presentation/rest/controllers/outlet_census.controller.js';
+import { OutletProfileController as SfaOutletProfileController } from '../../../../../sfa-service/src/presentation/rest/controllers/outlet-profile.controller.js';
 import { SchemeController } from '../../../../../schemes-service/src/presentation/rest/controllers/scheme.controller.js';
 import { ClaimController } from '../../../../../claims-service/src/presentation/rest/controllers/claim.controller.js';
 import { EnterpriseDmsController } from '../../../../../dms-core-service/src/presentation/rest/controllers/enterprise_dms.controller.js';
@@ -59,6 +60,7 @@ export class GatewayController {
   private readonly sfaAttendanceController: SfaAttendanceController;
   private readonly sfaGeoCheckInController: SfaGeoCheckInController;
   private readonly sfaOutletCensusController: SfaOutletCensusController;
+  private readonly sfaOutletProfileController: SfaOutletProfileController;
   private readonly schemesController: SchemeController;
   private readonly claimsController: ClaimController;
   private readonly enterpriseDmsController: EnterpriseDmsController;
@@ -90,6 +92,7 @@ export class GatewayController {
     this.sfaAttendanceController = new SfaAttendanceController();
     this.sfaGeoCheckInController = new SfaGeoCheckInController();
     this.sfaOutletCensusController = new SfaOutletCensusController();
+    this.sfaOutletProfileController = new SfaOutletProfileController();
     this.schemesController = new SchemeController();
     this.claimsController = new ClaimController();
     this.identityAuthController = new IdentityAuthController();
@@ -320,6 +323,51 @@ export class GatewayController {
           statusCode = res.statusCode;
           resultBody = res.body;
         }
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/outlet-profile') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      if (request.method === 'POST') {
+        const res = await this.sfaOutletProfileController.handlePostOutletProfile(request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaOutletProfileController.handlePutOutletProfile(params.id || '', request.body, {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaOutletProfileController.handleGetOutletProfile(id, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaOutletProfileController.handleListOutletProfiles(request.body || {}, {
+            'x-tenant-id': tenantId,
+          });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (request.method === 'DELETE') {
+        const res = await this.sfaOutletProfileController.handleDeleteOutletProfile(params.id || '', {
+          'x-tenant-id': tenantId,
+        });
+        statusCode = res.statusCode;
+        resultBody = res.body;
       } else {
         const upstreamResponse = this.forwardToUpstream(handler, request, params);
         return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };

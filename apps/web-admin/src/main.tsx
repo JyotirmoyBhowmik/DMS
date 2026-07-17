@@ -86,6 +86,9 @@ const App = () => {
   const [isAuditChecking, setIsAuditChecking] = useState(false);
   const [auditVerdict, setAuditVerdict] = useState<string | null>(null);
 
+  // Simulated User Role for permission-gated actions
+  const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'field-agent'>('admin');
+
   // Simulated Order Approvals state
   const [orderApprovals, setOrderApprovals] = useState([
     { id: 'app-uuid-101', orderId: 'ord-2026-904', requestedBy: 'Rajesh Kumar', amount: 12450, thresholdAmount: 10000, level: 1, status: 'pending', comments: null },
@@ -230,6 +233,54 @@ const App = () => {
     shiftStart: '2026-06-05T08:30:00.000Z',
     shiftEnd: '2026-06-05T17:30:00.000Z',
   });
+
+  // Simulated Outlet Censuses state
+  const [outletCensuses, setOutletCensuses] = useState([
+    {
+      id: 'cen-1001',
+      outletId: 'out-1',
+      outletName: 'HyperMarket Zone',
+      outletType: 'kirana',
+      ownerName: 'Sagar Kumar',
+      ownerPhone: '9876543210',
+      address: 'Shop 5, Connaught Place, New Delhi',
+      geoCoords: { latitude: 28.6139, longitude: 77.2090 },
+      tradeCategory: 'Groceries',
+      status: 'submitted',
+      kycStatus: 'approved',
+      version: 1,
+    },
+    {
+      id: 'cen-1002',
+      outletId: 'out-2',
+      outletName: 'Koramangala Grocery Store',
+      outletType: 'supermarket',
+      ownerName: 'Rahul Verma',
+      ownerPhone: '9812345678',
+      address: 'Lane 2, Koramangala, Bangalore',
+      geoCoords: { latitude: 12.93, longitude: 77.62 },
+      tradeCategory: 'Beverages',
+      status: 'draft',
+      kycStatus: 'pending',
+      version: 1,
+    }
+  ]);
+  const [censusFormOpen, setCensusFormOpen] = useState(false);
+  const [newCensus, setNewCensus] = useState({
+    id: '',
+    outletId: 'out-1',
+    outletName: '',
+    outletType: 'kirana',
+    ownerName: '',
+    ownerPhone: '',
+    address: '',
+    latitude: '',
+    longitude: '',
+    tradeCategory: 'Groceries',
+  });
+  const [censusSearchQuery, setCensusSearchQuery] = useState('');
+  const [censusStatusFilter, setCensusStatusFilter] = useState('all');
+  const [censusSortField, setCensusSortField] = useState('outletName');
 
   // Microservices details with mock live states
   const [services, setServices] = useState([
@@ -494,6 +545,100 @@ const App = () => {
       return a;
     }));
     setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Mutation action '${action}' applied to attendance record ID: ${id}.`, ...prev]);
+  };
+
+  const handleCreateOrUpdateCensus = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCensus.outletName.trim()) {
+      alert('Outlet Name is required');
+      return;
+    }
+    if (newCensus.ownerPhone.trim().length < 10) {
+      alert('Owner Phone must be at least 10 digits');
+      return;
+    }
+
+    const lat = parseFloat(newCensus.latitude);
+    const lng = parseFloat(newCensus.longitude);
+    if (isNaN(lat) || lat < -90 || lat > 90 || isNaN(lng) || lng < -180 || lng > 180) {
+      alert('Invalid GPS coordinates');
+      return;
+    }
+
+    if (newCensus.id) {
+      // Update
+      setOutletCensuses(prev => prev.map(c => {
+        if (c.id === newCensus.id) {
+          return {
+            ...c,
+            outletId: newCensus.outletId,
+            outletName: newCensus.outletName,
+            outletType: newCensus.outletType,
+            ownerName: newCensus.ownerName,
+            ownerPhone: newCensus.ownerPhone,
+            address: newCensus.address,
+            geoCoords: { latitude: lat, longitude: lng },
+            tradeCategory: newCensus.tradeCategory,
+            version: (c.version || 1) + 1
+          };
+        }
+        return c;
+      }));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Updated census record ID: ${newCensus.id} (Outlet: ${newCensus.outletName}).`, ...prev]);
+    } else {
+      // Create
+      const newRecord = {
+        id: 'cen-' + Date.now(),
+        outletId: newCensus.outletId,
+        outletName: newCensus.outletName,
+        outletType: newCensus.outletType,
+        ownerName: newCensus.ownerName,
+        ownerPhone: newCensus.ownerPhone,
+        address: newCensus.address,
+        geoCoords: { latitude: lat, longitude: lng },
+        tradeCategory: newCensus.tradeCategory,
+        status: 'draft' as const,
+        kycStatus: 'pending' as const,
+        version: 1,
+      };
+      setOutletCensuses(prev => [newRecord, ...prev]);
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Submitted new outlet census for: ${newCensus.outletName}.`, ...prev]);
+    }
+    setCensusFormOpen(false);
+    setNewCensus({
+      id: '',
+      outletId: 'out-1',
+      outletName: '',
+      outletType: 'kirana',
+      ownerName: '',
+      ownerPhone: '',
+      address: '',
+      latitude: '',
+      longitude: '',
+      tradeCategory: 'Groceries',
+    });
+  };
+
+  const handleUpdateCensusStatus = (id: string, newStatus: 'submitted' | 'verified' | 'approved' | 'rejected') => {
+    setOutletCensuses(prev => prev.map(c => {
+      if (c.id === id) {
+        return {
+          ...c,
+          status: newStatus,
+          kycStatus: newStatus === 'approved' ? 'approved' : (newStatus === 'rejected' ? 'rejected' : c.kycStatus),
+          version: (c.version || 1) + 1
+        };
+      }
+      return c;
+    }));
+    setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Census status updated to '${newStatus}' for ID: ${id}.`, ...prev]);
+  };
+
+  const handleDeleteCensus = (id: string) => {
+    if (confirm('Are you sure you want to delete this census record? This action is destructive.')) {
+      setOutletCensuses(prev => prev.filter(c => c.id !== id));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Deleted census record ID: ${id}.`, ...prev]);
+    }
   };
 
   // Filter Inventory based on search & buttons
@@ -2035,6 +2180,537 @@ const App = () => {
                         </div>
                       );
                     })}
+                  </div>
+                </div>
+
+                {/* Outlet Census Registry Console */}
+                <div style={{
+                  backgroundColor: 'rgba(30, 41, 59, 0.2)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  gridColumn: '1 / -1',
+                  marginTop: '20px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '15px', color: '#60A5FA' }}>Outlet Census & Auditing Console</h3>
+                      <p style={{ margin: '2px 0 0 0', opacity: 0.6, fontSize: '11px' }}>
+                        Track and audit outlet field censuses, geo-coordinate validation, and KYC approval workflows.
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <select
+                        value={currentUserRole}
+                        onChange={(e) => setCurrentUserRole(e.target.value as any)}
+                        style={{
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '6px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        <option value="admin">Role: Administrator (All Actions)</option>
+                        <option value="field-agent">Role: Field Agent (Read & Submit only)</option>
+                      </select>
+                      <button
+                        onClick={() => {
+                          setCensusFormOpen(!censusFormOpen);
+                          setNewCensus({
+                            id: '',
+                            outletId: 'out-1',
+                            outletName: '',
+                            outletType: 'kirana',
+                            ownerName: '',
+                            ownerPhone: '',
+                            address: '',
+                            latitude: '12.9716',
+                            longitude: '77.5946',
+                            tradeCategory: 'Groceries',
+                          });
+                        }}
+                        style={{
+                          backgroundColor: '#3B82F6',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {censusFormOpen ? 'Close Form' : 'Register New Census'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {censusFormOpen && (
+                    <form onSubmit={handleCreateOrUpdateCensus} style={{
+                      backgroundColor: 'rgba(15,23,42,0.4)',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#60A5FA' }}>
+                        {newCensus.id ? 'Edit Census Record (Optimistic Version: ' + (outletCensuses.find(c=>c.id === newCensus.id)?.version || 1) + ')' : 'Register New Census Record'}
+                      </h4>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '12px'
+                      }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Outlet Reference ID</label>
+                          <select
+                            value={newCensus.outletId}
+                            onChange={(e) => setNewCensus({ ...newCensus, outletId: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            <option value="out-1">out-1 (HyperMarket Zone)</option>
+                            <option value="out-2">out-2 (Koramangala Grocery)</option>
+                            <option value="out-3">out-3 (Sunrise Grocery)</option>
+                            <option value="out-4">out-4 (Mega Mart Center)</option>
+                          </select>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Outlet Name *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Sagar Store CP"
+                            value={newCensus.outletName}
+                            onChange={(e) => setNewCensus({ ...newCensus, outletName: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Outlet Type</label>
+                          <select
+                            value={newCensus.outletType}
+                            onChange={(e) => setNewCensus({ ...newCensus, outletType: e.target.value as any })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            <option value="kirana">Kirana / Mom-and-Pop</option>
+                            <option value="supermarket">Supermarket</option>
+                            <option value="wholesale">Wholesale</option>
+                            <option value="convenience">Convenience Store</option>
+                          </select>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Owner Name</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Sagar Kumar"
+                            value={newCensus.ownerName}
+                            onChange={(e) => setNewCensus({ ...newCensus, ownerName: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Owner Phone * (Min 10 digits)</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. 9876543210"
+                            value={newCensus.ownerPhone}
+                            onChange={(e) => setNewCensus({ ...newCensus, ownerPhone: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Trade Category</label>
+                          <select
+                            value={newCensus.tradeCategory}
+                            onChange={(e) => setNewCensus({ ...newCensus, tradeCategory: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            <option value="Groceries">Groceries</option>
+                            <option value="Beverages">Beverages</option>
+                            <option value="Personal Care">Personal Care</option>
+                            <option value="Snacks & Confectionery">Snacks & Confectionery</option>
+                          </select>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>GPS Latitude (-90 to 90)</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={newCensus.latitude}
+                            onChange={(e) => setNewCensus({ ...newCensus, latitude: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>GPS Longitude (-180 to 180)</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={newCensus.longitude}
+                            onChange={(e) => setNewCensus({ ...newCensus, longitude: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '10px', opacity: 0.6 }}>Store Address</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 123 Main Road, New Delhi"
+                          value={newCensus.address}
+                          onChange={(e) => setNewCensus({ ...newCensus, address: e.target.value })}
+                          style={{
+                            backgroundColor: 'rgba(15,23,42,0.6)',
+                            color: '#F8FAFC',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '6px',
+                            borderRadius: '4px',
+                            fontSize: '12px'
+                          }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => setCensusFormOpen(false)}
+                          style={{
+                            backgroundColor: 'rgba(255,255,255,0.05)',
+                            color: '#F8FAFC',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '11px'
+                          }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          style={{
+                            backgroundColor: '#10B981',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            padding: '6px 16px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '11px',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          Save Census Record
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Filter and Search controls */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '12px',
+                    marginBottom: '16px',
+                    flexWrap: 'wrap',
+                    backgroundColor: 'rgba(15,23,42,0.2)',
+                    padding: '12px',
+                    borderRadius: '8px'
+                  }}>
+                    <div style={{ display: 'flex', gap: '8px', flex: 1, minWidth: '240px' }}>
+                      <input
+                        type="text"
+                        placeholder="Search outlet census by name or owner..."
+                        value={censusSearchQuery}
+                        onChange={(e) => setCensusSearchQuery(e.target.value)}
+                        style={{
+                          flex: 1,
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          fontSize: '12px'
+                        }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <select
+                        value={censusStatusFilter}
+                        onChange={(e) => setCensusStatusFilter(e.target.value)}
+                        style={{
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '6px',
+                          borderRadius: '6px',
+                          fontSize: '11px'
+                        }}
+                      >
+                        <option value="all">Filter: All Statuses</option>
+                        <option value="draft">Draft</option>
+                        <option value="submitted">Submitted</option>
+                        <option value="verified">Verified</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                      <select
+                        value={censusSortField}
+                        onChange={(e) => setCensusSortField(e.target.value)}
+                        style={{
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '6px',
+                          borderRadius: '6px',
+                          fontSize: '11px'
+                        }}
+                      >
+                        <option value="outletName">Sort by: Outlet Name</option>
+                        <option value="ownerName">Sort by: Owner Name</option>
+                        <option value="status">Sort by: Status</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Render list of outlet censuses */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {outletCensuses
+                      .filter(c => {
+                        const matchesSearch = c.outletName.toLowerCase().includes(censusSearchQuery.toLowerCase()) ||
+                          c.ownerName.toLowerCase().includes(censusSearchQuery.toLowerCase());
+                        const matchesStatus = censusStatusFilter === 'all' || c.status === censusStatusFilter;
+                        return matchesSearch && matchesStatus;
+                      })
+                      .sort((a: any, b: any) => {
+                        if (a[censusSortField] < b[censusSortField]) return -1;
+                        if (a[censusSortField] > b[censusSortField]) return 1;
+                        return 0;
+                      })
+                      .map((census) => {
+                        const isAuthorized = currentUserRole === 'admin';
+                        return (
+                          <div key={census.id} style={{
+                            backgroundColor: 'rgba(15,23,42,0.4)',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            borderLeft: `4px solid ${
+                              census.status === 'approved' ? '#10B981' :
+                              (census.status === 'rejected' ? '#EF4444' :
+                              (census.status === 'verified' ? '#3B82F6' : '#FBBF24'))
+                            }`,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                            gap: '16px'
+                          }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{census.outletName}</span>
+                                <span style={{
+                                  backgroundColor: 'rgba(255,255,255,0.05)',
+                                  color: '#94A3B8',
+                                  padding: '1px 6px',
+                                  borderRadius: '4px',
+                                  fontSize: '9px',
+                                  textTransform: 'uppercase'
+                                }}>
+                                  {census.outletType}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: '12px', opacity: 0.6, marginTop: '2px' }}>
+                                ID: {census.id} • Owner: {census.ownerName} ({census.ownerPhone}) • Category: {census.tradeCategory} • Version: {census.version}
+                              </div>
+                              <div style={{ fontSize: '11px', opacity: 0.5, marginTop: '4px', color: '#94A3B8' }}>
+                                Address: {census.address} • GPS: ({census.geoCoords.latitude}, {census.geoCoords.longitude})
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                <span style={{
+                                  backgroundColor: 
+                                    census.status === 'approved' ? 'rgba(16, 185, 129, 0.15)' :
+                                    (census.status === 'rejected' ? 'rgba(239, 68, 68, 0.15)' :
+                                    (census.status === 'verified' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)')),
+                                  color: 
+                                    census.status === 'approved' ? '#34D399' :
+                                    (census.status === 'rejected' ? '#F87171' :
+                                    (census.status === 'verified' ? '#60A5FA' : '#FBBF24')),
+                                  padding: '4px 10px',
+                                  borderRadius: '4px',
+                                  fontSize: '10px',
+                                  fontWeight: 'bold',
+                                  textTransform: 'uppercase'
+                                }}>
+                                  Status: {census.status}
+                                </span>
+                                <span style={{ fontSize: '9px', opacity: 0.5 }}>
+                                  KYC: {census.kycStatus.toUpperCase()}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                {/* Edit action */}
+                                <button
+                                  onClick={() => {
+                                    setCensusFormOpen(true);
+                                    setNewCensus({
+                                      id: census.id,
+                                      outletId: census.outletId,
+                                      outletName: census.outletName,
+                                      outletType: census.outletType,
+                                      ownerName: census.ownerName,
+                                      ownerPhone: census.ownerPhone,
+                                      address: census.address,
+                                      latitude: String(census.geoCoords.latitude),
+                                      longitude: String(census.geoCoords.longitude),
+                                      tradeCategory: census.tradeCategory,
+                                    });
+                                  }}
+                                  style={{
+                                    backgroundColor: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    color: '#F8FAFC',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  Edit
+                                </button>
+
+                                {/* Permission-Gated Auditing Actions */}
+                                <button
+                                  disabled={!isAuthorized || census.status !== 'draft'}
+                                  onClick={() => handleUpdateCensusStatus(census.id, 'submitted')}
+                                  style={{
+                                    backgroundColor: census.status === 'draft' && isAuthorized ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255,255,255,0.02)',
+                                    border: `1px solid ${census.status === 'draft' && isAuthorized ? 'rgba(245, 158, 11, 0.4)' : 'rgba(255,255,255,0.05)'}`,
+                                    color: census.status === 'draft' && isAuthorized ? '#FBBF24' : 'rgba(255,255,255,0.2)',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    cursor: census.status === 'draft' && isAuthorized ? 'pointer' : 'not-allowed',
+                                  }}
+                                  title={!isAuthorized ? 'Requires Admin role' : 'Submit for review'}
+                                >
+                                  Submit
+                                </button>
+                                <button
+                                  disabled={!isAuthorized || census.status !== 'submitted'}
+                                  onClick={() => handleUpdateCensusStatus(census.id, 'verified')}
+                                  style={{
+                                    backgroundColor: census.status === 'submitted' && isAuthorized ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.02)',
+                                    border: `1px solid ${census.status === 'submitted' && isAuthorized ? 'rgba(59, 130, 246, 0.4)' : 'rgba(255,255,255,0.05)'}`,
+                                    color: census.status === 'submitted' && isAuthorized ? '#60A5FA' : 'rgba(255,255,255,0.2)',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    cursor: census.status === 'submitted' && isAuthorized ? 'pointer' : 'not-allowed',
+                                  }}
+                                  title={!isAuthorized ? 'Requires Admin role' : 'Verify GPS & Address'}
+                                >
+                                  Verify
+                                </button>
+                                <button
+                                  disabled={!isAuthorized || census.status !== 'verified'}
+                                  onClick={() => handleUpdateCensusStatus(census.id, 'approved')}
+                                  style={{
+                                    backgroundColor: census.status === 'verified' && isAuthorized ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.02)',
+                                    border: `1px solid ${census.status === 'verified' && isAuthorized ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255,255,255,0.05)'}`,
+                                    color: census.status === 'verified' && isAuthorized ? '#34D399' : 'rgba(255,255,255,0.2)',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    cursor: census.status === 'verified' && isAuthorized ? 'pointer' : 'not-allowed',
+                                  }}
+                                  title={!isAuthorized ? 'Requires Admin role' : 'Approve KYC & Onboard'}
+                                >
+                                  Approve
+                                </button>
+
+                                {/* Destructive Action */}
+                                <button
+                                  onClick={() => handleDeleteCensus(census.id)}
+                                  style={{
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                                    color: '#F87171',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               </div>

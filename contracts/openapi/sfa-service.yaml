@@ -458,6 +458,97 @@ paths:
       responses:
         '200':
           description: OutletCensus details
+  /outlet-profile:
+    post:
+      summary: Create a new outlet profile
+      operationId: createOutletProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - outletName
+                - outletType
+                - ownerName
+                - ownerPhone
+                - address
+                - geoCoords
+              properties:
+                outletName:
+                  type: string
+                outletType:
+                  type: string
+                  enum: [kirana, supermarket, pharmacy, general]
+                ownerName:
+                  type: string
+                ownerPhone:
+                  type: string
+                address:
+                  type: string
+                geoCoords:
+                  type: object
+                  properties:
+                    latitude:
+                      type: number
+                    longitude:
+                      type: number
+      responses:
+        '201':
+          description: OutletProfile created
+    get:
+      summary: List outlet profiles
+      operationId: listOutletProfiles
+      responses:
+        '200':
+          description: List of outlet profiles
+  /outlet-profile/{id}:
+    put:
+      summary: Update outlet profile details
+      operationId: updateOutletProfile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OutletProfile updated successfully
+    get:
+      summary: Get details of an outlet profile
+      operationId: getOutletProfile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OutletProfile details
+    delete:
+      summary: Delete an outlet profile
+      operationId: deleteOutletProfile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OutletProfile deleted successfully
 components:
   schemas:
     PlaceOrderInput:
