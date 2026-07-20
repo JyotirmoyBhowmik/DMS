@@ -1,6 +1,6 @@
 import { EnterpriseSfaUseCases } from '../../../application/usecases/enterprise_sfa.usecases.js';
 import { StructuredLogger } from '@dms/pkg-logger';
-import { RequirePermissions } from '@dms/pkg-rbac';
+import { RequirePermissions, Principal } from '@dms/pkg-rbac';
 import { CreateDeliveryConfirmationUseCase } from '../../../application/usecases/delivery-confirmation/create-delivery-confirmation.usecase.js';
 import { CreateCompetitorCaptureUseCase } from '../../../application/usecases/competitor-capture/create-competitor-capture.usecase.js';
 
@@ -284,8 +284,14 @@ export class EnterpriseSfaController {
       return { statusCode: 500, body: { success: false, error: 'UseCase not configured' } };
     }
 
+    const principal: Principal = {
+      id: headers['x-user-id'] || 'mock-user-uuid',
+      tenantId,
+      roles: headers['x-user-roles'] ? (headers['x-user-roles'] as string).split(',') : ['agent'],
+    };
+
     try {
-      const confirmation = await this.createDeliveryConfirmationUseCase.execute({ ...body, tenantId });
+      const confirmation = await this.createDeliveryConfirmationUseCase.execute(principal, { ...body, tenantId });
       return {
         statusCode: 201,
         body: { success: true, confirmation: confirmation.toJSON() }
@@ -307,8 +313,14 @@ export class EnterpriseSfaController {
       return { statusCode: 500, body: { success: false, error: 'UseCase not configured' } };
     }
 
+    const principal: Principal = {
+      id: headers['x-user-id'] || 'mock-user-uuid',
+      tenantId,
+      roles: headers['x-user-roles'] ? (headers['x-user-roles'] as string).split(',') : ['agent'],
+    };
+
     try {
-      const capture = await this.createCompetitorCaptureUseCase.execute({ ...body, tenantId });
+      const capture = await this.createCompetitorCaptureUseCase.execute(principal, { ...body, tenantId });
       return {
         statusCode: 201,
         body: { success: true, capture: capture.toJSON() }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../database/outlet_census_db.dart';
 
 class OutletCensusScreen extends StatefulWidget {
   final String agentId;
@@ -133,7 +132,7 @@ class _OutletCensusScreenState extends State<OutletCensusScreen> {
                   decoration: const InputDecoration(labelText: 'Address'),
                 ),
                 DropdownButtonFormField<String>(
-                  value: _outletType,
+                  initialValue: _outletType,
                   decoration: const InputDecoration(labelText: 'Outlet Type'),
                   items: const [
                     DropdownMenuItem(value: 'kirana', child: Text('Kirana / Mom-and-Pop')),
@@ -144,7 +143,7 @@ class _OutletCensusScreenState extends State<OutletCensusScreen> {
                   onChanged: (val) => setState(() => _outletType = val!),
                 ),
                 DropdownButtonFormField<String>(
-                  value: _tradeCategory,
+                  initialValue: _tradeCategory,
                   decoration: const InputDecoration(labelText: 'Trade Category'),
                   items: const [
                     DropdownMenuItem(value: 'Groceries', child: Text('Groceries')),
@@ -408,11 +407,11 @@ class _OutletCensusScreenState extends State<OutletCensusScreen> {
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: statusColor.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
+                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                 decoration: BoxDecoration(
+                                   color: statusColor.withValues(alpha: 0.2),
+                                   borderRadius: BorderRadius.circular(4),
+                                 ),
                                 child: Text(
                                   item['status'].toString().toUpperCase(),
                                   style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),

@@ -42,27 +42,106 @@ export class AddPriceListEntryUseCase {
 
     const parsed = AddPriceListEntryInputSchema.parse(input);
 
-    if (!this.db) {
-      throw new Error('Database client not configured');
-    }
-
     let savedEntry: PriceListEntryEntity;
 
-    await this.db.transaction(async (conn) => {
-      const txDb = new TransactionalDbClient(conn);
-      const repo = this.priceListRepo || new PriceListPgRepository(txDb);
+    if (this.db) {
+      await this.db.transaction(async (conn) => {
+        const txDb = new TransactionalDbClient(conn);
+        const repo = this.priceListRepo || new PriceListPgRepository(txDb);
 
-      // Verify PriceList exists
+        // Verify PriceList exists
+        const priceList = await repo.findById(priceListId, tenantId);
+
+        // Check if entry already exists to capture old values for audit trail
+        const existingEntries = await repo.findEntriesForPriceList(priceListId, tenantId);
+        const existingEntry = existingEntries.find(e => e.productId === parsed.productId);
+
+        const oldBasePrice = existingEntry?.basePrice;
+        const oldMrp = existingEntry?.mrp;
+
+        const entryId = existingEntry?.id || randomUUID();
+        const entry = new PriceListEntryEntity({
+          id: entryId,
+          priceListId,
+          productId: parsed.productId,
+          basePrice: BigInt(parsed.basePrice.toString()),
+          mrp: BigInt(parsed.mrp.toString()),
+          taxRuleKey: parsed.taxRuleKey,
+          roundingRule: parsed.roundingRule,
+          tiers: parsed.tiers.map(t => ({
+            id: t.id || randomUUID(),
+            entryId,
+            minQuantity: t.minQuantity,
+            discountPercentage: t.discountPercentage,
+            discountFlat: t.discountFlat !== undefined ? BigInt(t.discountFlat.toString()) : undefined,
+          })),
+        });
+
+        // Temporary pricing aggregate to validate entry invariants
+        const testPriceList = { ...priceList, entries: [entry] };
+        new PricingAggregate(testPriceList).validateInvariants();
+
+        // Save entry (this handles deleting old tiers and writing new ones)
+        savedEntry = await repo.saveEntry(entry, tenantId);
+
+        // Log Audit Trail
+        const actionType = existingEntry ? 'UPDATE_ENTRY' : 'CREATE_ENTRY';
+        await repo.saveAuditLog({
+          priceListId,
+          productId: entry.productId,
+          actorId: parsed.actorId,
+          actionType,
+          oldBasePrice,
+          newBasePrice: entry.basePrice,
+          oldMrp,
+          newMrp: entry.mrp,
+          reason: parsed.reason,
+        }, tenantId);
+
+        // Publish event if price changed
+        const priceChanged = !existingEntry || oldBasePrice !== entry.basePrice || oldMrp !== entry.mrp;
+        if (priceChanged) {
+          const activeCtx = getCorrelation();
+          const event = makeEnvelope(
+            'price.changed',
+            'v1',
+            {
+              priceListId,
+              productId: entry.productId,
+              basePrice: entry.basePrice.toString(),
+              mrp: entry.mrp.toString(),
+              oldBasePrice: oldBasePrice?.toString() ?? null,
+              oldMrp: oldMrp?.toString() ?? null,
+              actorId: parsed.actorId,
+            },
+            {
+              tenantId,
+              correlationId: activeCtx?.correlationId ?? 'correlation-uuid-mock',
+              producer: 'pricing-service',
+              partitionKey: productIdKey(priceListId, entry.productId),
+              causationId: activeCtx?.causationId,
+            }
+          );
+
+          await this.outboxRepo.save(conn, {
+            eventId: event.eventId,
+            tenantId,
+            type: event.type,
+            version: 'v1',
+            payload: event.payload,
+          }, 'PriceEntry', entry.id);
+        }
+      }, tenantId);
+    } else if (this.priceListRepo) {
+      const repo = this.priceListRepo;
       const priceList = await repo.findById(priceListId, tenantId);
-
-      // Check if entry already exists to capture old values for audit trail
       const existingEntries = await repo.findEntriesForPriceList(priceListId, tenantId);
       const existingEntry = existingEntries.find(e => e.productId === parsed.productId);
 
       const oldBasePrice = existingEntry?.basePrice;
       const oldMrp = existingEntry?.mrp;
 
-            const entryId = existingEntry?.id || randomUUID();
+      const entryId = existingEntry?.id || randomUUID();
       const entry = new PriceListEntryEntity({
         id: entryId,
         priceListId,
@@ -80,15 +159,11 @@ export class AddPriceListEntryUseCase {
         })),
       });
 
-
-      // Temporary pricing aggregate to validate entry invariants
       const testPriceList = { ...priceList, entries: [entry] };
       new PricingAggregate(testPriceList).validateInvariants();
 
-      // Save entry (this handles deleting old tiers and writing new ones)
       savedEntry = await repo.saveEntry(entry, tenantId);
 
-      // Log Audit Trail
       const actionType = existingEntry ? 'UPDATE_ENTRY' : 'CREATE_ENTRY';
       await repo.saveAuditLog({
         priceListId,
@@ -101,41 +176,9 @@ export class AddPriceListEntryUseCase {
         newMrp: entry.mrp,
         reason: parsed.reason,
       }, tenantId);
-
-      // Publish event if price changed
-      const priceChanged = !existingEntry || oldBasePrice !== entry.basePrice || oldMrp !== entry.mrp;
-      if (priceChanged) {
-        const activeCtx = getCorrelation();
-        const event = makeEnvelope(
-          'price.changed',
-          'v1',
-          {
-            priceListId,
-            productId: entry.productId,
-            basePrice: entry.basePrice.toString(),
-            mrp: entry.mrp.toString(),
-            oldBasePrice: oldBasePrice?.toString() ?? null,
-            oldMrp: oldMrp?.toString() ?? null,
-            actorId: parsed.actorId,
-          },
-          {
-            tenantId,
-            correlationId: activeCtx?.correlationId ?? 'correlation-uuid-mock',
-            producer: 'pricing-service',
-            partitionKey: productIdKey(priceListId, entry.productId),
-            causationId: activeCtx?.causationId,
-          }
-        );
-
-        await this.outboxRepo.save(conn, {
-          eventId: event.eventId,
-          tenantId,
-          type: event.type,
-          version: 'v1',
-          payload: event.payload,
-        }, 'PriceEntry', entry.id);
-      }
-    }, tenantId);
+    } else {
+      throw new Error('Database client or Repository not configured');
+    }
 
     return savedEntry!;
   }

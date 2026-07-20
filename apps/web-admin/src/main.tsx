@@ -282,6 +282,201 @@ const App = () => {
   const [censusStatusFilter, setCensusStatusFilter] = useState('all');
   const [censusSortField, setCensusSortField] = useState('outletName');
 
+  // Simulated Outlet Profiles state
+  const [outletProfiles, setOutletProfiles] = useState([
+    {
+      id: 'prof-1001',
+      outletName: 'Elite General Store',
+      outletType: 'kirana',
+      ownerName: 'Sunil Dutt',
+      ownerPhone: '9876543210',
+      address: 'Rajouri Garden, New Delhi',
+      geoCoords: { latitude: 28.64, longitude: 77.12 },
+      kycStatus: 'verified',
+      status: 'active',
+      version: 1,
+    },
+    {
+      id: 'prof-1002',
+      outletName: 'Vikas Supermarket',
+      outletType: 'supermarket',
+      ownerName: 'Vikas Sharma',
+      ownerPhone: '9888888888',
+      address: 'Indiranagar, Bangalore',
+      geoCoords: { latitude: 12.97, longitude: 77.64 },
+      kycStatus: 'pending',
+      status: 'active',
+      version: 1,
+    }
+  ]);
+  const [profileFormOpen, setProfileFormOpen] = useState(false);
+  const [newProfile, setNewProfile] = useState({
+    id: '',
+    outletName: '',
+    outletType: 'kirana',
+    ownerName: '',
+    ownerPhone: '',
+    address: '',
+    latitude: '12.9716',
+    longitude: '77.5946',
+    kycStatus: 'pending',
+    status: 'active',
+  });
+  const [profileSearchQuery, setProfileSearchQuery] = useState('');
+  const [profileStatusFilter, setProfileStatusFilter] = useState('all');
+  const [profileSortField, setProfileSortField] = useState('outletName');
+
+  // Simulated Van Sales state
+  const [vanSales, setVanSales] = useState([
+    {
+      id: 'van-1001',
+      agentId: 'agent-uuid-4444',
+      vehicleId: 'veh-9999',
+      routeId: 'beat-uuid-1',
+      date: '2026-06-20',
+      loadedItems: [
+        { skuId: 'SKU-FMCG-001', qty: 50, batchNumber: 'BAT-01' },
+        { skuId: 'SKU-FMCG-002', qty: 100, batchNumber: 'BAT-02' }
+      ],
+      soldItems: [
+        { skuId: 'SKU-FMCG-001', qty: 10, unitPrice: 1250, outletId: 'out-1' }
+      ],
+      returnedItems: [],
+      cashCollected: { amount: 125.00, currency: 'INR' },
+      digitalPayments: { amount: 0, currency: 'INR' },
+      status: 'selling',
+      version: 1,
+      createdAt: '2026-06-20T08:00:00Z',
+      updatedAt: '2026-06-20T10:30:00Z',
+    }
+  ]);
+  const [vanSaleFormOpen, setVanSaleFormOpen] = useState(false);
+  const [newVanSale, setNewVanSale] = useState({
+    id: '',
+    agentId: 'agent-uuid-4444',
+    vehicleId: 'veh-9999',
+    routeId: 'beat-uuid-1',
+    date: '2026-06-21',
+    loadedItemsStr: '[{"skuId":"SKU-FMCG-001","qty":50,"batchNumber":"BAT-01"}]',
+    status: 'loading',
+  });
+  const [vanSaleSearchQuery, setVanSaleSearchQuery] = useState('');
+  const [vanSaleStatusFilter, setVanSaleStatusFilter] = useState('all');
+
+  // Simulated Sales Targets state
+  const [salesTargets, setSalesTargets] = useState([
+    {
+      id: 'target-1001',
+      tenantId: '00000000-0000-0000-0000-000000000001',
+      agentId: 'agent-uuid-4444',
+      periodMonth: 6,
+      periodYear: 2026,
+      targetAmount: 5000,
+      achievedAmount: 1850,
+      targetType: 'volume',
+      status: 'ACTIVE',
+      version: 1,
+    },
+    {
+      id: 'target-1002',
+      tenantId: '00000000-0000-0000-0000-000000000001',
+      agentId: 'agent-uuid-5555',
+      periodMonth: 6,
+      periodYear: 2026,
+      targetAmount: 12000,
+      achievedAmount: 12450,
+      targetType: 'value',
+      status: 'COMPLETED',
+      version: 2,
+    },
+    {
+      id: 'target-1003',
+      tenantId: '00000000-0000-0000-0000-000000000001',
+      agentId: 'agent-uuid-4444',
+      periodMonth: 7,
+      periodYear: 2026,
+      targetAmount: 8000,
+      achievedAmount: 0,
+      targetType: 'volume',
+      status: 'DRAFT',
+      version: 1,
+    }
+  ]);
+  const [stFormOpen, setStFormOpen] = useState(false);
+  const [stEditingId, setStEditingId] = useState<string | null>(null);
+  const [stFormData, setStFormData] = useState({
+    agentId: 'agent-uuid-4444',
+    periodMonth: 6,
+    periodYear: 2026,
+    targetAmount: 5000,
+    targetType: 'volume',
+    status: 'DRAFT' as any,
+    version: 1,
+  });
+  const [stFormErrors, setStFormErrors] = useState<Record<string, string>>({});
+  const [stFilterAgentId, setStFilterAgentId] = useState('all');
+  const [stFilterStatus, setStFilterStatus] = useState('all');
+  const [stFilterType, setStFilterType] = useState('all');
+  const [stPage, setStPage] = useState(1);
+  const stPageSize = 5;
+
+  // Simulated KPI Achievements state
+  const [kpiAchievements, setKpiAchievements] = useState([
+    {
+      id: 'kpi-1001',
+      tenantId: '00000000-0000-0000-0000-000000000001',
+      agentId: 'agent-uuid-4444',
+      kpiType: 'visits',
+      periodMonth: 6,
+      periodYear: 2026,
+      targetValue: 120,
+      achievedValue: 85,
+      status: 'APPROVED',
+      version: 1,
+    },
+    {
+      id: 'kpi-1002',
+      tenantId: '00000000-0000-0000-0000-000000000001',
+      agentId: 'agent-uuid-5555',
+      kpiType: 'orders',
+      periodMonth: 6,
+      periodYear: 2026,
+      targetValue: 80,
+      achievedValue: 82,
+      status: 'APPROVED',
+      version: 2,
+    },
+    {
+      id: 'kpi-1003',
+      tenantId: '00000000-0000-0000-0000-000000000001',
+      agentId: 'agent-uuid-4444',
+      kpiType: 'sales_amount',
+      periodMonth: 7,
+      periodYear: 2026,
+      targetValue: 20000,
+      achievedValue: 0,
+      status: 'DRAFT',
+      version: 1,
+    }
+  ]);
+  const [kpiFormOpen, setKpiFormOpen] = useState(false);
+  const [kpiEditingId, setKpiEditingId] = useState<string | null>(null);
+  const [kpiFormData, setKpiFormData] = useState({
+    agentId: 'agent-uuid-4444',
+    kpiType: 'visits',
+    periodMonth: 6,
+    periodYear: 2026,
+    targetValue: 100,
+    status: 'DRAFT' as any,
+    version: 1,
+  });
+  const [kpiFormErrors, setKpiFormErrors] = useState<Record<string, string>>({});
+  const [kpiFilterAgentId, setKpiFilterAgentId] = useState('all');
+  const [kpiFilterStatus, setKpiFilterStatus] = useState('all');
+  const [kpiFilterType, setKpiFilterType] = useState('all');
+  const [kpiPage, setKpiPage] = useState(1);
+  const kpiPageSize = 5;
+
   // Microservices details with mock live states
   const [services, setServices] = useState([
     { name: 'api-gateway', status: 'healthy', latency: '24ms', cpu: '8%', ram: '142MB', reqs: '14,290/hr' },
@@ -638,6 +833,380 @@ const App = () => {
     if (confirm('Are you sure you want to delete this census record? This action is destructive.')) {
       setOutletCensuses(prev => prev.filter(c => c.id !== id));
       setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Deleted census record ID: ${id}.`, ...prev]);
+    }
+  };
+
+  const handleCreateOrUpdateProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProfile.outletName.trim()) {
+      alert('Outlet Name is required');
+      return;
+    }
+    if (newProfile.ownerPhone.trim().length < 10) {
+      alert('Owner Phone must be at least 10 digits');
+      return;
+    }
+    const lat = parseFloat(newProfile.latitude);
+    const lng = parseFloat(newProfile.longitude);
+    if (isNaN(lat) || lat < -90 || lat > 90 || isNaN(lng) || lng < -180 || lng > 180) {
+      alert('Invalid GPS coordinates');
+      return;
+    }
+
+    if (newProfile.id) {
+      // Update
+      setOutletProfiles(prev => prev.map(p => {
+        if (p.id === newProfile.id) {
+          return {
+            ...p,
+            outletName: newProfile.outletName,
+            outletType: newProfile.outletType,
+            ownerName: newProfile.ownerName,
+            ownerPhone: newProfile.ownerPhone,
+            address: newProfile.address,
+            geoCoords: { latitude: lat, longitude: lng },
+            kycStatus: newProfile.kycStatus as any,
+            status: newProfile.status as any,
+            version: (p.version || 1) + 1
+          };
+        }
+        return p;
+      }));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Updated outlet profile ID: ${newProfile.id}.`, ...prev]);
+    } else {
+      // Create
+      const newRecord = {
+        id: 'prof-' + Date.now(),
+        outletName: newProfile.outletName,
+        outletType: newProfile.outletType,
+        ownerName: newProfile.ownerName,
+        ownerPhone: newProfile.ownerPhone,
+        address: newProfile.address,
+        geoCoords: { latitude: lat, longitude: lng },
+        kycStatus: 'pending' as const,
+        status: 'active' as const,
+        version: 1
+      };
+      setOutletProfiles(prev => [newRecord, ...prev]);
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Created new outlet profile: ${newProfile.outletName}.`, ...prev]);
+    }
+    setProfileFormOpen(false);
+  };
+
+  const handleDeleteProfile = (id: string) => {
+    if (confirm('Are you sure you want to delete this outlet profile? This action is destructive.')) {
+      setOutletProfiles(prev => prev.filter(p => p.id !== id));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Deleted outlet profile ID: ${id}.`, ...prev]);
+    }
+  };
+
+  const handleCreateOrUpdateVanSale = (e: React.FormEvent) => {
+    e.preventDefault();
+    let items = [];
+    try {
+      items = JSON.parse(newVanSale.loadedItemsStr);
+    } catch {
+      alert('Invalid JSON for loaded items. Format: [{"skuId":"SKU-1","qty":10,"batchNumber":"B1"}]');
+      return;
+    }
+
+    if (newVanSale.id) {
+      // Update
+      setVanSales(prev => prev.map(v => {
+        if (v.id === newVanSale.id) {
+          return {
+            ...v,
+            agentId: newVanSale.agentId,
+            vehicleId: newVanSale.vehicleId,
+            routeId: newVanSale.routeId,
+            date: newVanSale.date,
+            loadedItems: items,
+            version: (v.version || 1) + 1
+          };
+        }
+        return v;
+      }));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Updated van sale session ID: ${newVanSale.id}.`, ...prev]);
+    } else {
+      // Create
+      const newRecord = {
+        id: 'van-' + Date.now(),
+        agentId: newVanSale.agentId,
+        vehicleId: newVanSale.vehicleId,
+        routeId: newVanSale.routeId,
+        date: newVanSale.date,
+        loadedItems: items,
+        soldItems: [],
+        returnedItems: [],
+        cashCollected: { amount: 0, currency: 'INR' },
+        digitalPayments: { amount: 0, currency: 'INR' },
+        status: 'loading' as const,
+        version: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setVanSales(prev => [newRecord, ...prev]);
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Created new van sale session. Agent: ${newVanSale.agentId}.`, ...prev]);
+    }
+    setVanSaleFormOpen(false);
+  };
+
+  const handleUpdateVanSaleStatus = (id: string, newStatus: any) => {
+    setVanSales(prev => prev.map(v => {
+      if (v.id === id) {
+        return {
+          ...v,
+          status: newStatus,
+          updatedAt: new Date().toISOString(),
+          version: (v.version || 1) + 1
+        };
+      }
+      return v;
+    }));
+    setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Van sale session ID: ${id} status updated to: ${newStatus}.`, ...prev]);
+  };
+
+  const handleDeleteVanSale = (id: string) => {
+    if (confirm('Are you sure you want to delete this van sale session? This action is destructive.')) {
+      setVanSales(prev => prev.filter(v => v.id !== id));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Deleted van sale session ID: ${id}.`, ...prev]);
+    }
+  };
+
+  const handleCreateOrUpdateSalesTarget = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!stFormData.agentId.trim()) errors.agentId = 'Agent ID is required';
+    if (stFormData.periodMonth < 1 || stFormData.periodMonth > 12) errors.periodMonth = 'Month must be 1-12';
+    if (stFormData.periodYear < 2000 || stFormData.periodYear > 2100) errors.periodYear = 'Year must be 2000-2100';
+    if (stFormData.targetAmount < 0) errors.targetAmount = 'Target amount cannot be negative';
+
+    if (Object.keys(errors).length > 0) {
+      setStFormErrors(errors);
+      return;
+    }
+
+    setStFormErrors({});
+
+    if (stEditingId) {
+      // Optimistic concurrency locking check
+      const current = salesTargets.find(t => t.id === stEditingId);
+      if (current && current.version !== stFormData.version) {
+        alert('Optimistic locking conflict: This record has been updated by another transaction. Version mismatch.');
+        return;
+      }
+
+      // Update
+      setSalesTargets(prev => prev.map(t => {
+        if (t.id === stEditingId) {
+          const next = {
+            ...t,
+            agentId: stFormData.agentId,
+            periodMonth: Number(stFormData.periodMonth),
+            periodYear: Number(stFormData.periodYear),
+            targetAmount: Number(stFormData.targetAmount),
+            targetType: stFormData.targetType,
+            status: stFormData.status,
+            version: t.version + 1
+          };
+          // Auto complete status if achievedAmount exceeds target
+          if (next.achievedAmount >= next.targetAmount && next.status === 'ACTIVE') {
+            next.status = 'COMPLETED';
+          }
+          return next;
+        }
+        return t;
+      }));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Updated sales target ID: ${stEditingId}.`, ...prev]);
+    } else {
+      // Uniqueness business key check: agent + period + type
+      const isDup = salesTargets.some(
+        (t) =>
+          t.agentId === stFormData.agentId &&
+          t.periodMonth === Number(stFormData.periodMonth) &&
+          t.periodYear === Number(stFormData.periodYear) &&
+          t.targetType === stFormData.targetType
+      );
+
+      if (isDup) {
+        alert(`A sales target of type ${stFormData.targetType} already exists for agent ${stFormData.agentId} in this period`);
+        return;
+      }
+
+      // Create
+      const newRecord = {
+        id: 'target-' + Date.now(),
+        tenantId: '00000000-0000-0000-0000-000000000001',
+        agentId: stFormData.agentId,
+        periodMonth: Number(stFormData.periodMonth),
+        periodYear: Number(stFormData.periodYear),
+        targetAmount: Number(stFormData.targetAmount),
+        achievedAmount: 0,
+        targetType: stFormData.targetType,
+        status: stFormData.status ?? 'DRAFT',
+        version: 1,
+      };
+      setSalesTargets(prev => [newRecord, ...prev]);
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Created new sales target for agent ${stFormData.agentId}.`, ...prev]);
+    }
+
+    setStFormOpen(false);
+    setStEditingId(null);
+  };
+
+  const handleUpdateSalesTargetStatus = (id: string, action: 'activate' | 'cancel' | 'complete') => {
+    setSalesTargets(prev => prev.map(t => {
+      if (t.id === id) {
+        let status: any = t.status;
+        if (action === 'activate') {
+          if (t.status !== 'DRAFT') {
+            alert("Cannot activate sales target unless in DRAFT status");
+            return t;
+          }
+          status = 'ACTIVE';
+        } else if (action === 'cancel') {
+          if (t.status === 'COMPLETED' || t.status === 'EXPIRED') {
+            alert(`Cannot cancel sales target from status '${t.status}'`);
+            return t;
+          }
+          status = 'CANCELLED';
+        } else if (action === 'complete') {
+          if (t.status !== 'ACTIVE') {
+            alert("Cannot complete sales target unless in ACTIVE status");
+            return t;
+          }
+          status = 'COMPLETED';
+        }
+        return {
+          ...t,
+          status,
+          version: t.version + 1
+        };
+      }
+      return t;
+    }));
+    setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Sales target ID: ${id} status transition action: ${action}.`, ...prev]);
+  };
+
+  const handleDeleteSalesTarget = (id: string) => {
+    if (confirm('Are you sure you want to delete this sales target? This action is destructive.')) {
+      setSalesTargets(prev => prev.filter(t => t.id !== id));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Deleted sales target ID: ${id}.`, ...prev]);
+    }
+  };
+
+  const handleCreateOrUpdateKPIAchievement = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!kpiFormData.agentId.trim()) errors.agentId = 'Agent ID is required';
+    if (kpiFormData.periodMonth < 1 || kpiFormData.periodMonth > 12) errors.periodMonth = 'Month must be 1-12';
+    if (kpiFormData.periodYear < 2000 || kpiFormData.periodYear > 2100) errors.periodYear = 'Year must be 2000-2100';
+    if (kpiFormData.targetValue < 0) errors.targetValue = 'Target value cannot be negative';
+
+    if (Object.keys(errors).length > 0) {
+      setKpiFormErrors(errors);
+      return;
+    }
+
+    setKpiFormErrors({});
+
+    if (kpiEditingId) {
+      const current = kpiAchievements.find(t => t.id === kpiEditingId);
+      if (current && current.version !== kpiFormData.version) {
+        alert('Optimistic locking conflict: This record has been updated by another transaction. Version mismatch.');
+        return;
+      }
+
+      setKpiAchievements(prev => prev.map(t => {
+        if (t.id === kpiEditingId) {
+          return {
+            ...t,
+            agentId: kpiFormData.agentId,
+            kpiType: kpiFormData.kpiType,
+            periodMonth: Number(kpiFormData.periodMonth),
+            periodYear: Number(kpiFormData.periodYear),
+            targetValue: Number(kpiFormData.targetValue),
+            status: kpiFormData.status,
+            version: t.version + 1
+          };
+        }
+        return t;
+      }));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Updated KPI target ID: ${kpiEditingId}.`, ...prev]);
+    } else {
+      const isDup = kpiAchievements.some(
+        (t) =>
+          t.agentId === kpiFormData.agentId &&
+          t.periodMonth === Number(kpiFormData.periodMonth) &&
+          t.periodYear === Number(kpiFormData.periodYear) &&
+          t.kpiType === kpiFormData.kpiType
+      );
+
+      if (isDup) {
+        alert(`A KPI achievement target of type ${kpiFormData.kpiType} already exists for agent ${kpiFormData.agentId} in this period`);
+        return;
+      }
+
+      const newRecord = {
+        id: 'kpi-' + Date.now(),
+        tenantId: '00000000-0000-0000-0000-000000000001',
+        agentId: kpiFormData.agentId,
+        kpiType: kpiFormData.kpiType,
+        periodMonth: Number(kpiFormData.periodMonth),
+        periodYear: Number(kpiFormData.periodYear),
+        targetValue: Number(kpiFormData.targetValue),
+        achievedValue: 0,
+        status: kpiFormData.status ?? 'DRAFT',
+        version: 1,
+      };
+      setKpiAchievements(prev => [newRecord, ...prev]);
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Created new KPI target for agent ${kpiFormData.agentId}.`, ...prev]);
+    }
+
+    setKpiFormOpen(false);
+    setKpiEditingId(null);
+  };
+
+  const handleUpdateKPIAchievementStatus = (id: string, action: 'submit' | 'approve' | 'reject') => {
+    setKpiAchievements(prev => prev.map(t => {
+      if (t.id === id) {
+        let status: any = t.status;
+        if (action === 'submit') {
+          if (t.status !== 'DRAFT') {
+            alert("Cannot submit KPI target unless in DRAFT status");
+            return t;
+          }
+          status = 'SUBMITTED';
+        } else if (action === 'approve') {
+          if (t.status !== 'SUBMITTED') {
+            alert("Cannot approve KPI target unless in SUBMITTED status");
+            return t;
+          }
+          status = 'APPROVED';
+        } else if (action === 'reject') {
+          if (t.status !== 'SUBMITTED') {
+            alert("Cannot reject KPI target unless in SUBMITTED status");
+            return t;
+          }
+          status = 'REJECTED';
+        }
+        return {
+          ...t,
+          status,
+          version: t.version + 1
+        };
+      }
+      return t;
+    }));
+    setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] KPI target ID: ${id} status updated to: ${action}.`, ...prev]);
+  };
+
+  const handleDeleteKPIAchievement = (id: string) => {
+    if (confirm('Are you sure you want to delete this KPI target? This action is destructive.')) {
+      setKpiAchievements(prev => prev.filter(t => t.id !== id));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Deleted KPI target ID: ${id}.`, ...prev]);
     }
   };
 
@@ -2711,6 +3280,1710 @@ const App = () => {
                           </div>
                         );
                       })}
+                  </div>
+                </div>
+
+                {/* Outlet Profiles Registry Console */}
+                <div style={{
+                  backgroundColor: 'rgba(30, 41, 59, 0.2)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  gridColumn: '1 / -1',
+                  marginTop: '20px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '15px', color: '#60A5FA' }}>Outlet Profiles Console</h3>
+                      <p style={{ margin: '2px 0 0 0', opacity: 0.6, fontSize: '11px' }}>
+                        Manage retail outlets, geographical coordinates, activity status, and KYC compliance.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setProfileFormOpen(!profileFormOpen);
+                        setNewProfile({
+                          id: '',
+                          outletName: '',
+                          outletType: 'kirana',
+                          ownerName: '',
+                          ownerPhone: '',
+                          address: '',
+                          latitude: '12.9716',
+                          longitude: '77.5946',
+                          kycStatus: 'pending',
+                          status: 'active',
+                        });
+                      }}
+                      style={{
+                        backgroundColor: '#3B82F6',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {profileFormOpen ? 'Close Form' : 'Register New Profile'}
+                    </button>
+                  </div>
+
+                  {profileFormOpen && (
+                    <form onSubmit={handleCreateOrUpdateProfile} style={{
+                      backgroundColor: 'rgba(15,23,42,0.4)',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#60A5FA' }}>
+                        {newProfile.id ? 'Edit Outlet Profile' : 'Register New Outlet Profile'}
+                      </h4>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '12px'
+                      }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Outlet Name *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Sagar Store CP"
+                            value={newProfile.outletName}
+                            onChange={(e) => setNewProfile({ ...newProfile, outletName: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Outlet Type</label>
+                          <select
+                            value={newProfile.outletType}
+                            onChange={(e) => setNewProfile({ ...newProfile, outletType: e.target.value as any })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            <option value="kirana">Kirana / Mom-and-Pop</option>
+                            <option value="supermarket">Supermarket</option>
+                            <option value="pharmacy">Pharmacy</option>
+                            <option value="general">General Retail</option>
+                          </select>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Owner Name</label>
+                          <input
+                            type="text"
+                            placeholder="Owner Name"
+                            value={newProfile.ownerName}
+                            onChange={(e) => setNewProfile({ ...newProfile, ownerName: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Owner Phone * (Min 10 digits)</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. 9876543210"
+                            value={newProfile.ownerPhone}
+                            onChange={(e) => setNewProfile({ ...newProfile, ownerPhone: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Address *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Address"
+                            value={newProfile.address}
+                            onChange={(e) => setNewProfile({ ...newProfile, address: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Latitude *</label>
+                          <input
+                            type="text"
+                            required
+                            value={newProfile.latitude}
+                            onChange={(e) => setNewProfile({ ...newProfile, latitude: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Longitude *</label>
+                          <input
+                            type="text"
+                            required
+                            value={newProfile.longitude}
+                            onChange={(e) => setNewProfile({ ...newProfile, longitude: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>KYC Status</label>
+                          <select
+                            value={newProfile.kycStatus}
+                            onChange={(e) => setNewProfile({ ...newProfile, kycStatus: e.target.value as any })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="verified">Verified</option>
+                            <option value="rejected">Rejected</option>
+                          </select>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Status</label>
+                          <select
+                            value={newProfile.status}
+                            onChange={(e) => setNewProfile({ ...newProfile, status: e.target.value as any })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                          </select>
+                        </div>
+                      </div>
+                      <button
+                        type="submit"
+                        style={{
+                          backgroundColor: '#10B981',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          padding: '8px',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          marginTop: '8px',
+                          alignSelf: 'flex-start'
+                        }}
+                      >
+                        Save Profile
+                      </button>
+                    </form>
+                  )}
+
+                  {/* Filter and Search controls */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
+                    <input
+                      type="text"
+                      placeholder="Search outlet profiles by name or owner..."
+                      value={profileSearchQuery}
+                      onChange={(e) => setProfileSearchQuery(e.target.value)}
+                      style={{
+                        backgroundColor: 'rgba(15,23,42,0.6)',
+                        color: '#F8FAFC',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        flex: '1',
+                        minWidth: '200px'
+                      }}
+                    />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <select
+                        value={profileStatusFilter}
+                        onChange={(e) => setProfileStatusFilter(e.target.value)}
+                        style={{
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '6px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        <option value="all">Filter: All Statuses</option>
+                        <option value="active">Active Only</option>
+                        <option value="inactive">Inactive Only</option>
+                      </select>
+                      <select
+                        value={profileSortField}
+                        onChange={(e) => setProfileSortField(e.target.value)}
+                        style={{
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '6px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        <option value="outletName">Sort by: Outlet Name</option>
+                        <option value="ownerName">Sort by: Owner Name</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Render list of outlet profiles */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {outletProfiles
+                      .filter(p => {
+                        const matchesSearch = p.outletName.toLowerCase().includes(profileSearchQuery.toLowerCase()) ||
+                          p.ownerName.toLowerCase().includes(profileSearchQuery.toLowerCase());
+                        const matchesStatus = profileStatusFilter === 'all' || p.status === profileStatusFilter;
+                        return matchesSearch && matchesStatus;
+                      })
+                      .sort((a: any, b: any) => {
+                        if (a[profileSortField] < b[profileSortField]) return -1;
+                        if (a[profileSortField] > b[profileSortField]) return 1;
+                        return 0;
+                      })
+                      .map((profile) => {
+                        return (
+                          <div key={profile.id} style={{
+                            backgroundColor: 'rgba(15,23,42,0.4)',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            borderLeft: `4px solid ${profile.status === 'active' ? '#10B981' : '#EF4444'}`,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                            gap: '16px'
+                          }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{profile.outletName}</span>
+                                <span style={{
+                                  backgroundColor: 'rgba(255,255,255,0.05)',
+                                  color: '#94A3B8',
+                                  padding: '1px 6px',
+                                  borderRadius: '4px',
+                                  fontSize: '9px',
+                                  textTransform: 'uppercase'
+                                }}>
+                                  {profile.outletType}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: '12px', opacity: 0.6, marginTop: '2px' }}>
+                                ID: {profile.id} • Owner: {profile.ownerName} ({profile.ownerPhone}) • KYC: {profile.kycStatus.toUpperCase()} • Version: {profile.version}
+                              </div>
+                              <div style={{ fontSize: '11px', opacity: 0.5, marginTop: '4px', color: '#94A3B8' }}>
+                                Address: {profile.address} • GPS: ({profile.geoCoords.latitude}, {profile.geoCoords.longitude})
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <button
+                                onClick={() => {
+                                  setProfileFormOpen(true);
+                                  setNewProfile({
+                                    id: profile.id,
+                                    outletName: profile.outletName,
+                                    outletType: profile.outletType,
+                                    ownerName: profile.ownerName,
+                                    ownerPhone: profile.ownerPhone,
+                                    address: profile.address,
+                                    latitude: String(profile.geoCoords.latitude),
+                                    longitude: String(profile.geoCoords.longitude),
+                                    kycStatus: profile.kycStatus,
+                                    status: profile.status,
+                                  });
+                                }}
+                                style={{
+                                  backgroundColor: 'rgba(255,255,255,0.05)',
+                                  border: '1px solid rgba(255,255,255,0.1)',
+                                  color: '#F8FAFC',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  fontSize: '10px',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProfile(profile.id)}
+                                style={{
+                                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                                  color: '#F87171',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  fontSize: '10px',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Van Sales Console */}
+                <div style={{
+                  backgroundColor: 'rgba(30, 41, 59, 0.2)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  gridColumn: '1 / -1',
+                  marginTop: '20px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '15px', color: '#60A5FA' }}>Van Sales Sessions</h3>
+                      <p style={{ margin: '2px 0 0 0', opacity: 0.6, fontSize: '11px' }}>
+                        Monitor mobile selling: loading inventory, spot sales, returns, and daily payment reconciliation.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setVanSaleFormOpen(!vanSaleFormOpen);
+                        setNewVanSale({
+                          id: '',
+                          agentId: 'agent-uuid-4444',
+                          vehicleId: 'veh-9999',
+                          routeId: 'beat-uuid-1',
+                          date: new Date().toISOString().split('T')[0]!,
+                          loadedItemsStr: '[{"skuId":"SKU-FMCG-001","qty":50,"batchNumber":"BAT-01"}]',
+                          status: 'loading',
+                        });
+                      }}
+                      style={{
+                        backgroundColor: '#3B82F6',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {vanSaleFormOpen ? 'Close Form' : 'Start Session'}
+                    </button>
+                  </div>
+
+                  {vanSaleFormOpen && (
+                    <form onSubmit={handleCreateOrUpdateVanSale} style={{
+                      backgroundColor: 'rgba(15,23,42,0.4)',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#60A5FA' }}>
+                        {newVanSale.id ? 'Edit Van Sale Session' : 'Start Van Sale Session'}
+                      </h4>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '12px'
+                      }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Agent ID *</label>
+                          <input
+                            type="text"
+                            required
+                            value={newVanSale.agentId}
+                            onChange={(e) => setNewVanSale({ ...newVanSale, agentId: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Vehicle ID *</label>
+                          <input
+                            type="text"
+                            required
+                            value={newVanSale.vehicleId}
+                            onChange={(e) => setNewVanSale({ ...newVanSale, vehicleId: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Route ID *</label>
+                          <input
+                            type="text"
+                            required
+                            value={newVanSale.routeId}
+                            onChange={(e) => setNewVanSale({ ...newVanSale, routeId: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Date *</label>
+                          <input
+                            type="text"
+                            required
+                            value={newVanSale.date}
+                            onChange={(e) => setNewVanSale({ ...newVanSale, date: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', gridColumn: '1 / -1' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Loaded Items (JSON array) *</label>
+                          <textarea
+                            required
+                            rows={3}
+                            value={newVanSale.loadedItemsStr}
+                            onChange={(e) => setNewVanSale({ ...newVanSale, loadedItemsStr: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px',
+                              fontFamily: 'monospace'
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="submit"
+                        style={{
+                          backgroundColor: '#10B981',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          padding: '8px',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          marginTop: '8px',
+                          alignSelf: 'flex-start'
+                        }}
+                      >
+                        Save Session
+                      </button>
+                    </form>
+                  )}
+
+                  {/* Filter and Search controls */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
+                    <input
+                      type="text"
+                      placeholder="Search van sale sessions by agent or vehicle..."
+                      value={vanSaleSearchQuery}
+                      onChange={(e) => setVanSaleSearchQuery(e.target.value)}
+                      style={{
+                        backgroundColor: 'rgba(15,23,42,0.6)',
+                        color: '#F8FAFC',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        flex: '1',
+                        minWidth: '200px'
+                      }}
+                    />
+                    <select
+                      value={vanSaleStatusFilter}
+                      onChange={(e) => setVanSaleStatusFilter(e.target.value)}
+                      style={{
+                        backgroundColor: 'rgba(15,23,42,0.6)',
+                        color: '#F8FAFC',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        padding: '6px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      <option value="all">Filter: All Statuses</option>
+                      <option value="loading">Loading</option>
+                      <option value="in_transit">In Transit</option>
+                      <option value="selling">Selling</option>
+                      <option value="reconciliation">Reconciliation</option>
+                      <option value="closed">Closed</option>
+                    </select>
+                  </div>
+
+                  {/* Render list of van sale sessions */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {vanSales
+                      .filter(v => {
+                        const matchesSearch = v.agentId.toLowerCase().includes(vanSaleSearchQuery.toLowerCase()) ||
+                          v.vehicleId.toLowerCase().includes(vanSaleSearchQuery.toLowerCase());
+                        const matchesStatus = vanSaleStatusFilter === 'all' || v.status === vanSaleStatusFilter;
+                        return matchesSearch && matchesStatus;
+                      })
+                      .map((van) => {
+                        return (
+                          <div key={van.id} style={{
+                            backgroundColor: 'rgba(15,23,42,0.4)',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            borderLeft: `4px solid ${
+                              van.status === 'closed' ? '#64748B' :
+                              (van.status === 'selling' ? '#10B981' : '#F59E0B')
+                            }`,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                            gap: '16px'
+                          }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontWeight: 'bold', fontSize: '14px' }}>Session: {van.id}</span>
+                                <span style={{
+                                  backgroundColor: 'rgba(255,255,255,0.05)',
+                                  color: '#94A3B8',
+                                  padding: '1px 6px',
+                                  borderRadius: '4px',
+                                  fontSize: '9px',
+                                  textTransform: 'uppercase'
+                                }}>
+                                  {van.status}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: '12px', opacity: 0.6, marginTop: '2px' }}>
+                                Date: {van.date} • Agent: {van.agentId} • Vehicle: {van.vehicleId} • Route: {van.routeId} • Version: {van.version}
+                              </div>
+                              <div style={{ fontSize: '11px', opacity: 0.5, marginTop: '4px', color: '#94A3B8' }}>
+                                Loaded: {van.loadedItems.length} SKUs • Sold: {van.soldItems.length} items • Cash: ₹{van.cashCollected.amount.toFixed(2)} • Digital: ₹{van.digitalPayments.amount.toFixed(2)}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              {van.status === 'loading' && (
+                                <button
+                                  onClick={() => handleUpdateVanSaleStatus(van.id, 'in_transit')}
+                                  style={{
+                                    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                                    border: '1px solid rgba(245, 158, 11, 0.4)',
+                                    color: '#FBBF24',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold'
+                                  }}
+                                >
+                                  Start Transit
+                                </button>
+                              )}
+                              {van.status === 'in_transit' && (
+                                <button
+                                  onClick={() => handleUpdateVanSaleStatus(van.id, 'selling')}
+                                  style={{
+                                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                                    border: '1px solid rgba(16, 185, 129, 0.4)',
+                                    color: '#34D399',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold'
+                                  }}
+                                >
+                                  Start Selling
+                                </button>
+                              )}
+                              {van.status === 'selling' && (
+                                <button
+                                  onClick={() => handleUpdateVanSaleStatus(van.id, 'reconciliation')}
+                                  style={{
+                                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                                    border: '1px solid rgba(59, 130, 246, 0.4)',
+                                    color: '#60A5FA',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold'
+                                  }}
+                                >
+                                  Reconcile
+                                </button>
+                              )}
+                              {van.status === 'reconciliation' && (
+                                <button
+                                  onClick={() => handleUpdateVanSaleStatus(van.id, 'closed')}
+                                  style={{
+                                    backgroundColor: 'rgba(100, 116, 139, 0.2)',
+                                    border: '1px solid rgba(100, 116, 139, 0.4)',
+                                    color: '#94A3B8',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold'
+                                  }}
+                                >
+                                  Close Session
+                                </button>
+                              )}
+                              <button
+                                onClick={() => {
+                                  setVanSaleFormOpen(true);
+                                  setNewVanSale({
+                                    id: van.id,
+                                    agentId: van.agentId,
+                                    vehicleId: van.vehicleId,
+                                    routeId: van.routeId,
+                                    date: van.date,
+                                    loadedItemsStr: JSON.stringify(van.loadedItems),
+                                    status: van.status,
+                                  });
+                                }}
+                                style={{
+                                  backgroundColor: 'rgba(255,255,255,0.05)',
+                                  border: '1px solid rgba(255,255,255,0.1)',
+                                  color: '#F8FAFC',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  fontSize: '10px',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteVanSale(van.id)}
+                                style={{
+                                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                                  color: '#F87171',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  fontSize: '10px',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Sales Targets Console Section */}
+                <div style={{
+                  backgroundColor: 'rgba(30, 41, 59, 0.2)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  gridColumn: '1 / -1',
+                  marginTop: '20px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '15px', color: '#60A5FA' }}>Sales Targets Management</h3>
+                      <p style={{ margin: '2px 0 0 0', opacity: 0.5, fontSize: '11px' }}>Enforce quota rules, monitor achievements, and track monthly parameters.</p>
+                    </div>
+                    {currentUserRole === 'admin' && (
+                      <button
+                        onClick={() => {
+                          setStEditingId(null);
+                          setStFormData({
+                            agentId: 'agent-uuid-4444',
+                            periodMonth: 6,
+                            periodYear: 2026,
+                            targetAmount: 5000,
+                            targetType: 'volume',
+                            status: 'DRAFT',
+                            version: 1,
+                          });
+                          setStFormErrors({});
+                          setStFormOpen(!stFormOpen);
+                        }}
+                        style={{
+                          backgroundColor: '#3B82F6',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {stFormOpen ? 'Close Form' : 'Create Sales Target'}
+                      </button>
+                    )}
+                  </div>
+
+                  {stFormOpen && currentUserRole === 'admin' && (
+                    <form onSubmit={handleCreateOrUpdateSalesTarget} style={{
+                      backgroundColor: 'rgba(15,23,42,0.4)',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#60A5FA' }}>
+                        {stEditingId ? `Edit Sales Target (Optimistic Version: ${stFormData.version})` : 'New Sales Target Parameters'}
+                      </h4>
+
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                        gap: '12px'
+                      }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Agent Reference ID *</label>
+                          <input
+                            type="text"
+                            value={stFormData.agentId}
+                            onChange={(e) => setStFormData({ ...stFormData, agentId: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: stFormErrors.agentId ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {stFormErrors.agentId && <span style={{ color: '#EF4444', fontSize: '10px' }}>{stFormErrors.agentId}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Target Amount *</label>
+                          <input
+                            type="number"
+                            value={stFormData.targetAmount}
+                            onChange={(e) => setStFormData({ ...stFormData, targetAmount: Number(e.target.value) })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: stFormErrors.targetAmount ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {stFormErrors.targetAmount && <span style={{ color: '#EF4444', fontSize: '10px' }}>{stFormErrors.targetAmount}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Period Month (1-12) *</label>
+                          <input
+                            type="number"
+                            value={stFormData.periodMonth}
+                            onChange={(e) => setStFormData({ ...stFormData, periodMonth: Number(e.target.value) })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: stFormErrors.periodMonth ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {stFormErrors.periodMonth && <span style={{ color: '#EF4444', fontSize: '10px' }}>{stFormErrors.periodMonth}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Period Year (2000-2100) *</label>
+                          <input
+                            type="number"
+                            value={stFormData.periodYear}
+                            onChange={(e) => setStFormData({ ...stFormData, periodYear: Number(e.target.value) })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: stFormErrors.periodYear ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {stFormErrors.periodYear && <span style={{ color: '#EF4444', fontSize: '10px' }}>{stFormErrors.periodYear}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Target Metric Type</label>
+                          <select
+                            value={stFormData.targetType}
+                            onChange={(e) => setStFormData({ ...stFormData, targetType: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            <option value="volume">volume (Unit count)</option>
+                            <option value="value">value (Financial sum)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                        <button
+                          type="submit"
+                          style={{
+                            backgroundColor: '#10B981',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {stEditingId ? 'Save Changes' : 'Submit Target'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStFormOpen(false);
+                            setStEditingId(null);
+                          }}
+                          style={{
+                            backgroundColor: 'rgba(255,255,255,0.05)',
+                            color: '#F8FAFC',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '8px 16px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Filters and Pagination Controls */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                    marginBottom: '16px',
+                    backgroundColor: 'rgba(15,23,42,0.2)',
+                    padding: '12px',
+                    borderRadius: '8px'
+                  }}>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '11px', opacity: 0.6 }}>Agent:</span>
+                        <select
+                          value={stFilterAgentId}
+                          onChange={(e) => { setStFilterAgentId(e.target.value); setStPage(1); }}
+                          style={{
+                            backgroundColor: 'rgba(15,23,42,0.6)',
+                            color: '#F8FAFC',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px'
+                          }}
+                        >
+                          <option value="all">All Agents</option>
+                          <option value="agent-uuid-4444">agent-uuid-4444</option>
+                          <option value="agent-uuid-5555">agent-uuid-5555</option>
+                        </select>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '11px', opacity: 0.6 }}>Status:</span>
+                        <select
+                          value={stFilterStatus}
+                          onChange={(e) => { setStFilterStatus(e.target.value); setStPage(1); }}
+                          style={{
+                            backgroundColor: 'rgba(15,23,42,0.6)',
+                            color: '#F8FAFC',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px'
+                          }}
+                        >
+                          <option value="all">All Statuses</option>
+                          <option value="DRAFT">DRAFT</option>
+                          <option value="ACTIVE">ACTIVE</option>
+                          <option value="COMPLETED">COMPLETED</option>
+                          <option value="CANCELLED">CANCELLED</option>
+                        </select>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '11px', opacity: 0.6 }}>Metric:</span>
+                        <select
+                          value={stFilterType}
+                          onChange={(e) => { setStFilterType(e.target.value); setStPage(1); }}
+                          style={{
+                            backgroundColor: 'rgba(15,23,42,0.6)',
+                            color: '#F8FAFC',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px'
+                          }}
+                        >
+                          <option value="all">All Metrics</option>
+                          <option value="volume">volume</option>
+                          <option value="value">value</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
+                      <button
+                        disabled={stPage === 1}
+                        onClick={() => setStPage(prev => Math.max(1, prev - 1))}
+                        style={{
+                          backgroundColor: 'rgba(255,255,255,0.05)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          cursor: stPage === 1 ? 'not-allowed' : 'pointer',
+                          opacity: stPage === 1 ? 0.4 : 1
+                        }}
+                      >
+                        Prev
+                      </button>
+                      <span>Page {stPage}</span>
+                      <button
+                        disabled={salesTargets.filter(t => {
+                          if (stFilterAgentId !== 'all' && t.agentId !== stFilterAgentId) return false;
+                          if (stFilterStatus !== 'all' && t.status !== stFilterStatus) return false;
+                          if (stFilterType !== 'all' && t.targetType !== stFilterType) return false;
+                          return true;
+                        }).length <= stPage * stPageSize}
+                        onClick={() => setStPage(prev => prev + 1)}
+                        style={{
+                          backgroundColor: 'rgba(255,255,255,0.05)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* List Targets Table */}
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', opacity: 0.7 }}>
+                          <th style={{ padding: '10px 12px' }}>Period</th>
+                          <th style={{ padding: '10px 12px' }}>Agent ID</th>
+                          <th style={{ padding: '10px 12px' }}>Type</th>
+                          <th style={{ padding: '10px 12px' }}>Progress</th>
+                          <th style={{ padding: '10px 12px' }}>Status</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'right' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {salesTargets
+                          .filter(t => {
+                            if (stFilterAgentId !== 'all' && t.agentId !== stFilterAgentId) return false;
+                            if (stFilterStatus !== 'all' && t.status !== stFilterStatus) return false;
+                            if (stFilterType !== 'all' && t.targetType !== stFilterType) return false;
+                            return true;
+                          })
+                          .slice((stPage - 1) * stPageSize, stPage * stPageSize)
+                          .map((target) => {
+                            const pct = target.targetAmount > 0 ? Math.round((target.achievedAmount / target.targetAmount) * 100) : 0;
+                            const statusColor = target.status === 'COMPLETED' ? '#10B981' : (target.status === 'ACTIVE' ? '#3B82F6' : (target.status === 'CANCELLED' ? '#EF4444' : '#F59E0B'));
+                            return (
+                              <tr key={target.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background-color 0.2s' }}>
+                                <td style={{ padding: '12px', fontWeight: 'bold' }}>{target.periodYear}-{String(target.periodMonth).padStart(2, '0')}</td>
+                                <td style={{ padding: '12px', opacity: 0.8 }}>{target.agentId}</td>
+                                <td style={{ padding: '12px' }}>
+                                  <span style={{ fontSize: '11px', textTransform: 'uppercase', opacity: 0.6 }}>{target.targetType}</span>
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ width: '80px', height: '6px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                                      <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', backgroundColor: statusColor }} />
+                                    </div>
+                                    <span style={{ fontSize: '11px', fontWeight: 'bold' }}>
+                                      {target.achievedAmount}/{target.targetAmount} ({pct}%)
+                                    </span>
+                                  </div>
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <span style={{
+                                    backgroundColor: `rgba(${target.status === 'COMPLETED' ? '16, 185, 129' : (target.status === 'ACTIVE' ? '59, 130, 246' : (target.status === 'CANCELLED' ? '239, 68, 68' : '245, 158, 11'))}, 0.15)`,
+                                    color: statusColor,
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    fontSize: '10px',
+                                    fontWeight: 'bold',
+                                    border: `1px solid rgba(${target.status === 'COMPLETED' ? '16, 185, 129' : (target.status === 'ACTIVE' ? '59, 130, 246' : (target.status === 'CANCELLED' ? '239, 68, 68' : '245, 158, 11'))}, 0.2)`
+                                  }}>
+                                    {target.status}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px', textAlign: 'right' }}>
+                                  <div style={{ display: 'inline-flex', gap: '6px' }}>
+                                    {currentUserRole === 'admin' && target.status === 'DRAFT' && (
+                                      <button
+                                        onClick={() => handleUpdateSalesTargetStatus(target.id, 'activate')}
+                                        style={{
+                                          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                          border: '1px solid rgba(16, 185, 129, 0.2)',
+                                          color: '#34D399',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Activate
+                                      </button>
+                                    )}
+
+                                    {currentUserRole === 'admin' && target.status === 'DRAFT' && (
+                                      <button
+                                        onClick={() => {
+                                          setStEditingId(target.id);
+                                          setStFormData({
+                                            agentId: target.agentId,
+                                            periodMonth: target.periodMonth,
+                                            periodYear: target.periodYear,
+                                            targetAmount: target.targetAmount,
+                                            targetType: target.targetType,
+                                            status: target.status,
+                                            version: target.version,
+                                          });
+                                          setStFormErrors({});
+                                          setStFormOpen(true);
+                                        }}
+                                        style={{
+                                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                                          color: '#F8FAFC',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Edit
+                                      </button>
+                                    )}
+
+                                    {currentUserRole === 'admin' && (target.status === 'DRAFT' || target.status === 'ACTIVE') && (
+                                      <button
+                                        onClick={() => handleUpdateSalesTargetStatus(target.id, 'cancel')}
+                                        style={{
+                                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                          border: '1px solid rgba(239, 68, 68, 0.2)',
+                                          color: '#F87171',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Cancel
+                                      </button>
+                                    )}
+
+                                    {currentUserRole === 'admin' && (
+                                      <button
+                                        onClick={() => handleDeleteSalesTarget(target.id)}
+                                        style={{
+                                          backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                                          color: '#F87171',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Delete
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* KPI Achievements Console Section */}
+                <div style={{
+                  backgroundColor: 'rgba(30, 41, 59, 0.2)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  gridColumn: '1 / -1',
+                  marginTop: '20px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '15px', color: '#60A5FA' }}>KPI Achievements Management</h3>
+                      <p style={{ margin: '2px 0 0 0', opacity: 0.5, fontSize: '11px' }}>Enforce KPI limits, monitor achievements, and track monthly indicators.</p>
+                    </div>
+                    {currentUserRole === 'admin' && (
+                      <button
+                        onClick={() => {
+                          setKpiEditingId(null);
+                          setKpiFormData({
+                            agentId: 'agent-uuid-4444',
+                            kpiType: 'visits',
+                            periodMonth: 6,
+                            periodYear: 2026,
+                            targetValue: 100,
+                            status: 'DRAFT',
+                            version: 1,
+                          });
+                          setKpiFormErrors({});
+                          setKpiFormOpen(!kpiFormOpen);
+                        }}
+                        style={{
+                          backgroundColor: '#3B82F6',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {kpiFormOpen ? 'Close Form' : 'Create KPI Target'}
+                      </button>
+                    )}
+                  </div>
+
+                  {kpiFormOpen && currentUserRole === 'admin' && (
+                    <form onSubmit={handleCreateOrUpdateKPIAchievement} style={{
+                      backgroundColor: 'rgba(15,23,42,0.4)',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#60A5FA' }}>
+                        {kpiEditingId ? `Edit KPI Target (Optimistic Version: ${kpiFormData.version})` : 'New KPI Target Parameters'}
+                      </h4>
+
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                        gap: '12px'
+                      }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Agent Reference ID *</label>
+                          <input
+                            type="text"
+                            value={kpiFormData.agentId}
+                            onChange={(e) => setKpiFormData({ ...kpiFormData, agentId: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: kpiFormErrors.agentId ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {kpiFormErrors.agentId && <span style={{ color: '#EF4444', fontSize: '10px' }}>{kpiFormErrors.agentId}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Target Value *</label>
+                          <input
+                            type="number"
+                            value={kpiFormData.targetValue}
+                            onChange={(e) => setKpiFormData({ ...kpiFormData, targetValue: Number(e.target.value) })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: kpiFormErrors.targetValue ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {kpiFormErrors.targetValue && <span style={{ color: '#EF4444', fontSize: '10px' }}>{kpiFormErrors.targetValue}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Period Month (1-12) *</label>
+                          <input
+                            type="number"
+                            value={kpiFormData.periodMonth}
+                            onChange={(e) => setKpiFormData({ ...kpiFormData, periodMonth: Number(e.target.value) })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: kpiFormErrors.periodMonth ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {kpiFormErrors.periodMonth && <span style={{ color: '#EF4444', fontSize: '10px' }}>{kpiFormErrors.periodMonth}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Period Year (2000-2100) *</label>
+                          <input
+                            type="number"
+                            value={kpiFormData.periodYear}
+                            onChange={(e) => setKpiFormData({ ...kpiFormData, periodYear: Number(e.target.value) })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: kpiFormErrors.periodYear ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {kpiFormErrors.periodYear && <span style={{ color: '#EF4444', fontSize: '10px' }}>{kpiFormErrors.periodYear}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>KPI Indicator Type</label>
+                          <select
+                            value={kpiFormData.kpiType}
+                            onChange={(e) => setKpiFormData({ ...kpiFormData, kpiType: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            <option value="visits">visits (Count of completed visits)</option>
+                            <option value="orders">orders (Count of placed orders)</option>
+                            <option value="sales_amount">sales_amount (Financial volume sum)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                        <button
+                          type="submit"
+                          style={{
+                            backgroundColor: '#10B981',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {kpiEditingId ? 'Save Changes' : 'Submit KPI'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setKpiFormOpen(false);
+                            setKpiEditingId(null);
+                          }}
+                          style={{
+                            backgroundColor: 'rgba(255,255,255,0.05)',
+                            color: '#F8FAFC',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '8px 16px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Filters and Pagination Controls */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                    marginBottom: '16px',
+                    backgroundColor: 'rgba(15,23,42,0.2)',
+                    padding: '12px',
+                    borderRadius: '8px'
+                  }}>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '11px', opacity: 0.6 }}>Agent:</span>
+                        <select
+                          value={kpiFilterAgentId}
+                          onChange={(e) => { setKpiFilterAgentId(e.target.value); setKpiPage(1); }}
+                          style={{
+                            backgroundColor: 'rgba(15,23,42,0.6)',
+                            color: '#F8FAFC',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px'
+                          }}
+                        >
+                          <option value="all">All Agents</option>
+                          <option value="agent-uuid-4444">agent-uuid-4444</option>
+                          <option value="agent-uuid-5555">agent-uuid-5555</option>
+                        </select>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '11px', opacity: 0.6 }}>Status:</span>
+                        <select
+                          value={kpiFilterStatus}
+                          onChange={(e) => { setKpiFilterStatus(e.target.value); setKpiPage(1); }}
+                          style={{
+                            backgroundColor: 'rgba(15,23,42,0.6)',
+                            color: '#F8FAFC',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px'
+                          }}
+                        >
+                          <option value="all">All Statuses</option>
+                          <option value="DRAFT">DRAFT</option>
+                          <option value="SUBMITTED">SUBMITTED</option>
+                          <option value="APPROVED">APPROVED</option>
+                          <option value="REJECTED">REJECTED</option>
+                        </select>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '11px', opacity: 0.6 }}>Indicator:</span>
+                        <select
+                          value={kpiFilterType}
+                          onChange={(e) => { setKpiFilterType(e.target.value); setKpiPage(1); }}
+                          style={{
+                            backgroundColor: 'rgba(15,23,42,0.6)',
+                            color: '#F8FAFC',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px'
+                          }}
+                        >
+                          <option value="all">All Indicators</option>
+                          <option value="visits">visits</option>
+                          <option value="orders">orders</option>
+                          <option value="sales_amount">sales_amount</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
+                      <button
+                        disabled={kpiPage === 1}
+                        onClick={() => setKpiPage(prev => Math.max(1, prev - 1))}
+                        style={{
+                          backgroundColor: 'rgba(255,255,255,0.05)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          cursor: kpiPage === 1 ? 'not-allowed' : 'pointer',
+                          opacity: kpiPage === 1 ? 0.4 : 1
+                        }}
+                      >
+                        Prev
+                      </button>
+                      <span>Page {kpiPage}</span>
+                      <button
+                        disabled={kpiAchievements.filter(t => {
+                          if (kpiFilterAgentId !== 'all' && t.agentId !== kpiFilterAgentId) return false;
+                          if (kpiFilterStatus !== 'all' && t.status !== kpiFilterStatus) return false;
+                          if (kpiFilterType !== 'all' && t.kpiType !== kpiFilterType) return false;
+                          return true;
+                        }).length <= kpiPage * kpiPageSize}
+                        onClick={() => setKpiPage(prev => prev + 1)}
+                        style={{
+                          backgroundColor: 'rgba(255,255,255,0.05)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* List KPI Targets Table */}
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', opacity: 0.7 }}>
+                          <th style={{ padding: '10px 12px' }}>Period</th>
+                          <th style={{ padding: '10px 12px' }}>Agent ID</th>
+                          <th style={{ padding: '10px 12px' }}>KPI Type</th>
+                          <th style={{ padding: '10px 12px' }}>Progress</th>
+                          <th style={{ padding: '10px 12px' }}>Status</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'right' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {kpiAchievements
+                          .filter(t => {
+                            if (kpiFilterAgentId !== 'all' && t.agentId !== kpiFilterAgentId) return false;
+                            if (kpiFilterStatus !== 'all' && t.status !== kpiFilterStatus) return false;
+                            if (kpiFilterType !== 'all' && t.kpiType !== kpiFilterType) return false;
+                            return true;
+                          })
+                          .slice((kpiPage - 1) * kpiPageSize, kpiPage * kpiPageSize)
+                          .map((target) => {
+                            const pct = target.targetValue > 0 ? Math.round((target.achievedValue / target.targetValue) * 100) : 0;
+                            const statusColor = target.status === 'APPROVED' ? '#10B981' : (target.status === 'SUBMITTED' ? '#3B82F6' : (target.status === 'REJECTED' ? '#EF4444' : '#F59E0B'));
+                            return (
+                              <tr key={target.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background-color 0.2s' }}>
+                                <td style={{ padding: '12px', fontWeight: 'bold' }}>{target.periodYear}-{String(target.periodMonth).padStart(2, '0')}</td>
+                                <td style={{ padding: '12px', opacity: 0.8 }}>{target.agentId}</td>
+                                <td style={{ padding: '12px' }}>
+                                  <span style={{ fontSize: '11px', textTransform: 'uppercase', opacity: 0.6 }}>{target.kpiType}</span>
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ width: '80px', height: '6px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                                      <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', backgroundColor: statusColor }} />
+                                    </div>
+                                    <span style={{ fontSize: '11px', fontWeight: 'bold' }}>
+                                      {target.achievedValue}/{target.targetValue} ({pct}%)
+                                    </span>
+                                  </div>
+                                </td>
+                                <td style={{ padding: '12px' }}>
+                                  <span style={{
+                                    backgroundColor: `rgba(${target.status === 'APPROVED' ? '16, 185, 129' : (target.status === 'SUBMITTED' ? '59, 130, 246' : (target.status === 'REJECTED' ? '239, 68, 68' : '245, 158, 11'))}, 0.15)`,
+                                    color: statusColor,
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    fontSize: '10px',
+                                    fontWeight: 'bold',
+                                    border: `1px solid rgba(${target.status === 'APPROVED' ? '16, 185, 129' : (target.status === 'SUBMITTED' ? '59, 130, 246' : (target.status === 'REJECTED' ? '239, 68, 68' : '245, 158, 11'))}, 0.2)`
+                                  }}>
+                                    {target.status}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px', textAlign: 'right' }}>
+                                  <div style={{ display: 'inline-flex', gap: '6px' }}>
+                                    {currentUserRole === 'admin' && target.status === 'DRAFT' && (
+                                      <button
+                                        onClick={() => handleUpdateKPIAchievementStatus(target.id, 'submit')}
+                                        style={{
+                                          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                          border: '1px solid rgba(59, 130, 246, 0.2)',
+                                          color: '#60A5FA',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Submit
+                                      </button>
+                                    )}
+
+                                    {currentUserRole === 'admin' && target.status === 'SUBMITTED' && (
+                                      <button
+                                        onClick={() => handleUpdateKPIAchievementStatus(target.id, 'approve')}
+                                        style={{
+                                          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                          border: '1px solid rgba(16, 185, 129, 0.2)',
+                                          color: '#34D399',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Approve
+                                      </button>
+                                    )}
+
+                                    {currentUserRole === 'admin' && target.status === 'SUBMITTED' && (
+                                      <button
+                                        onClick={() => handleUpdateKPIAchievementStatus(target.id, 'reject')}
+                                        style={{
+                                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                          border: '1px solid rgba(239, 68, 68, 0.2)',
+                                          color: '#F87171',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Reject
+                                      </button>
+                                    )}
+
+                                    {currentUserRole === 'admin' && target.status === 'DRAFT' && (
+                                      <button
+                                        onClick={() => {
+                                          setKpiEditingId(target.id);
+                                          setKpiFormData({
+                                            agentId: target.agentId,
+                                            kpiType: target.kpiType,
+                                            periodMonth: target.periodMonth,
+                                            periodYear: target.periodYear,
+                                            targetValue: target.targetValue,
+                                            status: target.status,
+                                            version: target.version,
+                                          });
+                                          setKpiFormErrors({});
+                                          setKpiFormOpen(true);
+                                        }}
+                                        style={{
+                                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                                          color: '#F8FAFC',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Edit
+                                      </button>
+                                    )}
+
+                                    {currentUserRole === 'admin' && (
+                                      <button
+                                        onClick={() => handleDeleteKPIAchievement(target.id)}
+                                        style={{
+                                          backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                                          color: '#F87171',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Delete
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>

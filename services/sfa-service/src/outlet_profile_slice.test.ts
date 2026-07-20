@@ -205,4 +205,62 @@ describe('SFA OutletProfile Slice Tests', () => {
       assert.ok(postRes.body.errors);
     });
   });
+
+  describe('5. Negative Security & Tenant Isolation Suite', () => {
+    test('Should block cross-tenant access and updates', async () => {
+      const controller = new OutletProfileController();
+      const tenantA = '00000000-0000-0000-0000-00000000000a';
+      const tenantB = '00000000-0000-0000-0000-00000000000b';
+
+      // Create in Tenant A
+      await controller.handlePostOutletProfile({
+        id,
+        outletName: 'Tenant A Store',
+        outletType: 'kirana',
+        ownerName: 'Owner A',
+        ownerPhone: '9000000000',
+        address: 'Delhi',
+        geoCoords: { latitude: 28, longitude: 77 },
+      }, { 'x-tenant-id': tenantA });
+
+      // Tenant B tries to retrieve Tenant A's store -> should fail (not found)
+      const getRes = await controller.handleGetOutletProfile(id, { 'x-tenant-id': tenantB });
+      assert.strictEqual(getRes.statusCode, 404);
+
+      // Tenant B tries to update Tenant A's store -> should fail (not found)
+      const putRes = await controller.handlePutOutletProfile(id, {
+        outletName: 'Hacked Store',
+        version: 1
+      }, { 'x-tenant-id': tenantB });
+      assert.strictEqual(putRes.statusCode, 404);
+    });
+
+    test('Should reject oversized payloads and injection patterns', async () => {
+      const controller = new OutletProfileController();
+
+      // Injection pattern in ID
+      const postResInjection = await controller.handlePostOutletProfile({
+        id: "1' OR '1'='1",
+        outletName: 'Injected Store',
+        outletType: 'kirana',
+        ownerName: 'Owner',
+        ownerPhone: '9000000000',
+        address: 'Delhi',
+        geoCoords: { latitude: 28, longitude: 77 },
+      }, { 'x-tenant-id': tenantId });
+      assert.strictEqual(postResInjection.statusCode, 400);
+
+      // Oversized string payload (simulated)
+      const postResOversized = await controller.handlePostOutletProfile({
+        id,
+        outletName: 'A'.repeat(5000), // Exceeds typical length constraints
+        outletType: 'kirana',
+        ownerName: 'Owner',
+        ownerPhone: '9000000000',
+        address: 'Delhi',
+        geoCoords: { latitude: 28, longitude: 77 },
+      }, { 'x-tenant-id': tenantId });
+      assert.strictEqual(postResOversized.statusCode, 400);
+    });
+  });
 });

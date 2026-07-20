@@ -282,7 +282,19 @@ export class EnterpriseSfaUseCases {
   }
 }
 export * from './delivery-confirmation/create-delivery-confirmation.usecase'; 
-export * from './competitor-capture/create-competitor-capture.usecase'; 
+export * from './competitor-capture/create-competitor-capture.usecase.js';
+export * from './competitor-capture/get-competitor-capture.usecase.js';
+export * from './competitor-capture/update-competitor-capture.usecase.js';
+export * from './competitor-capture/list-competitor-captures.usecase.js';
+export * from './merchandising-audit/create-merchandising-audit.usecase.js';
+export * from './merchandising-audit/get-merchandising-audit.usecase.js';
+export * from './merchandising-audit/update-merchandising-audit.usecase.js';
+export * from './merchandising-audit/list-merchandising-audits.usecase.js';
+
+export * from './photo-capture/create-photo-capture.usecase.js';
+export * from './photo-capture/get-photo-capture.usecase.js';
+export * from './photo-capture/update-photo-capture.usecase.js';
+export * from './photo-capture/list-photo-captures.usecase.js';
 
 export * from './sales-target/sales-target.usecases.js';
 export * from './survey/survey.usecases.js';

@@ -95,3 +95,39 @@ export class JourneyPlanConflictError extends DomainError {
     );
   }
 }
+
+export class InvalidDeliveryStateError extends DomainError {
+  constructor(currentState: string, attemptedTransition: string) {
+    super(
+      'INVALID_DELIVERY_STATE',
+      `Cannot transition delivery confirmation from '${currentState}' to '${attemptedTransition}'`,
+    );
+  }
+}
+
+export class InvalidAuditStateError extends DomainError {
+  constructor(currentState: string, attemptedTransition: string) {
+    super(
+      'INVALID_AUDIT_STATE',
+      `Cannot transition merchandising audit from '${currentState}' to '${attemptedTransition}'`,
+    );
+  }
+}
+
+export class InvalidCompetitorCaptureStateError extends DomainError {
+  constructor(currentState: string, attemptedTransition: string) {
+    super(
+      'INVALID_COMPETITOR_CAPTURE_STATE',
+      `Cannot transition competitor capture from '${currentState}' to '${attemptedTransition}'`,
+    );
+  }
+}
+
+export class InvalidPhotoCaptureStateError extends DomainError {
+  constructor(currentState: string, attemptedTransition: string) {
+    super(
+      'INVALID_PHOTO_CAPTURE_STATE',
+      `Cannot transition photo capture from '${currentState}' to '${attemptedTransition}'`,
+    );
+  }
+}

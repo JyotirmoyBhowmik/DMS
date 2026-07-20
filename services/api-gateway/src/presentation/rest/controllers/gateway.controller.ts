@@ -15,6 +15,14 @@ import { AttendanceController as SfaAttendanceController } from '../../../../../
 import { GeoCheckInController as SfaGeoCheckInController } from '../../../../../sfa-service/src/presentation/rest/controllers/geo_checkin.controller.js';
 import { OutletCensusController as SfaOutletCensusController } from '../../../../../sfa-service/src/presentation/rest/controllers/outlet_census.controller.js';
 import { OutletProfileController as SfaOutletProfileController } from '../../../../../sfa-service/src/presentation/rest/controllers/outlet-profile.controller.js';
+import { VanSaleController as SfaVanSaleController } from '../../../../../sfa-service/src/presentation/rest/controllers/van-sale.controller.js';
+import { DeliveryConfirmationController as SfaDeliveryConfirmationController } from '../../../../../sfa-service/src/presentation/rest/controllers/delivery-confirmation.controller.js';
+import { MerchandisingAuditController as SfaMerchandisingAuditController } from '../../../../../sfa-service/src/presentation/rest/controllers/merchandising-audit.controller.js';
+import { CompetitorCaptureController as SfaCompetitorCaptureController } from '../../../../../sfa-service/src/presentation/rest/controllers/competitor-capture.controller.js';
+import { PhotoCaptureController as SfaPhotoCaptureController } from '../../../../../sfa-service/src/presentation/rest/controllers/photo-capture.controller.js';
+import { SalesTargetController as SfaSalesTargetController } from '../../../../../sfa-service/src/presentation/rest/controllers/sales-target.controller.js';
+import { KPIAchievementController as SfaKPIAchievementController } from '../../../../../sfa-service/src/presentation/rest/controllers/kpi-achievement.controller.js';
+import { FieldRepController as SfaFieldRepController } from '../../../../../sfa-service/src/presentation/rest/controllers/field-rep.controller.js';
 import { SchemeController } from '../../../../../schemes-service/src/presentation/rest/controllers/scheme.controller.js';
 import { ClaimController } from '../../../../../claims-service/src/presentation/rest/controllers/claim.controller.js';
 import { EnterpriseDmsController } from '../../../../../dms-core-service/src/presentation/rest/controllers/enterprise_dms.controller.js';
@@ -61,6 +69,14 @@ export class GatewayController {
   private readonly sfaGeoCheckInController: SfaGeoCheckInController;
   private readonly sfaOutletCensusController: SfaOutletCensusController;
   private readonly sfaOutletProfileController: SfaOutletProfileController;
+  private readonly sfaVanSaleController: SfaVanSaleController;
+  private readonly sfaDeliveryConfirmationController: SfaDeliveryConfirmationController;
+  private readonly sfaMerchandisingAuditController: SfaMerchandisingAuditController;
+  private readonly sfaCompetitorCaptureController: SfaCompetitorCaptureController;
+  private readonly sfaPhotoCaptureController: SfaPhotoCaptureController;
+  private readonly sfaSalesTargetController: SfaSalesTargetController;
+  private readonly sfaKPIAchievementController: SfaKPIAchievementController;
+  private readonly sfaFieldRepController: SfaFieldRepController;
   private readonly schemesController: SchemeController;
   private readonly claimsController: ClaimController;
   private readonly enterpriseDmsController: EnterpriseDmsController;
@@ -93,6 +109,14 @@ export class GatewayController {
     this.sfaGeoCheckInController = new SfaGeoCheckInController();
     this.sfaOutletCensusController = new SfaOutletCensusController();
     this.sfaOutletProfileController = new SfaOutletProfileController();
+    this.sfaVanSaleController = new SfaVanSaleController();
+    this.sfaDeliveryConfirmationController = new SfaDeliveryConfirmationController();
+    this.sfaMerchandisingAuditController = new SfaMerchandisingAuditController();
+    this.sfaCompetitorCaptureController = new SfaCompetitorCaptureController();
+    this.sfaPhotoCaptureController = new SfaPhotoCaptureController();
+    this.sfaSalesTargetController = new SfaSalesTargetController();
+    this.sfaKPIAchievementController = new SfaKPIAchievementController();
+    this.sfaFieldRepController = new SfaFieldRepController();
     this.schemesController = new SchemeController();
     this.claimsController = new ClaimController();
     this.identityAuthController = new IdentityAuthController();
@@ -368,6 +392,322 @@ export class GatewayController {
         });
         statusCode = res.statusCode;
         resultBody = res.body;
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/van-sales') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      const enrichedHeaders = {
+        'x-tenant-id': tenantId,
+        'x-user-id': principal?.id || '',
+        'x-user-roles': principal?.roles?.join(',') || '',
+      };
+
+      if (request.method === 'POST') {
+        const res = await this.sfaVanSaleController.handlePostVanSale(request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaVanSaleController.handlePutVanSale(params.id || '', request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaVanSaleController.handleGetVanSale(id, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaVanSaleController.handleListVanSales(request.body || {}, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (request.method === 'DELETE') {
+        const res = await this.sfaVanSaleController.handleDeleteVanSale(params.id || '', enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/delivery-confirmations') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      const enrichedHeaders = {
+        'x-tenant-id': tenantId,
+        'x-user-id': principal?.id || '',
+        'x-user-roles': principal?.roles?.join(',') || '',
+      };
+
+      if (request.method === 'POST') {
+        const res = await this.sfaDeliveryConfirmationController.handleCreate(request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaDeliveryConfirmationController.handlePutDeliveryConfirmation(params.id || '', request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaDeliveryConfirmationController.handleGetDeliveryConfirmation(id, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaDeliveryConfirmationController.handleListDeliveryConfirmations(request.body || {}, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (request.method === 'DELETE') {
+        const res = await this.sfaDeliveryConfirmationController.handleDeleteDeliveryConfirmation(params.id || '', enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/merchandising-audits') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      const enrichedHeaders = {
+        'x-tenant-id': tenantId,
+        'x-user-id': principal?.id || '',
+        'x-user-roles': principal?.roles?.join(',') || '',
+      };
+
+      if (request.method === 'POST') {
+        const res = await this.sfaMerchandisingAuditController.handleCreate(request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaMerchandisingAuditController.handlePut(params.id || '', request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaMerchandisingAuditController.handleGet(id, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaMerchandisingAuditController.handleList(request.body || {}, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (request.method === 'DELETE') {
+        const res = await this.sfaMerchandisingAuditController.handleDelete(params.id || '', enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/competitor-captures') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      const enrichedHeaders = {
+        'x-tenant-id': tenantId,
+        'x-user-id': principal?.id || '',
+        'x-user-roles': principal?.roles?.join(',') || '',
+      };
+
+      if (request.method === 'POST') {
+        const res = await this.sfaCompetitorCaptureController.handleCreate(request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaCompetitorCaptureController.handlePut(params.id || '', request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaCompetitorCaptureController.handleGet(id, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaCompetitorCaptureController.handleList(request.body || {}, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (request.method === 'DELETE') {
+        const res = await this.sfaCompetitorCaptureController.handleDelete(params.id || '', enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/photo-captures') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      const enrichedHeaders = {
+        'x-tenant-id': tenantId,
+        'x-user-id': principal?.id || '',
+        'x-user-roles': principal?.roles?.join(',') || '',
+      };
+
+      if (request.method === 'POST') {
+        const res = await this.sfaPhotoCaptureController.handleCreate(request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaPhotoCaptureController.handleUpdate(params.id || '', request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaPhotoCaptureController.handleGet(id, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaPhotoCaptureController.handleList(request.body || {}, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else if (request.method === 'DELETE') {
+        const res = await this.sfaPhotoCaptureController.handleDelete(params.id || '', enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/sales-targets') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      const enrichedHeaders = {
+        'x-tenant-id': tenantId,
+        'x-user-id': principal?.id || '',
+        'x-user-roles': principal?.roles?.join(',') || '',
+      };
+
+      if (request.method === 'POST') {
+        const res = await this.sfaSalesTargetController.handleCreate(request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaSalesTargetController.handleUpdate(params.id || '', request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaSalesTargetController.handleGet(id, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaSalesTargetController.handleList(request.body || {}, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/kpi-achievements') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      const enrichedHeaders = {
+        'x-tenant-id': tenantId,
+        'x-user-id': principal?.id || '',
+        'x-user-roles': principal?.roles?.join(',') || '',
+      };
+
+      if (request.method === 'POST') {
+        const res = await this.sfaKPIAchievementController.handleCreate(request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaKPIAchievementController.handleUpdate(params.id || '', request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaKPIAchievementController.handleGet(id, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaKPIAchievementController.handleList(request.body || {}, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'sfa-service' }, body: resultBody };
+    }
+
+    if (handler.targetService === 'sfa-service' && handler.targetPath === '/field-reps') {
+      let resultBody: any;
+      let statusCode = 200;
+
+      const enrichedHeaders = {
+        'x-tenant-id': tenantId,
+        'x-user-id': principal?.id || '',
+        'x-user-roles': principal?.roles?.join(',') || '',
+      };
+
+      if (request.method === 'POST') {
+        const res = await this.sfaFieldRepController.handleCreate(request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'PUT') {
+        const res = await this.sfaFieldRepController.handleUpdate(params.id || '', request.body, enrichedHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const id = params.id;
+        if (id) {
+          const res = await this.sfaFieldRepController.handleGet(id, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else {
+          const res = await this.sfaFieldRepController.handleList(request.body || {}, enrichedHeaders);
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        }
       } else {
         const upstreamResponse = this.forwardToUpstream(handler, request, params);
         return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };

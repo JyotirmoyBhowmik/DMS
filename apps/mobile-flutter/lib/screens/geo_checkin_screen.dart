@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../database/geo_checkin_db.dart';
 
 class GeoCheckInScreen extends StatefulWidget {
   final String agentId;

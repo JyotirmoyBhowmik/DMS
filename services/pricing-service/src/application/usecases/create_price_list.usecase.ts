@@ -113,6 +113,11 @@ export class CreatePriceListUseCase {
       }, tenantId);
 
       this.logger.info('Price list persisted and outbox event registered in transaction');
+    } else if (this.priceListRepo) {
+      await this.priceListRepo.save(entity, tenantId);
+      for (const assignment of assignments) {
+        await this.priceListRepo.saveAssignment(assignment, tenantId);
+      }
     }
 
     return { priceListId };

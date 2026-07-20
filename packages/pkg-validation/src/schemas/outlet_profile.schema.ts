@@ -7,22 +7,22 @@ const GeoPointSchema = z.object({
 
 export const CreateOutletProfileSchema = z.object({
   id: z.string().uuid().optional(),
-  outletName: z.string().min(1, { message: 'Outlet name is required' }),
+  outletName: z.string().min(1, { message: 'Outlet name is required' }).max(255),
   outletType: z.enum(['kirana', 'supermarket', 'pharmacy', 'general']),
-  ownerName: z.string().min(1, { message: 'Owner name is required' }),
+  ownerName: z.string().min(1, { message: 'Owner name is required' }).max(255),
   ownerPhone: z.string().min(10).max(15, { message: 'Phone must be between 10 and 15 digits' }),
-  address: z.string().min(1, { message: 'Address is required' }),
+  address: z.string().min(1, { message: 'Address is required' }).max(500),
   geoCoords: GeoPointSchema,
   kycStatus: z.enum(['pending', 'verified', 'rejected']).optional(),
   status: z.enum(['active', 'inactive']).optional(),
 }).strict();
 
 export const UpdateOutletProfileSchema = z.object({
-  outletName: z.string().min(1).optional(),
+  outletName: z.string().min(1).max(255).optional(),
   outletType: z.enum(['kirana', 'supermarket', 'pharmacy', 'general']).optional(),
-  ownerName: z.string().min(1).optional(),
+  ownerName: z.string().min(1).max(255).optional(),
   ownerPhone: z.string().min(10).max(15).optional(),
-  address: z.string().min(1).optional(),
+  address: z.string().min(1).max(500).optional(),
   geoCoords: GeoPointSchema.optional(),
   kycStatus: z.enum(['pending', 'verified', 'rejected']).optional(),
   status: z.enum(['active', 'inactive']).optional(),

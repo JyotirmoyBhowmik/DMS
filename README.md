@@ -2,16 +2,82 @@
 
 An enterprise-grade **Distributor Management System (DMS)** and **Sales Force Automation (SFA)** platform structured as a high-performance TypeScript monorepo using `pnpm` workspaces and `Turborepo`.
 
-## Directory Overview
+---
 
-- `apps/` — Admin Portal (`web-admin`), SFA Mobile Clients (`mobile-rn`, `mobile-flutter`)
-- `services/` — Core DDD microservices (`sfa-service`, `dms-core-service`, `identity-service`, etc.)
-- `packages/` — Shared libraries for common tasks (cryptography, structured logger, schemas, validation)
-- `contracts/` — OpenAPI specs, Proto contracts, and JSON event schemas
-- `ai-ml/` — Feature stores and training models
+## 1. Directory & System Structure
 
-## Quick Start
+```
+dms-platform/
+├── apps/
+│   ├── web-admin/               # React Vite Admin Portal Dashboard
+│   └── mobile-rn/               # React Native SFA Field Sales Mobile App
+├── services/
+│   ├── api-gateway/             # API Gateway Router (Tenant & RBAC check, Forwarder)
+│   ├── sfa-service/             # SFA Domain Core Service (Visits, Orders, SalesTargets)
+│   ├── identity-service/        # JWT Authentication, MFA, and Key Manager
+│   ├── audit-service/           # Cryptographic Append-only Security Audit log
+│   ├── forecasting-service/     # AI Sales Forecasting & Analysis
+│   └── schemes-service/         # Schemes & Claims Verification
+├── packages/
+│   ├── pkg-database/            # Shared Postgres connection pool & transaction utilities
+│   ├── pkg-events/              # Transactional Outbox pattern & event envelopes
+│   ├── pkg-logger/              # Correlation-ID aware Winston logger
+│   ├── pkg-rbac/                # Role-Based Access Control decorators & policies
+│   └── pkg-validation/          # Centralized Zod validation schemas
+├── contracts/
+│   └── openapi/                 # API Contracts (e.g. sfa-service.yaml spec)
+└── db/
+    └── migrations/              # Database Schema Flyway-style migrations
+```
 
+---
+
+## 2. Core SFA Service Modules
+
+The platform enforces strict domain-driven design (DDD) boundaries across all core SFA service slices:
+
+### 📊 SalesTarget
+- Manages monthly sales volumes and values.
+- Automatically completes active targets when sales thresholds are met via order placements.
+- Optimistic locking and strict validation parameters constraints.
+
+### 🎯 KPIAchievement
+- Establishes performance indicators (completed visits, count of orders, financial volume sum).
+- Handles workflow transitions (`DRAFT` -> `SUBMITTED` -> `APPROVED` / `REJECTED`).
+- Subscribes to `visit.completed.v1` events via progressive projection.
+
+### 👤 FieldRep (Field Representatives)
+- Core database repository for field sales agents details.
+- Validates properties uniqueness constraints (employee code, user reference link).
+- Features Row-Level Security (RLS) tenant isolation policies and actor audit logs.
+
+### 📸 PhotoCapture
+- Enforces retail audits, geo-tagged image uploads, and image size constraints.
+
+### 🔍 CompetitorCapture
+- Audits and tracks competitor pricing, promotion offerings, and stock levels.
+
+### 🛒 MerchandisingAudit
+- Audits store layout compliance, shelf visibility, and brand placement correctness.
+
+---
+
+## 3. Technology Stack & Design System
+
+1. **Frameworks & Core**: React (Vite-powered Single Page Application), Node.js (TypeScript compiled to ES modules).
+2. **Database Engine**: PostgreSQL with Row Level Security (RLS) tenant partitioning.
+3. **Event Broker**: Transactional Outbox and Event-driven consumer subscriptions.
+4. **Security & Audits**: RS256 JWT validation, RbacGuard permissions, cryptographic signature verification, and tamper-evident append-only audits blocks.
+
+---
+
+## 4. Quick Start
+
+### Prerequisites
+- Node.js (v18+)
+- pnpm (v8+)
+
+### Setup Commands
 1. Install dependencies:
    ```bash
    pnpm install

@@ -12,3 +12,6 @@ export * from './delivery-confirmation.controller';
 export { SalesTargetController } from './sales-target.controller.js';
 export { SurveyController } from './survey.controller.js';
 export * from './competitor-capture.controller'; 
+export { VanSaleController } from './van-sale.controller.js';
+export { OutletProfileController } from './outlet-profile.controller.js';
+
