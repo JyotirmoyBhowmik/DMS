@@ -66,7 +66,11 @@ export class RbacGuard {
       'kpi_achievement:read',
       'kpi-achievements:read',
       'field_rep:read',
-      'field-reps:read'
+      'field-reps:read',
+      'survey:create',
+      'survey:read',
+      'survey:update',
+      'surveys:read'
     ],
     distributor: [
       'inventory:read',

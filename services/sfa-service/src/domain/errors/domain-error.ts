@@ -131,3 +131,9 @@ export class InvalidPhotoCaptureStateError extends DomainError {
     );
   }
 }
+
+export class BusinessRuleViolationError extends DomainError {
+  constructor(message: string, code: string = 'BUSINESS_RULE_VIOLATION') {
+    super(code, message);
+  }
+}

@@ -60,6 +60,11 @@ The platform enforces strict domain-driven design (DDD) boundaries across all co
 ### 🛒 MerchandisingAudit
 - Audits store layout compliance, shelf visibility, and brand placement correctness.
 
+### 📝 Survey
+- Enables retail surveys creation, updates, pagination search, and list detail views.
+- Restricts actions using strict `survey:create`, `survey:read`, and `survey:update` RBAC permissions.
+- Emits outbox events and records audits upon mutations with automatic database transaction fallbacks.
+
 ---
 
 ## 3. Technology Stack & Design System

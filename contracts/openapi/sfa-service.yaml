@@ -1051,6 +1051,58 @@ paths:
       responses:
         '200':
           description: Field representative updated successfully
+  /surveys:
+    post:
+      summary: Create a survey
+      operationId: createSurvey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSurveyInput'
+      responses:
+        '201':
+          description: Survey created successfully
+    get:
+      summary: List surveys
+      operationId: listSurveys
+      responses:
+        '200':
+          description: A list of surveys
+  /surveys/{id}:
+    get:
+      summary: Get survey details
+      operationId: getSurvey
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Survey details
+    put:
+      summary: Update a survey
+      operationId: updateSurvey
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSurveyInput'
+      responses:
+        '200':
+          description: Survey updated successfully
 components:
   schemas:
     PlaceOrderInput:
@@ -1882,6 +1934,43 @@ components:
         status:
           type: string
           enum: [ACTIVE, INACTIVE, SUSPENDED, TERMINATED]
+        version:
+          type: integer
+    CreateSurveyInput:
+      type: object
+      required:
+        - agentId
+        - outletId
+        - title
+      properties:
+        id:
+          type: string
+          format: uuid
+        agentId:
+          type: string
+          format: uuid
+        outletId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, COMPLETED, CANCELLED]
+    UpdateSurveyInput:
+      type: object
+      required:
+        - version
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, COMPLETED, CANCELLED]
         version:
           type: integer
 

@@ -1,9 +1,16 @@
 import { Survey } from '../entities/survey.js';
 
 export interface SurveyRepository {
-  save(survey: Survey, tenantId: string): Promise<Survey>;
-  findById(id: string, tenantId: string): Promise<Survey>;
-  update(survey: Survey, tenantId: string): Promise<Survey>;
-  findByOutlet(outletId: string, tenantId: string): Promise<Survey[]>;
-  findByAgent(agentId: string, tenantId: string): Promise<Survey[]>;
+  save(survey: Survey, tenantId: string): Promise<void>;
+  findById(id: string, tenantId: string): Promise<Survey | null>;
+  findByTitle(title: string, tenantId: string): Promise<Survey | null>;
+  list(options: {
+    tenantId: string;
+    agentId?: string;
+    outletId?: string;
+    status?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<{ items: Survey[]; total: number; page: number; pageSize: number }>;
+  delete(id: string, tenantId: string): Promise<void>;
 }

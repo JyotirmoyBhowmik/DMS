@@ -1,92 +1,136 @@
-export interface Question {
-  id: string;
-  type: 'text' | 'choice' | 'rating' | 'boolean';
-  text: string;
-  options?: string[]; // for choice type
-  required: boolean;
-}
-
-export interface ResponseItem {
-  questionId: string;
-  answer: string | number | boolean;
-}
+import { BusinessRuleViolationError } from '../errors/domain-error.js';
 
 export interface SurveyProps {
   id: string;
   tenantId: string;
-  outletId: string;
   agentId: string;
-  questions: Question[];
-  responses: ResponseItem[];
-  completedAt?: Date;
-  version: number;
-  createdAt: Date;
-  updatedAt: Date;
+  outletId: string;
+  title: string;
+  description?: string;
+  status?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  version?: number;
 }
 
 export class Survey {
-  private props: SurveyProps;
+  private props: Required<SurveyProps>;
 
   private constructor(props: SurveyProps) {
+    this.validate(props);
+
     this.props = {
-      ...props,
-      questions: [...props.questions],
-      responses: [...props.responses],
+      id: props.id,
+      tenantId: props.tenantId,
+      agentId: props.agentId,
+      outletId: props.outletId,
+      title: props.title,
+      description: props.description || '',
+      status: props.status || 'DRAFT',
+      createdAt: props.createdAt || new Date(),
+      updatedAt: props.updatedAt || new Date(),
+      version: props.version || 1,
     };
   }
 
-  static create(input: {
-    id: string;
-    tenantId: string;
-    outletId: string;
-    agentId: string;
-    questions: Question[];
-  }): Survey {
-    const now = new Date();
-    return new Survey({
-      ...input,
-      responses: [],
-      version: 1,
-      createdAt: now,
-      updatedAt: now,
-    });
+  static create(props: SurveyProps): Survey {
+    return new Survey(props);
   }
 
-  static fromPersistence(props: SurveyProps): Survey {
-    return new Survey(props);
+  private validate(props: SurveyProps): void {
+    if (!props.id || props.id.trim().length === 0) {
+      throw new BusinessRuleViolationError('Survey ID cannot be empty');
+    }
+    if (!props.tenantId || props.tenantId.trim().length === 0) {
+      throw new BusinessRuleViolationError('Tenant ID cannot be empty');
+    }
+    if (!props.agentId || props.agentId.trim().length === 0) {
+      throw new BusinessRuleViolationError('Agent ID cannot be empty');
+    }
+    if (!props.outletId || props.outletId.trim().length === 0) {
+      throw new BusinessRuleViolationError('Outlet ID cannot be empty');
+    }
+    if (!props.title || props.title.trim().length === 0) {
+      throw new BusinessRuleViolationError('Survey title cannot be empty');
+    }
+    if (props.title.length > 255) {
+      throw new BusinessRuleViolationError('Survey title cannot exceed 255 characters');
+    }
   }
 
   get id(): string { return this.props.id; }
   get tenantId(): string { return this.props.tenantId; }
-  get outletId(): string { return this.props.outletId; }
   get agentId(): string { return this.props.agentId; }
-  get questions(): ReadonlyArray<Question> { return this.props.questions; }
-  get responses(): ReadonlyArray<ResponseItem> { return this.props.responses; }
-  get completedAt(): Date | undefined { return this.props.completedAt; }
-  get version(): number { return this.props.version; }
+  get outletId(): string { return this.props.outletId; }
+  get title(): string { return this.props.title; }
+  get description(): string { return this.props.description; }
+  get status(): string { return this.props.status; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
+  get version(): number { return this.props.version; }
 
-  /**
-   * Submit responses for the survey
-   */
-  submitResponses(responses: ResponseItem[]): void {
-    if (this.props.completedAt) {
-      throw new Error('Survey is already completed');
+  updateInfo(fields: { title?: string; description?: string }): void {
+    if (this.props.status === 'COMPLETED' || this.props.status === 'CANCELLED') {
+      throw new BusinessRuleViolationError(`Cannot update survey details in ${this.props.status} status`);
     }
 
-    // Validate required questions
-    for (const q of this.props.questions) {
-      if (q.required) {
-        const found = responses.find((r) => r.questionId === q.id);
-        if (!found) {
-          throw new Error(`Missing response for required question: ${q.id}`);
-        }
+    if (fields.title !== undefined) {
+      if (fields.title.trim().length === 0) {
+        throw new BusinessRuleViolationError('Survey title cannot be empty');
       }
+      if (fields.title.length > 255) {
+        throw new BusinessRuleViolationError('Survey title cannot exceed 255 characters');
+      }
+      this.props.title = fields.title;
     }
 
-    this.props.responses = [...responses];
-    this.props.completedAt = new Date();
+    if (fields.description !== undefined) {
+      this.props.description = fields.description;
+    }
+
     this.props.updatedAt = new Date();
+  }
+
+  activate(): void {
+    if (this.props.status !== 'DRAFT') {
+      throw new BusinessRuleViolationError(`Cannot activate survey from status ${this.props.status}`);
+    }
+    this.props.status = 'ACTIVE';
+    this.props.updatedAt = new Date();
+  }
+
+  complete(): void {
+    if (this.props.status !== 'ACTIVE') {
+      throw new BusinessRuleViolationError(`Cannot complete survey unless it is ACTIVE (current status: ${this.props.status})`);
+    }
+    this.props.status = 'COMPLETED';
+    this.props.updatedAt = new Date();
+  }
+
+  cancel(): void {
+    if (this.props.status === 'COMPLETED') {
+      throw new BusinessRuleViolationError('Cannot cancel a completed survey');
+    }
+    this.props.status = 'CANCELLED';
+    this.props.updatedAt = new Date();
+  }
+
+  incrementVersion(): void {
+    this.props.version += 1;
+  }
+
+  toJSON() {
+    return {
+      id: this.props.id,
+      tenantId: this.props.tenantId,
+      agentId: this.props.agentId,
+      outletId: this.props.outletId,
+      title: this.props.title,
+      description: this.props.description,
+      status: this.props.status,
+      createdAt: this.props.createdAt.toISOString(),
+      updatedAt: this.props.updatedAt.toISOString(),
+      version: this.props.version,
+    };
   }
 }
