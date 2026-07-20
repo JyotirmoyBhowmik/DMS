@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart';
 import 'dart:convert';
-import 'dart:typed_data';
 import '../crypto/aes_gcm_cipher.dart';
 
 /// Drift table for local MerchandisingAudit offline cache.

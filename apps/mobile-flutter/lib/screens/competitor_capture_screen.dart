@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'dart:typed_data';
 import '../database/competitor_capture_db.dart';
 
@@ -204,9 +203,8 @@ class _CompetitorCaptureScreenState extends State<CompetitorCaptureScreen> {
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _showUpdateDialog(Map<String, dynamic> item) {
     final currentStatus = item['status'] as String;

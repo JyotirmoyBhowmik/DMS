@@ -477,6 +477,62 @@ const App = () => {
   const [kpiPage, setKpiPage] = useState(1);
   const kpiPageSize = 5;
 
+  const [fieldReps, setFieldReps] = useState([
+    {
+      id: 'rep-1001',
+      tenantId: '00000000-0000-0000-0000-000000000001',
+      userId: '00000000-0000-0000-0000-0000000000c1',
+      employeeCode: 'EMP-001',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@dms.com',
+      phone: '1234567890',
+      status: 'ACTIVE',
+      version: 1,
+    },
+    {
+      id: 'rep-1002',
+      tenantId: '00000000-0000-0000-0000-000000000001',
+      userId: '00000000-0000-0000-0000-0000000000c2',
+      employeeCode: 'EMP-002',
+      firstName: 'Jane',
+      lastName: 'Smith',
+      email: 'jane.smith@dms.com',
+      phone: '9876543210',
+      status: 'ACTIVE',
+      version: 1,
+    },
+    {
+      id: 'rep-1003',
+      tenantId: '00000000-0000-0000-0000-000000000001',
+      userId: '00000000-0000-0000-0000-0000000000c3',
+      employeeCode: 'EMP-003',
+      firstName: 'Bob',
+      lastName: 'Johnson',
+      email: 'bob.johnson@dms.com',
+      phone: '5551234567',
+      status: 'SUSPENDED',
+      version: 2,
+    }
+  ]);
+  const [frFormOpen, setFrFormOpen] = useState(false);
+  const [frEditingId, setFrEditingId] = useState<string | null>(null);
+  const [frFormData, setFrFormData] = useState({
+    userId: '00000000-0000-0000-0000-0000000000c4',
+    employeeCode: 'EMP-004',
+    firstName: 'Alice',
+    lastName: 'Jones',
+    email: 'alice.jones@dms.com',
+    phone: '4441239999',
+    status: 'ACTIVE' as any,
+    version: 1,
+  });
+  const [frFormErrors, setFrFormErrors] = useState<Record<string, string>>({});
+  const [frFilterStatus, setFrFilterStatus] = useState('all');
+  const [frSearchQuery, setFrSearchQuery] = useState('');
+  const [frPage, setFrPage] = useState(1);
+  const frPageSize = 5;
+
   // Microservices details with mock live states
   const [services, setServices] = useState([
     { name: 'api-gateway', status: 'healthy', latency: '24ms', cpu: '8%', ram: '142MB', reqs: '14,290/hr' },
@@ -1207,6 +1263,104 @@ const App = () => {
     if (confirm('Are you sure you want to delete this KPI target? This action is destructive.')) {
       setKpiAchievements(prev => prev.filter(t => t.id !== id));
       setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Deleted KPI target ID: ${id}.`, ...prev]);
+    }
+  };
+
+  const handleCreateOrUpdateFieldRep = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!frFormData.employeeCode.trim()) errors.employeeCode = 'Employee code is required';
+    if (!frFormData.firstName.trim()) errors.firstName = 'First name is required';
+    if (!frFormData.lastName.trim()) errors.lastName = 'Last name is required';
+    if (!frFormData.email.trim() || !frFormData.email.includes('@')) errors.email = 'Valid email is required';
+    if (!frFormData.phone.trim()) errors.phone = 'Phone number is required';
+
+    if (Object.keys(errors).length > 0) {
+      setFrFormErrors(errors);
+      return;
+    }
+
+    setFrFormErrors({});
+
+    if (frEditingId) {
+      const current = fieldReps.find(t => t.id === frEditingId);
+      if (current && current.version !== frFormData.version) {
+        alert('Optimistic locking conflict: This record has been updated by another transaction. Version mismatch.');
+        return;
+      }
+
+      setFieldReps(prev => prev.map(t => {
+        if (t.id === frEditingId) {
+          return {
+            ...t,
+            userId: frFormData.userId,
+            employeeCode: frFormData.employeeCode,
+            firstName: frFormData.firstName,
+            lastName: frFormData.lastName,
+            email: frFormData.email,
+            phone: frFormData.phone,
+            status: frFormData.status,
+            version: t.version + 1
+          };
+        }
+        return t;
+      }));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Updated Field Representative ID: ${frEditingId}.`, ...prev]);
+    } else {
+      const isDup = fieldReps.some(
+        (t) =>
+          t.employeeCode.toLowerCase() === frFormData.employeeCode.toLowerCase() ||
+          t.userId === frFormData.userId
+      );
+
+      if (isDup) {
+        alert(`A representative with employee code ${frFormData.employeeCode} or user ID ${frFormData.userId} already exists.`);
+        return;
+      }
+
+      const newRecord = {
+        id: 'rep-' + Date.now(),
+        tenantId: '00000000-0000-0000-0000-000000000001',
+        userId: frFormData.userId,
+        employeeCode: frFormData.employeeCode,
+        firstName: frFormData.firstName,
+        lastName: frFormData.lastName,
+        email: frFormData.email,
+        phone: frFormData.phone,
+        status: frFormData.status ?? 'ACTIVE',
+        version: 1,
+      };
+      setFieldReps(prev => [newRecord, ...prev]);
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Created new Field Representative: ${frFormData.firstName} ${frFormData.lastName}.`, ...prev]);
+    }
+
+    setFrFormOpen(false);
+    setFrEditingId(null);
+  };
+
+  const handleUpdateFieldRepStatus = (id: string, newStatus: any) => {
+    setFieldReps(prev => prev.map(t => {
+      if (t.id === id) {
+        if (t.status === 'TERMINATED') {
+          alert("Cannot change status of a terminated representative");
+          return t;
+        }
+        return {
+          ...t,
+          status: newStatus,
+          version: t.version + 1
+        };
+      }
+      return t;
+    }));
+    setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Field Representative ID: ${id} status updated to: ${newStatus}.`, ...prev]);
+  };
+
+  const handleDeleteFieldRep = (id: string) => {
+    if (confirm('Are you sure you want to delete this field representative? This action is destructive.')) {
+      setFieldReps(prev => prev.filter(t => t.id !== id));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Deleted Field Representative ID: ${id}.`, ...prev]);
     }
   };
 
@@ -4488,6 +4642,487 @@ const App = () => {
                                     {currentUserRole === 'admin' && (
                                       <button
                                         onClick={() => handleDeleteSalesTarget(target.id)}
+                                        style={{
+                                          backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                                          color: '#F87171',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Delete
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Field Representatives Console Section */}
+                <div style={{
+                  backgroundColor: 'rgba(30, 41, 59, 0.2)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  gridColumn: '1 / -1',
+                  marginTop: '20px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '15px', color: '#60A5FA' }}>Field Representatives Console</h3>
+                      <p style={{ margin: '2px 0 0 0', opacity: 0.5, fontSize: '11px' }}>Manage user linkages, employee codes, status controls, and contact details.</p>
+                    </div>
+                    {currentUserRole === 'admin' && (
+                      <button
+                        onClick={() => {
+                          setFrEditingId(null);
+                          setFrFormData({
+                            userId: '00000000-0000-0000-0000-0000000000c4',
+                            employeeCode: 'EMP-004',
+                            firstName: 'Alice',
+                            lastName: 'Jones',
+                            email: 'alice.jones@dms.com',
+                            phone: '4441239999',
+                            status: 'ACTIVE',
+                            version: 1,
+                          });
+                          setFrFormErrors({});
+                          setFrFormOpen(!frFormOpen);
+                        }}
+                        style={{
+                          backgroundColor: '#3B82F6',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {frFormOpen ? 'Close Form' : 'Create Representative'}
+                      </button>
+                    )}
+                  </div>
+
+                  {frFormOpen && currentUserRole === 'admin' && (
+                    <form onSubmit={handleCreateOrUpdateFieldRep} style={{
+                      backgroundColor: 'rgba(15,23,42,0.4)',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#60A5FA' }}>
+                        {frEditingId ? `Edit Field Representative (Version: ${frFormData.version})` : 'New Representative Parameters'}
+                      </h4>
+
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                        gap: '12px'
+                      }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>User UUID Link *</label>
+                          <input
+                            type="text"
+                            value={frFormData.userId}
+                            onChange={(e) => setFrFormData({ ...frFormData, userId: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: frFormErrors.userId ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Employee Code *</label>
+                          <input
+                            type="text"
+                            value={frFormData.employeeCode}
+                            onChange={(e) => setFrFormData({ ...frFormData, employeeCode: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: frFormErrors.employeeCode ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {frFormErrors.employeeCode && <span style={{ color: '#EF4444', fontSize: '10px' }}>{frFormErrors.employeeCode}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>First Name *</label>
+                          <input
+                            type="text"
+                            value={frFormData.firstName}
+                            onChange={(e) => setFrFormData({ ...frFormData, firstName: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: frFormErrors.firstName ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {frFormErrors.firstName && <span style={{ color: '#EF4444', fontSize: '10px' }}>{frFormErrors.firstName}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Last Name *</label>
+                          <input
+                            type="text"
+                            value={frFormData.lastName}
+                            onChange={(e) => setFrFormData({ ...frFormData, lastName: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: frFormErrors.lastName ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {frFormErrors.lastName && <span style={{ color: '#EF4444', fontSize: '10px' }}>{frFormErrors.lastName}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Email Address *</label>
+                          <input
+                            type="text"
+                            value={frFormData.email}
+                            onChange={(e) => setFrFormData({ ...frFormData, email: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: frFormErrors.email ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {frFormErrors.email && <span style={{ color: '#EF4444', fontSize: '10px' }}>{frFormErrors.email}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Phone Number *</label>
+                          <input
+                            type="text"
+                            value={frFormData.phone}
+                            onChange={(e) => setFrFormData({ ...frFormData, phone: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: frFormErrors.phone ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {frFormErrors.phone && <span style={{ color: '#EF4444', fontSize: '10px' }}>{frFormErrors.phone}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Status</label>
+                          <select
+                            value={frFormData.status}
+                            onChange={(e) => setFrFormData({ ...frFormData, status: e.target.value as any })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="INACTIVE">INACTIVE</option>
+                            <option value="SUSPENDED">SUSPENDED</option>
+                            <option value="TERMINATED">TERMINATED</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                        <button
+                          type="submit"
+                          style={{
+                            backgroundColor: '#10B981',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {frEditingId ? 'Save Changes' : 'Create Representative'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFrFormOpen(false);
+                            setFrEditingId(null);
+                          }}
+                          style={{
+                            backgroundColor: 'rgba(255,255,255,0.05)',
+                            color: '#F8FAFC',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '8px 16px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Filters, Search and Pagination Controls */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                    marginBottom: '16px',
+                    backgroundColor: 'rgba(15,23,42,0.2)',
+                    padding: '12px',
+                    borderRadius: '8px'
+                  }}>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        placeholder="Search name, code, email..."
+                        value={frSearchQuery}
+                        onChange={(e) => { setFrSearchQuery(e.target.value); setFrPage(1); }}
+                        style={{
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          minWidth: '200px'
+                        }}
+                      />
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '11px', opacity: 0.6 }}>Status:</span>
+                        <select
+                          value={frFilterStatus}
+                          onChange={(e) => { setFrFilterStatus(e.target.value); setFrPage(1); }}
+                          style={{
+                            backgroundColor: 'rgba(15,23,42,0.6)',
+                            color: '#F8FAFC',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px'
+                          }}
+                        >
+                          <option value="all">All Statuses</option>
+                          <option value="ACTIVE">ACTIVE</option>
+                          <option value="INACTIVE">INACTIVE</option>
+                          <option value="SUSPENDED">SUSPENDED</option>
+                          <option value="TERMINATED">TERMINATED</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
+                      <button
+                        disabled={frPage === 1}
+                        onClick={() => setFrPage(prev => Math.max(1, prev - 1))}
+                        style={{
+                          backgroundColor: 'rgba(255,255,255,0.05)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          cursor: frPage === 1 ? 'not-allowed' : 'pointer',
+                          opacity: frPage === 1 ? 0.4 : 1
+                        }}
+                      >
+                        Prev
+                      </button>
+                      <span>Page {frPage}</span>
+                      <button
+                        disabled={fieldReps.filter(t => {
+                          const matchesSearch = t.firstName.toLowerCase().includes(frSearchQuery.toLowerCase()) ||
+                            t.lastName.toLowerCase().includes(frSearchQuery.toLowerCase()) ||
+                            t.employeeCode.toLowerCase().includes(frSearchQuery.toLowerCase()) ||
+                            t.email.toLowerCase().includes(frSearchQuery.toLowerCase());
+                          const matchesStatus = frFilterStatus === 'all' || t.status === frFilterStatus;
+                          return matchesSearch && matchesStatus;
+                        }).length <= frPage * frPageSize}
+                        onClick={() => setFrPage(prev => prev + 1)}
+                        style={{
+                          backgroundColor: 'rgba(255,255,255,0.05)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* List Field Representatives Table */}
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', opacity: 0.7 }}>
+                          <th style={{ padding: '10px 12px' }}>Code</th>
+                          <th style={{ padding: '10px 12px' }}>Name</th>
+                          <th style={{ padding: '10px 12px' }}>Email</th>
+                          <th style={{ padding: '10px 12px' }}>Phone</th>
+                          <th style={{ padding: '10px 12px' }}>Status</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'right' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {fieldReps
+                          .filter(t => {
+                            const matchesSearch = t.firstName.toLowerCase().includes(frSearchQuery.toLowerCase()) ||
+                              t.lastName.toLowerCase().includes(frSearchQuery.toLowerCase()) ||
+                              t.employeeCode.toLowerCase().includes(frSearchQuery.toLowerCase()) ||
+                              t.email.toLowerCase().includes(frSearchQuery.toLowerCase());
+                            const matchesStatus = frFilterStatus === 'all' || t.status === frFilterStatus;
+                            return matchesSearch && matchesStatus;
+                          })
+                          .slice((frPage - 1) * frPageSize, frPage * frPageSize)
+                          .map((target) => {
+                            const statusColor = target.status === 'ACTIVE' ? '#10B981' : (target.status === 'SUSPENDED' ? '#F59E0B' : (target.status === 'TERMINATED' ? '#EF4444' : '#64748B'));
+                            return (
+                              <tr key={target.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background-color 0.2s' }}>
+                                <td style={{ padding: '12px', fontWeight: 'bold' }}>{target.employeeCode}</td>
+                                <td style={{ padding: '12px' }}>{target.firstName} {target.lastName}</td>
+                                <td style={{ padding: '12px', opacity: 0.8 }}>{target.email}</td>
+                                <td style={{ padding: '12px', opacity: 0.8 }}>{target.phone}</td>
+                                <td style={{ padding: '12px' }}>
+                                  <span style={{
+                                    backgroundColor: `rgba(${target.status === 'ACTIVE' ? '16, 185, 129' : (target.status === 'SUSPENDED' ? '245, 158, 11' : (target.status === 'TERMINATED' ? '239, 68, 68' : '100, 116, 139'))}, 0.15)`,
+                                    color: statusColor,
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    fontSize: '10px',
+                                    fontWeight: 'bold',
+                                    border: `1px solid rgba(${target.status === 'ACTIVE' ? '16, 185, 129' : (target.status === 'SUSPENDED' ? '245, 158, 11' : (target.status === 'TERMINATED' ? '239, 68, 68' : '100, 116, 139'))}, 0.2)`
+                                  }}>
+                                    {target.status}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '12px', textAlign: 'right' }}>
+                                  <div style={{ display: 'inline-flex', gap: '6px' }}>
+                                    {currentUserRole === 'admin' && target.status !== 'TERMINATED' && (
+                                      <button
+                                        onClick={() => {
+                                          setFrEditingId(target.id);
+                                          setFrFormData({
+                                            userId: target.userId,
+                                            employeeCode: target.employeeCode,
+                                            firstName: target.firstName,
+                                            lastName: target.lastName,
+                                            email: target.email,
+                                            phone: target.phone,
+                                            status: target.status,
+                                            version: target.version,
+                                          });
+                                          setFrFormErrors({});
+                                          setFrFormOpen(true);
+                                        }}
+                                        style={{
+                                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                                          color: '#F8FAFC',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Edit
+                                      </button>
+                                    )}
+
+                                    {currentUserRole === 'admin' && target.status === 'ACTIVE' && (
+                                      <button
+                                        onClick={() => handleUpdateFieldRepStatus(target.id, 'SUSPENDED')}
+                                        style={{
+                                          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                                          border: '1px solid rgba(245, 158, 11, 0.2)',
+                                          color: '#FBBF24',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Suspend
+                                      </button>
+                                    )}
+
+                                    {currentUserRole === 'admin' && target.status === 'SUSPENDED' && (
+                                      <button
+                                        onClick={() => handleUpdateFieldRepStatus(target.id, 'ACTIVE')}
+                                        style={{
+                                          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                          border: '1px solid rgba(16, 185, 129, 0.2)',
+                                          color: '#34D399',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Activate
+                                      </button>
+                                    )}
+
+                                    {currentUserRole === 'admin' && target.status !== 'TERMINATED' && (
+                                      <button
+                                        onClick={() => handleUpdateFieldRepStatus(target.id, 'TERMINATED')}
+                                        style={{
+                                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                          border: '1px solid rgba(239, 68, 68, 0.2)',
+                                          color: '#F87171',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10px',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        Terminate
+                                      </button>
+                                    )}
+
+                                    {currentUserRole === 'admin' && (
+                                      <button
+                                        onClick={() => handleDeleteFieldRep(target.id)}
                                         style={{
                                           backgroundColor: 'rgba(239, 68, 68, 0.15)',
                                           border: '1px solid rgba(239, 68, 68, 0.3)',

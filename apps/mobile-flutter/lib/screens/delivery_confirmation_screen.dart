@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'dart:typed_data';
 import '../database/delivery_confirmation_db.dart';
 
@@ -148,7 +147,7 @@ class _DeliveryConfirmationScreenState extends State<DeliveryConfirmationScreen>
                     ],
                   ),
                   DropdownButtonFormField<String>(
-                    value: _selectedStatus,
+                    initialValue: _selectedStatus,
                     decoration: const InputDecoration(labelText: 'Delivery Status *'),
                     items: const [
                       DropdownMenuItem(value: 'FULL', child: Text('FULL')),
@@ -238,7 +237,7 @@ class _DeliveryConfirmationScreenState extends State<DeliveryConfirmationScreen>
                     decoration: const InputDecoration(labelText: 'Signature URL'),
                   ),
                   DropdownButtonFormField<String>(
-                    value: _updateSelectedStatus,
+                    initialValue: _updateSelectedStatus,
                     decoration: const InputDecoration(labelText: 'Status *'),
                     items: const [
                       DropdownMenuItem(value: 'FULL', child: Text('FULL')),

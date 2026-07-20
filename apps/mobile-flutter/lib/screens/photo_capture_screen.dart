@@ -169,9 +169,8 @@ class _PhotoCaptureScreenState extends State<PhotoCaptureScreen> {
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _showUpdateDialog(Map<String, dynamic> item) {
     final currentStatus = item['status'] as String;
