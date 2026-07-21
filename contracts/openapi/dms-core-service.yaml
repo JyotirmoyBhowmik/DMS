@@ -143,3 +143,20 @@ paths:
         '200':
           description: Hierarchy list returned
 
+  /kyc-documents:
+    post:
+      summary: Register/Upload a distributor KYC document
+      operationId: createKYCDocument
+      responses:
+        '201':
+          description: KYC Document uploaded
+        '409':
+          description: Duplicate document conflict
+    get:
+      summary: List distributor KYC verification documents
+      operationId: listKYCDocuments
+      responses:
+        '200':
+          description: Paginated KYC documents list
+
+

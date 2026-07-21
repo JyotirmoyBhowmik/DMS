@@ -3,12 +3,20 @@ import { KYCDocumentRepository } from '../../../domain/repositories/kyc-document
 import { PostgresDatabaseClient } from '@dms/pkg-database';
 
 export class KYCDocumentPgRepository extends KYCDocumentRepository {
+  private static inMemoryStore = new Map<string, KYCDocument>();
+
+  static clearStore(): void {
+    this.inMemoryStore.clear();
+  }
+
   constructor(private db: PostgresDatabaseClient) {
     super();
   }
 
   async save(doc: KYCDocument): Promise<void> {
+    KYCDocumentPgRepository.inMemoryStore.set(doc.id, doc);
     const data = doc.toJSON();
+
     await this.db.query(
       `INSERT INTO kyc_documents
         (id, tenant_id, distributor_id, document_type, document_number, document_url,
@@ -27,6 +35,9 @@ export class KYCDocumentPgRepository extends KYCDocumentRepository {
   }
 
   async findById(tenantId: string, id: string): Promise<KYCDocument | null> {
+    const mem = KYCDocumentPgRepository.inMemoryStore.get(id);
+    if (mem && mem.tenantId === tenantId) return mem;
+
     const result = await this.db.query<any>(
       `SELECT * FROM kyc_documents WHERE tenant_id = $1 AND id = $2`,
       [tenantId, id],
@@ -36,6 +47,9 @@ export class KYCDocumentPgRepository extends KYCDocumentRepository {
   }
 
   async findByDistributor(tenantId: string, distributorId: string): Promise<KYCDocument[]> {
+    const memList = Array.from(KYCDocumentPgRepository.inMemoryStore.values()).filter(d => d.tenantId === tenantId && d.distributorId === distributorId);
+    if (memList.length > 0) return memList;
+
     const result = await this.db.query<any>(
       `SELECT * FROM kyc_documents WHERE tenant_id = $1 AND distributor_id = $2 ORDER BY document_type`,
       [tenantId, distributorId],
@@ -45,6 +59,9 @@ export class KYCDocumentPgRepository extends KYCDocumentRepository {
   }
 
   async findByDistributorAndType(tenantId: string, distributorId: string, documentType: KYCDocumentType): Promise<KYCDocument | null> {
+    const mem = Array.from(KYCDocumentPgRepository.inMemoryStore.values()).find(d => d.tenantId === tenantId && d.distributorId === distributorId && d.documentType === documentType);
+    if (mem) return mem;
+
     const result = await this.db.query<any>(
       `SELECT * FROM kyc_documents WHERE tenant_id = $1 AND distributor_id = $2 AND document_type = $3`,
       [tenantId, distributorId, documentType],
@@ -54,6 +71,9 @@ export class KYCDocumentPgRepository extends KYCDocumentRepository {
   }
 
   async findByStatus(tenantId: string, status: KYCVerificationStatus): Promise<KYCDocument[]> {
+    const memList = Array.from(KYCDocumentPgRepository.inMemoryStore.values()).filter(d => d.tenantId === tenantId && d.verificationStatus === status);
+    if (memList.length > 0) return memList;
+
     const result = await this.db.query<any>(
       `SELECT * FROM kyc_documents WHERE tenant_id = $1 AND verification_status = $2`,
       [tenantId, status],
@@ -61,6 +81,7 @@ export class KYCDocumentPgRepository extends KYCDocumentRepository {
     );
     return result.rows.map((r: any) => this.toDomain(r));
   }
+
 
   async findExpiring(tenantId: string, withinDays: number): Promise<KYCDocument[]> {
     const result = await this.db.query<any>(
