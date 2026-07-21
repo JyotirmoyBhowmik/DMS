@@ -1126,6 +1126,26 @@ export class GatewayController {
         const res = await this.enterpriseDmsController.handleUtilizeCredit(request.body as any, { 'x-tenant-id': tenantId });
         statusCode = res.status;
         resultBody = res.body;
+      } else if ((subPath === '' || subPath === '/') && request.method === 'POST') {
+        const res = await this.enterpriseDmsController.handleCreateDistributor(request.body, { 'x-tenant-id': tenantId, 'x-user-id': principal?.id, 'x-user-roles': principal?.roles?.join(',') });
+        statusCode = res.status;
+        resultBody = res.body;
+      } else if ((subPath === '' || subPath === '/') && request.method === 'GET') {
+        const res = await this.enterpriseDmsController.handleListDistributors(request.body || {}, { 'x-tenant-id': tenantId, 'x-user-id': principal?.id, 'x-user-roles': principal?.roles?.join(',') });
+        statusCode = res.status;
+        resultBody = res.body;
+      } else if (params.id && request.method === 'GET') {
+        const res = await this.enterpriseDmsController.handleGetDistributor(params.id, { 'x-tenant-id': tenantId, 'x-user-id': principal?.id, 'x-user-roles': principal?.roles?.join(',') });
+        statusCode = res.status;
+        resultBody = res.body;
+      } else if (params.id && request.method === 'PUT') {
+        const res = await this.enterpriseDmsController.handleUpdateDistributor(params.id, request.body, { 'x-tenant-id': tenantId, 'x-user-id': principal?.id, 'x-user-roles': principal?.roles?.join(',') });
+        statusCode = res.status;
+        resultBody = res.body;
+      } else if (params.id && request.method === 'DELETE') {
+        const res = await this.enterpriseDmsController.handleDeleteDistributor(params.id, { 'x-tenant-id': tenantId, 'x-user-id': principal?.id, 'x-user-roles': principal?.roles?.join(',') });
+        statusCode = res.status;
+        resultBody = res.body;
       } else {
         const upstreamResponse = this.forwardToUpstream(handler, request, params);
         return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };

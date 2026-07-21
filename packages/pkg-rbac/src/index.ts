@@ -70,7 +70,9 @@ export class RbacGuard {
       'survey:create',
       'survey:read',
       'survey:update',
-      'surveys:read'
+      'surveys:read',
+      'distributor:read',
+      'distributors:read'
     ],
     distributor: [
       'inventory:read',

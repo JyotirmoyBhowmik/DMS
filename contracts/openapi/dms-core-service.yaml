@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Distributor Management System (DMS) Core API
   version: 1.0.0
-  description: API for managing distributor inventory, schemes, claims, and returns.
+  description: API for managing distributor inventory, schemes, claims, returns, and profiles.
 paths:
   /inventory/adjust:
     post:
@@ -11,3 +11,120 @@ paths:
       responses:
         '200':
           description: Stock adjusted successfully
+
+  /distributors:
+    post:
+      summary: Register a new wholesale distributor account
+      operationId: createDistributor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - region
+                - creditLimit
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                region:
+                  type: string
+                creditLimit:
+                  type: integer
+                  description: Credit limit in cents/paise
+      responses:
+        '201':
+          description: Distributor created successfully
+        '400':
+          description: Validation error
+        '409':
+          description: Name duplicate conflict
+
+    get:
+      summary: List distributors with optional regional filtering
+      operationId: listDistributors
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+        - name: region
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated list returned successfully
+
+  /distributors/{id}:
+    get:
+      summary: Get details of a single distributor
+      operationId: getDistributor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Distributor details
+        '404':
+          description: Not found
+
+    put:
+      summary: Update distributor details
+      operationId: updateDistributor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - version
+              properties:
+                name:
+                  type: string
+                region:
+                  type: string
+                creditLimit:
+                  type: integer
+                version:
+                  type: integer
+      responses:
+        '200':
+          description: Updated successfully
+        '409':
+          description: Version locking concurrency conflict
+
+    delete:
+      summary: Remove a distributor
+      operationId: deleteDistributor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Deleted successfully

@@ -1,4 +1,5 @@
 import { EnterpriseDmsUseCases } from '../../../application/usecases/enterprise_dms.usecases.js';
+import { DistributorController } from './distributor.controller.js';
 import { StructuredLogger } from '@dms/pkg-logger';
 
 export class EnterpriseDmsController {
@@ -414,6 +415,34 @@ export class EnterpriseDmsController {
         body: { success: false, error: err.message }
       };
     }
+  }
+
+  // ── Distributor CRUD Delegation ──
+  private distributorController = new DistributorController();
+
+  async handleCreateDistributor(body: any, headers: Record<string, string | undefined>) {
+    const res = await this.distributorController.handleCreate(body, headers);
+    return { status: res.statusCode, body: res.body };
+  }
+
+  async handleUpdateDistributor(id: string, body: any, headers: Record<string, string | undefined>) {
+    const res = await this.distributorController.handleUpdate(id, body, headers);
+    return { status: res.statusCode, body: res.body };
+  }
+
+  async handleGetDistributor(id: string, headers: Record<string, string | undefined>) {
+    const res = await this.distributorController.handleGet(id, headers);
+    return { status: res.statusCode, body: res.body };
+  }
+
+  async handleListDistributors(query: any, headers: Record<string, string | undefined>) {
+    const res = await this.distributorController.handleList(query, headers);
+    return { status: res.statusCode, body: res.body };
+  }
+
+  async handleDeleteDistributor(id: string, headers: Record<string, string | undefined>) {
+    const res = await this.distributorController.handleDelete(id, headers);
+    return { status: res.statusCode, body: res.body };
   }
 }
 
