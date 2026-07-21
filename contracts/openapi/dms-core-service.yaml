@@ -205,6 +205,23 @@ paths:
         '200':
           description: Paginated product catalog list
 
+  /product-categories:
+    post:
+      summary: Create a product category entry
+      operationId: createProductCategory
+      responses:
+        '201':
+          description: ProductCategory created successfully
+        '409':
+          description: Duplicate Category Code conflict
+    get:
+      summary: List product categories with status filter
+      operationId: listProductCategories
+      responses:
+        '200':
+          description: Paginated product categories list
+
+
 
 
 

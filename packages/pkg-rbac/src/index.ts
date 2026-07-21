@@ -92,8 +92,13 @@ export class RbacGuard {
       'product:create',
       'product:read',
       'product:update',
-      'products:read'
+      'products:read',
+      'product_category:create',
+      'product_category:read',
+      'product_category:update',
+      'product_categories:read'
     ],
+
 
 
 
