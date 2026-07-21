@@ -84,8 +84,13 @@ export class RbacGuard {
       'credit_limit:create',
       'credit_limit:read',
       'credit_limit:update',
-      'credit-limits:read'
+      'credit-limits:read',
+      'outlet:create',
+      'outlet:read',
+      'outlet:update',
+      'outlets:read'
     ],
+
 
 
     distributor: [

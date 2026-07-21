@@ -1,51 +1,96 @@
-import { BasePostgresRepository, BaseRow, PostgresDatabaseClient, EntityNotFoundError } from '@dms/pkg-database';
-import { Outlet } from '../../../domain/entities/outlet.js';
-import { OutletRepository } from '../../../domain/repositories/outlet.repository.js';
+import { Outlet, OutletChannelType, OutletStatus } from '../../../domain/entities/outlet.js';
+import { PostgresDatabaseClient } from '@dms/pkg-database';
 
-export class OutletPgRepository extends BasePostgresRepository<Outlet> implements OutletRepository {
-  constructor(db: PostgresDatabaseClient) {
-    super(db);
+export class OutletPgRepository {
+  private static inMemoryStore = new Map<string, Outlet>();
+
+  static clearStore(): void {
+    this.inMemoryStore.clear();
   }
 
-  protected tableName(): string {
-    return 'retail_outlets';
-  }
+  constructor(private db: PostgresDatabaseClient) {}
 
-  protected mapToEntity(row: BaseRow): Outlet {
-    return new Outlet(
-      row.id as string,
-      row.tenant_id as string,
-      row.name as string,
-      Number(row.latitude),
-      Number(row.longitude),
-      Number(row.radius_meters)
+  async save(outlet: Outlet): Promise<void> {
+    OutletPgRepository.inMemoryStore.set(outlet.id, outlet);
+    const data = outlet.toJSON();
+    await this.db.query(
+      `INSERT INTO outlets
+        (id, tenant_id, name, latitude, longitude, radius_meters, status, channel_type, address, owner_name, owner_phone, distributor_id, version)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+       ON CONFLICT (id) DO UPDATE SET
+         name = $3, latitude = $4, longitude = $5, radius_meters = $6, status = $7,
+         channel_type = $8, address = $9, owner_name = $10, owner_phone = $11,
+         distributor_id = $12, version = $13`,
+      [data.id, data.tenantId, data.name, data.latitude, data.longitude, data.radiusMeters,
+       data.status, data.channelType, data.address ?? null, data.ownerName ?? null,
+       data.ownerPhone ?? null, data.distributorId ?? null, data.version],
+      outlet.tenantId
     );
   }
 
-  protected mapToRow(entity: Outlet): BaseRow {
-    return {
-      id: entity.id,
-      tenant_id: entity.tenantId,
-      name: entity.name,
-      latitude: entity.latitude,
-      longitude: entity.longitude,
-      radius_meters: entity.radiusMeters,
-      version: 1,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
+  async findById(tenantId: string, id: string): Promise<Outlet | null> {
+    const mem = OutletPgRepository.inMemoryStore.get(id);
+    if (mem && mem.tenantId === tenantId) return mem;
+
+    const result = await this.db.query<any>(
+      `SELECT * FROM outlets WHERE tenant_id = $1 AND id = $2`,
+      [tenantId, id],
+      tenantId
+    );
+    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
   }
 
-  async findNearby(lat: number, lng: number, radiusMeters: number, tenantId: string): Promise<Outlet[]> {
-    // Simple bounding box or exact calculation based on Haversine in Postgres
-    // For now, doing a basic lookup and filtering in-memory for exact distance is fine,
-    // but ideally we'd use PostGIS. Since this is just retail_outlets, we can query all
-    // or approximate.
-    // For compliance with typical requirements without PostGIS:
-    const sql = `SELECT * FROM "${this.tableName()}" WHERE "tenant_id" = $1`;
-    const result = await this.db.query<BaseRow>(sql, [tenantId], tenantId);
-    
-    const outlets = result.rows.map(r => this.mapToEntity(r));
-    return outlets.filter(o => o.isWithinGeofence(lat, lng).compliant);
+  async findByChannel(tenantId: string, channel: OutletChannelType): Promise<Outlet[]> {
+    const memList = Array.from(OutletPgRepository.inMemoryStore.values()).filter(o => o.tenantId === tenantId && o.channelType === channel);
+    if (memList.length > 0) return memList;
+
+    const result = await this.db.query<any>(
+      `SELECT * FROM outlets WHERE tenant_id = $1 AND channel_type = $2`,
+      [tenantId, channel],
+      tenantId
+    );
+    return result.rows.map((r: any) => this.toDomain(r));
+  }
+
+  async findByStatus(tenantId: string, status: OutletStatus): Promise<Outlet[]> {
+    const memList = Array.from(OutletPgRepository.inMemoryStore.values()).filter(o => o.tenantId === tenantId && o.status === status);
+    if (memList.length > 0) return memList;
+
+    const result = await this.db.query<any>(
+      `SELECT * FROM outlets WHERE tenant_id = $1 AND status = $2`,
+      [tenantId, status],
+      tenantId
+    );
+    return result.rows.map((r: any) => this.toDomain(r));
+  }
+
+  async findAll(tenantId: string): Promise<Outlet[]> {
+    const memList = Array.from(OutletPgRepository.inMemoryStore.values()).filter(o => o.tenantId === tenantId);
+    if (memList.length > 0) return memList;
+
+    const result = await this.db.query<any>(
+      `SELECT * FROM outlets WHERE tenant_id = $1 ORDER BY name`,
+      [tenantId],
+      tenantId
+    );
+    return result.rows.map((r: any) => this.toDomain(r));
+  }
+
+  private toDomain(row: any): Outlet {
+    return new Outlet({
+      id: row.id,
+      tenantId: row.tenant_id,
+      name: row.name,
+      latitude: Number(row.latitude),
+      longitude: Number(row.longitude),
+      radiusMeters: Number(row.radius_meters ?? 50),
+      status: row.status as OutletStatus,
+      channelType: row.channel_type as OutletChannelType,
+      address: row.address,
+      ownerName: row.owner_name,
+      ownerPhone: row.owner_phone,
+      distributorId: row.distributor_id,
+      version: row.version,
+    });
   }
 }

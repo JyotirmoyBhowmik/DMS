@@ -175,5 +175,20 @@ paths:
         '200':
           description: Paginated credit limits list
 
+  /outlets:
+    post:
+      summary: Register a retail outlet with GPS geofence bounds
+      operationId: createOutlet
+      responses:
+        '201':
+          description: Outlet created successfully
+    get:
+      summary: List retail outlets with channel and status filtering
+      operationId: listOutlets
+      responses:
+        '200':
+          description: Paginated outlets list
+
+
 
 
