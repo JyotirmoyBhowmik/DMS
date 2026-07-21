@@ -80,8 +80,13 @@ export class RbacGuard {
       'kyc_document:create',
       'kyc_document:read',
       'kyc_document:update',
-      'kyc-documents:read'
+      'kyc-documents:read',
+      'credit_limit:create',
+      'credit_limit:read',
+      'credit_limit:update',
+      'credit-limits:read'
     ],
+
 
     distributor: [
       'inventory:read',

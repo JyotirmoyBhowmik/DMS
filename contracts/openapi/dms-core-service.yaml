@@ -159,4 +159,21 @@ paths:
         '200':
           description: Paginated KYC documents list
 
+  /credit-limits:
+    post:
+      summary: Configure distributor credit limit
+      operationId: createCreditLimit
+      responses:
+        '201':
+          description: Credit limit configured
+        '409':
+          description: Duplicate credit limit record
+    get:
+      summary: List distributor credit limits and credit hold statuses
+      operationId: listCreditLimits
+      responses:
+        '200':
+          description: Paginated credit limits list
+
+
 

@@ -3,11 +3,18 @@ import { CreditLimitRepository } from '../../../domain/repositories/credit-limit
 import { PostgresDatabaseClient } from '@dms/pkg-database';
 
 export class CreditLimitPgRepository extends CreditLimitRepository {
+  private static inMemoryStore = new Map<string, CreditLimit>();
+
+  static clearStore(): void {
+    this.inMemoryStore.clear();
+  }
+
   constructor(private db: PostgresDatabaseClient) {
     super();
   }
 
   async save(cl: CreditLimit): Promise<void> {
+    CreditLimitPgRepository.inMemoryStore.set(cl.id, cl);
     const data = cl.toJSON();
     await this.db.query(
       `INSERT INTO credit_limits
@@ -29,6 +36,9 @@ export class CreditLimitPgRepository extends CreditLimitRepository {
   }
 
   async findById(tenantId: string, id: string): Promise<CreditLimit | null> {
+    const mem = CreditLimitPgRepository.inMemoryStore.get(id);
+    if (mem && mem.tenantId === tenantId) return mem;
+
     const result = await this.db.query<any>(
       `SELECT * FROM credit_limits WHERE tenant_id = $1 AND id = $2`,
       [tenantId, id],
@@ -38,6 +48,9 @@ export class CreditLimitPgRepository extends CreditLimitRepository {
   }
 
   async findByDistributor(tenantId: string, distributorId: string): Promise<CreditLimit | null> {
+    const mem = Array.from(CreditLimitPgRepository.inMemoryStore.values()).find(cl => cl.tenantId === tenantId && cl.distributorId === distributorId);
+    if (mem) return mem;
+
     const result = await this.db.query<any>(
       `SELECT * FROM credit_limits WHERE tenant_id = $1 AND distributor_id = $2`,
       [tenantId, distributorId],
@@ -47,6 +60,9 @@ export class CreditLimitPgRepository extends CreditLimitRepository {
   }
 
   async findByRating(tenantId: string, rating: CreditRating): Promise<CreditLimit[]> {
+    const memList = Array.from(CreditLimitPgRepository.inMemoryStore.values()).filter(cl => cl.tenantId === tenantId && cl.creditRating === rating);
+    if (memList.length > 0) return memList;
+
     const result = await this.db.query<any>(
       `SELECT * FROM credit_limits WHERE tenant_id = $1 AND credit_rating = $2`,
       [tenantId, rating],
@@ -56,6 +72,9 @@ export class CreditLimitPgRepository extends CreditLimitRepository {
   }
 
   async findOnCreditHold(tenantId: string): Promise<CreditLimit[]> {
+    const memList = Array.from(CreditLimitPgRepository.inMemoryStore.values()).filter(cl => cl.tenantId === tenantId && cl.isOnCreditHold);
+    if (memList.length > 0) return memList;
+
     const result = await this.db.query<any>(
       `SELECT * FROM credit_limits
        WHERE tenant_id = $1
@@ -68,6 +87,7 @@ export class CreditLimitPgRepository extends CreditLimitRepository {
     );
     return result.rows.map((r: any) => this.toDomain(r));
   }
+
 
   async findDueForReview(tenantId: string): Promise<CreditLimit[]> {
     const result = await this.db.query<any>(
