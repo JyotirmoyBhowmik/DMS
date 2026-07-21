@@ -88,8 +88,13 @@ export class RbacGuard {
       'outlet:create',
       'outlet:read',
       'outlet:update',
-      'outlets:read'
+      'outlets:read',
+      'product:create',
+      'product:read',
+      'product:update',
+      'products:read'
     ],
+
 
 
 

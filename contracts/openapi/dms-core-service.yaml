@@ -189,6 +189,23 @@ paths:
         '200':
           description: Paginated outlets list
 
+  /products:
+    post:
+      summary: Create a product SKU entry
+      operationId: createProduct
+      responses:
+        '201':
+          description: Product created successfully
+        '409':
+          description: Duplicate SKU conflict
+    get:
+      summary: List product catalog with category and status filters
+      operationId: listProducts
+      responses:
+        '200':
+          description: Paginated product catalog list
+
+
 
 
 
