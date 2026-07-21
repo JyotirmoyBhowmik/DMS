@@ -72,8 +72,17 @@ export class RbacGuard {
       'survey:update',
       'surveys:read',
       'distributor:read',
-      'distributors:read'
+      'distributors:read',
+      'distributor_hierarchy:create',
+      'distributor_hierarchy:read',
+      'distributor_hierarchy:update',
+      'distributor-hierarchies:read',
+      'kyc_document:create',
+      'kyc_document:read',
+      'kyc_document:update',
+      'kyc-documents:read'
     ],
+
     distributor: [
       'inventory:read',
       'inventory:update',

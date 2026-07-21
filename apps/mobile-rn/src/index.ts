@@ -9,3 +9,6 @@ export type { TokenSession } from './session_manager.js';
 export { AesGcm } from './security/aes_gcm.js';
 export type { SealedPayload } from './security/aes_gcm.js';
 
+export { SurveyOfflineCache } from './survey_offline_cache.js';
+export type { SyncQueueItem } from './survey_offline_cache.js';
+

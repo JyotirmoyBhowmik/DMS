@@ -128,3 +128,18 @@ paths:
       responses:
         '200':
           description: Deleted successfully
+
+  /distributor-hierarchies:
+    post:
+      summary: Create parent-child distributor hierarchy mapping
+      operationId: createDistributorHierarchy
+      responses:
+        '201':
+          description: Hierarchy mapping created
+    get:
+      summary: List distributor hierarchies
+      operationId: listDistributorHierarchies
+      responses:
+        '200':
+          description: Hierarchy list returned
+

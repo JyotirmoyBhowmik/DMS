@@ -533,6 +533,52 @@ const App = () => {
   const [frPage, setFrPage] = useState(1);
   const frPageSize = 5;
 
+  // SFA Survey States
+  const [surveys, setSurveys] = useState([
+    { id: 'srv-1001', tenantId: '00000000-0000-0000-0000-000000000001', agentId: 'agent-uuid-4444', outletId: 'out-1', title: 'Q2 Competitor Pricing Survey', status: 'ACTIVE', version: 1, createdAt: '2026-06-15T08:00:00Z', updatedAt: '2026-06-15T08:00:00Z' },
+    { id: 'srv-1002', tenantId: '00000000-0000-0000-0000-000000000001', agentId: 'agent-uuid-5555', outletId: 'out-2', title: 'Outlet Stock Display Survey', status: 'DRAFT', version: 1, createdAt: '2026-06-16T10:00:00Z', updatedAt: '2026-06-16T10:00:00Z' },
+    { id: 'srv-1003', tenantId: '00000000-0000-0000-0000-000000000001', agentId: 'agent-uuid-4444', outletId: 'out-1', title: 'Product Launch Feedback Survey', status: 'COMPLETED', version: 2, createdAt: '2026-06-12T11:00:00Z', updatedAt: '2026-06-14T14:30:00Z' }
+  ]);
+  const [surveyFormOpen, setSurveyFormOpen] = useState(false);
+  const [surveyEditingId, setSurveyEditingId] = useState<string | null>(null);
+  const [surveyFormData, setSurveyFormData] = useState({
+    title: '',
+    agentId: 'agent-uuid-4444',
+    outletId: 'out-1',
+    status: 'DRAFT' as any,
+    version: 1
+  });
+  const [surveyFormErrors, setSurveyFormErrors] = useState<Record<string, string>>({});
+  const [surveySearchQuery, setSurveySearchQuery] = useState('');
+  const [surveyStatusFilter, setSurveyStatusFilter] = useState('all');
+  const [surveySortField, setSurveySortField] = useState('title');
+  const [surveyPage, setSurveyPage] = useState(1);
+  const surveyPageSize = 5;
+  const [sfaSubTab, setSfaSubTab] = useState<'tracking' | 'surveys'>('tracking');
+
+  // DMS Distributor States
+  const [distributors, setDistributors] = useState([
+    { id: 'dst-1001', tenantId: '00000000-0000-0000-0000-000000000001', name: 'Metro Wholesale Distributors', region: 'North', creditLimit: 1500000, balance: 125000, status: 'ACTIVE', version: 1, createdAt: '2026-05-20T08:00:00Z', updatedAt: '2026-05-20T08:00:00Z' },
+    { id: 'dst-1002', tenantId: '00000000-0000-0000-0000-000000000001', name: 'City FMCG Connect', region: 'South', creditLimit: 800000, balance: 45000, status: 'ACTIVE', version: 1, createdAt: '2026-05-22T10:00:00Z', updatedAt: '2026-05-22T10:00:00Z' },
+    { id: 'dst-1003', tenantId: '00000000-0000-0000-0000-000000000001', name: 'Apex Retail Stores', region: 'East', creditLimit: 500000, balance: 500000, status: 'SUSPENDED', version: 2, createdAt: '2026-05-18T11:00:00Z', updatedAt: '2026-05-25T14:30:00Z' }
+  ]);
+  const [distributorFormOpen, setDistributorFormOpen] = useState(false);
+  const [distributorEditingId, setDistributorEditingId] = useState<string | null>(null);
+  const [distributorFormData, setDistributorFormData] = useState({
+    name: '',
+    region: 'North',
+    creditLimit: 1000000,
+    status: 'ACTIVE' as any,
+    version: 1
+  });
+  const [distributorFormErrors, setDistributorFormErrors] = useState<Record<string, string>>({});
+  const [distributorSearchQuery, setDistributorSearchQuery] = useState('');
+  const [distributorRegionFilter, setDistributorRegionFilter] = useState('all');
+  const [distributorSortField, setDistributorSortField] = useState('name');
+  const [distributorPage, setDistributorPage] = useState(1);
+  const distributorPageSize = 5;
+  const [dmsSubTab, setDmsSubTab] = useState<'inventory' | 'distributors'>('inventory');
+
   // Microservices details with mock live states
   const [services, setServices] = useState([
     { name: 'api-gateway', status: 'healthy', latency: '24ms', cpu: '8%', ram: '142MB', reqs: '14,290/hr' },
@@ -1338,7 +1384,6 @@ const App = () => {
     setFrFormOpen(false);
     setFrEditingId(null);
   };
-
   const handleUpdateFieldRepStatus = (id: string, newStatus: any) => {
     setFieldReps(prev => prev.map(t => {
       if (t.id === id) {
@@ -1362,6 +1407,223 @@ const App = () => {
       setFieldReps(prev => prev.filter(t => t.id !== id));
       setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Deleted Field Representative ID: ${id}.`, ...prev]);
     }
+  };
+
+  // Survey Event Handlers
+  const handleCreateOrUpdateSurvey = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+    if (!surveyFormData.title.trim()) {
+      errors.title = 'Title is required';
+    } else if (surveyFormData.title.length > 255) {
+      errors.title = 'Title must be at most 255 characters';
+    }
+    if (!surveyFormData.agentId) {
+      errors.agentId = 'Agent selection is required';
+    }
+    if (!surveyFormData.outletId) {
+      errors.outletId = 'Outlet selection is required';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setSurveyFormErrors(errors);
+      return;
+    }
+    setSurveyFormErrors({});
+
+    if (surveyEditingId) {
+      // Optimistic lock check
+      const current = surveys.find(s => s.id === surveyEditingId);
+      if (current && current.version !== surveyFormData.version) {
+        alert('Optimistic locking conflict: This record has been updated by another transaction. Version mismatch.');
+        return;
+      }
+
+      setSurveys(prev => prev.map(s => {
+        if (s.id === surveyEditingId) {
+          if (s.status === 'COMPLETED' || s.status === 'CANCELLED') {
+            alert('Cannot modify details of a completed or cancelled survey');
+            return s;
+          }
+          return {
+            ...s,
+            title: surveyFormData.title,
+            agentId: surveyFormData.agentId,
+            outletId: surveyFormData.outletId,
+            status: surveyFormData.status,
+            version: s.version + 1,
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return s;
+      }));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Updated survey ID: ${surveyEditingId} (Title: ${surveyFormData.title}).`, ...prev]);
+    } else {
+      // Uniqueness check: title must be unique per agent and outlet per tenant
+      const isDup = surveys.some(
+        s =>
+          s.agentId === surveyFormData.agentId &&
+          s.outletId === surveyFormData.outletId &&
+          s.title.toLowerCase() === surveyFormData.title.toLowerCase()
+      );
+      if (isDup) {
+        alert('Uniqueness constraint violation: A survey with this title for the selected agent and outlet already exists.');
+        return;
+      }
+
+      const newRecord = {
+        id: 'srv-' + Date.now(),
+        tenantId: '00000000-0000-0000-0000-000000000001',
+        agentId: surveyFormData.agentId,
+        outletId: surveyFormData.outletId,
+        title: surveyFormData.title,
+        status: surveyFormData.status ?? 'DRAFT',
+        version: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      setSurveys(prev => [newRecord, ...prev]);
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Created new survey: "${surveyFormData.title}".`, ...prev]);
+    }
+
+    setSurveyFormOpen(false);
+    setSurveyEditingId(null);
+  };
+
+  const handleActivateSurvey = (id: string) => {
+    setSurveys(prev => prev.map(s => {
+      if (s.id === id) {
+        if (s.status !== 'DRAFT') {
+          alert('Can only activate a DRAFT survey');
+          return s;
+        }
+        return { ...s, status: 'ACTIVE', version: s.version + 1, updatedAt: new Date().toISOString() };
+      }
+      return s;
+    }));
+    setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Activated survey ID: ${id}.`, ...prev]);
+  };
+
+  const handleCompleteSurvey = (id: string) => {
+    setSurveys(prev => prev.map(s => {
+      if (s.id === id) {
+        if (s.status !== 'ACTIVE') {
+          alert('Can only complete an ACTIVE survey');
+          return s;
+        }
+        return { ...s, status: 'COMPLETED', version: s.version + 1, updatedAt: new Date().toISOString() };
+      }
+      return s;
+    }));
+    setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Completed survey ID: ${id}.`, ...prev]);
+  };
+
+  const handleCancelSurvey = (id: string) => {
+    setSurveys(prev => prev.map(s => {
+      if (s.id === id) {
+        if (s.status !== 'DRAFT' && s.status !== 'ACTIVE') {
+          alert('Cannot cancel a completed or already cancelled survey');
+          return s;
+        }
+        return { ...s, status: 'CANCELLED', version: s.version + 1, updatedAt: new Date().toISOString() };
+      }
+      return s;
+    }));
+    setLogs(prev => [`[${new Date().toLocaleTimeString()}] [SFA-SERVICE] Cancelled survey ID: ${id}.`, ...prev]);
+  };
+
+  // Distributor Event Handlers
+  const handleCreateOrUpdateDistributor = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+    if (!distributorFormData.name.trim()) {
+      errors.name = 'Name is required';
+    }
+    if (!distributorFormData.region.trim()) {
+      errors.region = 'Region is required';
+    }
+    if (distributorFormData.creditLimit < 0) {
+      errors.creditLimit = 'Credit limit must be non-negative';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setDistributorFormErrors(errors);
+      return;
+    }
+    setDistributorFormErrors({});
+
+    if (distributorEditingId) {
+      // Optimistic lock check
+      const current = distributors.find(d => d.id === distributorEditingId);
+      if (current && current.version !== distributorFormData.version) {
+        alert('Optimistic locking conflict: This record has been updated by another transaction. Version mismatch.');
+        return;
+      }
+
+      // Check unique name per tenant
+      const isDup = distributors.some(
+        d =>
+          d.id !== distributorEditingId &&
+          d.name.toLowerCase() === distributorFormData.name.toLowerCase()
+      );
+      if (isDup) {
+        alert(`Uniqueness constraint violation: A distributor with name "${distributorFormData.name}" already exists.`);
+        return;
+      }
+
+      setDistributors(prev => prev.map(d => {
+        if (d.id === distributorEditingId) {
+          return {
+            ...d,
+            name: distributorFormData.name,
+            region: distributorFormData.region,
+            creditLimit: distributorFormData.creditLimit,
+            status: distributorFormData.status,
+            version: d.version + 1,
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return d;
+      }));
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [DMS-CORE-SERVICE] Updated distributor ID: ${distributorEditingId} (Name: ${distributorFormData.name}).`, ...prev]);
+    } else {
+      // Check unique name per tenant
+      const isDup = distributors.some(
+        d => d.name.toLowerCase() === distributorFormData.name.toLowerCase()
+      );
+      if (isDup) {
+        alert(`Uniqueness constraint violation: A distributor with name "${distributorFormData.name}" already exists.`);
+        return;
+      }
+
+      const newRecord = {
+        id: 'dst-' + Date.now(),
+        tenantId: '00000000-0000-0000-0000-000000000001',
+        name: distributorFormData.name,
+        region: distributorFormData.region,
+        creditLimit: distributorFormData.creditLimit,
+        balance: 0,
+        status: distributorFormData.status ?? 'ACTIVE',
+        version: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      setDistributors(prev => [newRecord, ...prev]);
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] [DMS-CORE-SERVICE] Created new distributor: "${distributorFormData.name}".`, ...prev]);
+    }
+
+    setDistributorFormOpen(false);
+    setDistributorEditingId(null);
+  };
+
+  const handleUpdateDistributorStatus = (id: string, newStatus: any) => {
+    setDistributors(prev => prev.map(d => {
+      if (d.id === id) {
+        return { ...d, status: newStatus, version: d.version + 1, updatedAt: new Date().toISOString() };
+      }
+      return d;
+    }));
+    setLogs(prev => [`[${new Date().toLocaleTimeString()}] [DMS-CORE-SERVICE] Distributor ID: ${id} status updated to: ${newStatus}.`, ...prev]);
   };
 
   // Filter Inventory based on search & buttons
@@ -1774,106 +2036,534 @@ const App = () => {
                 </p>
               </div>
 
-              {/* Filters & Search */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                backgroundColor: 'rgba(30, 41, 59, 0.25)',
-                padding: '12px 16px',
-                borderRadius: '10px',
-                border: '1px solid rgba(255,255,255,0.05)'
-              }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {[
-                    { id: 'all', label: 'All Products' },
-                    { id: 'alert', label: 'Low Stock Alerts' },
-                    { id: 'instock', label: 'In Stock' }
-                  ].map(btn => (
-                    <button
-                      key={btn.id}
-                      onClick={() => setInventoryFilter(btn.id as any)}
-                      style={{
-                        backgroundColor: inventoryFilter === btn.id ? '#3B82F6' : 'rgba(255,255,255,0.05)',
-                        color: inventoryFilter === btn.id ? '#FFFFFF' : '#94A3B8',
-                        border: 'none',
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        transition: 'all 0.15s'
-                      }}
-                    >
-                      {btn.label}
-                    </button>
-                  ))}
-                </div>
-                <input 
-                  type="text" 
-                  placeholder="Search SKU or Name..."
-                  value={inventorySearch}
-                  onChange={(e) => setInventorySearch(e.target.value)}
+              {/* Sub-tabs Selection */}
+              <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '2px' }}>
+                <button
+                  onClick={() => setDmsSubTab('inventory')}
                   style={{
-                    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                    color: '#F8FAFC',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    padding: '6px 12px',
-                    borderRadius: '8px',
-                    outline: 'none',
-                    fontSize: '12px',
-                    width: '200px'
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: dmsSubTab === 'inventory' ? '#60A5FA' : '#94A3B8',
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    borderBottom: dmsSubTab === 'inventory' ? '2px solid #3B82F6' : 'none',
+                    transition: 'all 0.15s'
                   }}
-                />
+                >
+                  📦 Inventory Catalog
+                </button>
+                <button
+                  onClick={() => setDmsSubTab('distributors')}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: dmsSubTab === 'distributors' ? '#60A5FA' : '#94A3B8',
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    borderBottom: dmsSubTab === 'distributors' ? '2px solid #3B82F6' : 'none',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  🤝 Distributors Registry
+                </button>
               </div>
 
-              {/* Inventory Table */}
-              <div style={{
-                backgroundColor: 'rgba(30, 41, 59, 0.15)',
-                border: '1px solid rgba(255,255,255,0.05)',
-                borderRadius: '12px',
-                overflow: 'hidden'
-              }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: 'rgba(15, 23, 42, 0.5)', color: '#94A3B8', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <th style={{ padding: '12px 16px' }}>SKU Code</th>
-                      <th style={{ padding: '12px 16px' }}>Product Name</th>
-                      <th style={{ padding: '12px 16px' }}>Category</th>
-                      <th style={{ padding: '12px 16px' }}>Stock Level</th>
-                      <th style={{ padding: '12px 16px' }}>Safety Threshold</th>
-                      <th style={{ padding: '12px 16px' }}>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredInventory.map((item) => {
-                      const isLowStock = item.stock < item.minThreshold;
-                      return (
-                        <tr key={item.sku} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background-color 0.15s' }}>
-                          <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: '#60A5FA' }}>{item.sku}</td>
-                          <td style={{ padding: '12px 16px', fontWeight: 500 }}>{item.name}</td>
-                          <td style={{ padding: '12px 16px', opacity: 0.7 }}>{item.category}</td>
-                          <td style={{ padding: '12px 16px', fontWeight: 'bold', color: isLowStock ? '#EF4444' : '#F8FAFC' }}>{item.stock} units</td>
-                          <td style={{ padding: '12px 16px', opacity: 0.7 }}>{item.minThreshold} units</td>
-                          <td style={{ padding: '12px 16px' }}>
-                            <span style={{
-                              backgroundColor: isLowStock ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                              color: isLowStock ? '#F87171' : '#34D399',
-                              padding: '2px 8px',
-                              borderRadius: '12px',
-                              fontSize: '11px',
-                              fontWeight: 'bold',
-                              border: `1px solid ${isLowStock ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`
-                            }}>
-                              {isLowStock ? '⚠️ LOW STOCK' : '✅ ADEQUATE'}
-                            </span>
-                          </td>
+              {dmsSubTab === 'inventory' && (
+                <>
+                  {/* Filters & Search */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    backgroundColor: 'rgba(30, 41, 59, 0.25)',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {[
+                        { id: 'all', label: 'All Products' },
+                        { id: 'alert', label: 'Low Stock Alerts' },
+                        { id: 'instock', label: 'In Stock' }
+                      ].map(btn => (
+                        <button
+                          key={btn.id}
+                          onClick={() => setInventoryFilter(btn.id as any)}
+                          style={{
+                            backgroundColor: inventoryFilter === btn.id ? '#3B82F6' : 'rgba(255,255,255,0.05)',
+                            color: inventoryFilter === btn.id ? '#FFFFFF' : '#94A3B8',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            transition: 'all 0.15s'
+                          }}
+                        >
+                          {btn.label}
+                        </button>
+                      ))}
+                    </div>
+                    <input 
+                      type="text" 
+                      placeholder="Search SKU or Name..."
+                      value={inventorySearch}
+                      onChange={(e) => setInventorySearch(e.target.value)}
+                      style={{
+                        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                        color: '#F8FAFC',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        outline: 'none',
+                        fontSize: '12px',
+                        width: '200px'
+                      }}
+                    />
+                  </div>
+
+                  {/* Inventory Table */}
+                  <div style={{
+                    backgroundColor: 'rgba(30, 41, 59, 0.15)',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    borderRadius: '12px',
+                    overflow: 'hidden'
+                  }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: 'rgba(15, 23, 42, 0.5)', color: '#94A3B8', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                          <th style={{ padding: '12px 16px' }}>SKU Code</th>
+                          <th style={{ padding: '12px 16px' }}>Product Name</th>
+                          <th style={{ padding: '12px 16px' }}>Category</th>
+                          <th style={{ padding: '12px 16px' }}>Stock Level</th>
+                          <th style={{ padding: '12px 16px' }}>Safety Threshold</th>
+                          <th style={{ padding: '12px 16px' }}>Status</th>
                         </tr>
+                      </thead>
+                      <tbody>
+                        {filteredInventory.map((item) => {
+                          const isLowStock = item.stock < item.minThreshold;
+                          return (
+                            <tr key={item.sku} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background-color 0.15s' }}>
+                              <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: '#60A5FA' }}>{item.sku}</td>
+                              <td style={{ padding: '12px 16px', fontWeight: 500 }}>{item.name}</td>
+                              <td style={{ padding: '12px 16px', opacity: 0.7 }}>{item.category}</td>
+                              <td style={{ padding: '12px 16px', fontWeight: 'bold', color: isLowStock ? '#EF4444' : '#F8FAFC' }}>{item.stock} units</td>
+                              <td style={{ padding: '12px 16px', opacity: 0.7 }}>{item.minThreshold} units</td>
+                              <td style={{ padding: '12px 16px' }}>
+                                <span style={{
+                                  backgroundColor: isLowStock ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                                  color: isLowStock ? '#F87171' : '#34D399',
+                                  padding: '2px 8px',
+                                  borderRadius: '12px',
+                                  fontSize: '11px',
+                                  fontWeight: 'bold',
+                                  border: `1px solid ${isLowStock ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`
+                                }}>
+                                  {isLowStock ? '⚠️ LOW STOCK' : '✅ ADEQUATE'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+
+              {dmsSubTab === 'distributors' && (
+                <div style={{
+                  backgroundColor: 'rgba(30, 41, 59, 0.2)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '12px',
+                  padding: '20px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '15px', color: '#60A5FA' }}>Distributors Management Console</h3>
+                      <p style={{ margin: '2px 0 0 0', opacity: 0.5, fontSize: '11px' }}>Manage regional distribution agencies, limit allocations, and system statuses.</p>
+                    </div>
+                    {currentUserRole === 'admin' && (
+                      <button
+                        onClick={() => {
+                          setDistributorEditingId(null);
+                          setDistributorFormData({
+                            name: '',
+                            region: 'North',
+                            creditLimit: 1000000,
+                            status: 'ACTIVE',
+                            version: 1
+                          });
+                          setDistributorFormErrors({});
+                          setDistributorFormOpen(!distributorFormOpen);
+                        }}
+                        style={{
+                          backgroundColor: '#3B82F6',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {distributorFormOpen ? 'Close Form' : 'Register Distributor'}
+                      </button>
+                    )}
+                  </div>
+
+                  {distributorFormOpen && currentUserRole === 'admin' && (
+                    <form onSubmit={handleCreateOrUpdateDistributor} style={{
+                      backgroundColor: 'rgba(15,23,42,0.4)',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#60A5FA' }}>
+                        {distributorEditingId ? `Edit Distributor Details (Optimistic Version: ${distributorFormData.version})` : 'New Distributor Profile'}
+                      </h4>
+
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '12px'
+                      }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Distributor Name *</label>
+                          <input
+                            type="text"
+                            value={distributorFormData.name}
+                            onChange={(e) => setDistributorFormData({ ...distributorFormData, name: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: distributorFormErrors.name ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {distributorFormErrors.name && <span style={{ color: '#EF4444', fontSize: '10px' }}>{distributorFormErrors.name}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Region Territory *</label>
+                          <select
+                            value={distributorFormData.region}
+                            onChange={(e) => setDistributorFormData({ ...distributorFormData, region: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: distributorFormErrors.region ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            <option value="North">North Zone</option>
+                            <option value="South">South Zone</option>
+                            <option value="East">East Zone</option>
+                            <option value="West">West Zone</option>
+                          </select>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Credit Limit Allocation (₹) *</label>
+                          <input
+                            type="number"
+                            value={distributorFormData.creditLimit}
+                            onChange={(e) => setDistributorFormData({ ...distributorFormData, creditLimit: parseInt(e.target.value) || 0 })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: distributorFormErrors.creditLimit ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {distributorFormErrors.creditLimit && <span style={{ color: '#EF4444', fontSize: '10px' }}>{distributorFormErrors.creditLimit}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Status Control</label>
+                          <select
+                            value={distributorFormData.status}
+                            onChange={(e) => setDistributorFormData({ ...distributorFormData, status: e.target.value as any })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="SUSPENDED">SUSPENDED</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDistributorFormOpen(false);
+                            setDistributorEditingId(null);
+                          }}
+                          style={{
+                            backgroundColor: 'rgba(255,255,255,0.05)',
+                            color: '#94A3B8',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          style={{
+                            backgroundColor: '#10B981',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            padding: '6px 16px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {distributorEditingId ? 'Save Changes' : 'Create Distributor'}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Search, filters, sorting controls */}
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '16px',
+                    paddingBottom: '12px',
+                    borderBottom: '1px solid rgba(255,255,255,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <input
+                        type="text"
+                        placeholder="Search distributor name..."
+                        value={distributorSearchQuery}
+                        onChange={(e) => { setDistributorSearchQuery(e.target.value); setDistributorPage(1); }}
+                        style={{
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          width: '180px'
+                        }}
+                      />
+                      <select
+                        value={distributorRegionFilter}
+                        onChange={(e) => { setDistributorRegionFilter(e.target.value); setDistributorPage(1); }}
+                        style={{
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '6px',
+                          borderRadius: '6px',
+                          fontSize: '12px'
+                        }}
+                      >
+                        <option value="all">Region: All</option>
+                        <option value="North">Region: North</option>
+                        <option value="South">Region: South</option>
+                        <option value="East">Region: East</option>
+                        <option value="West">Region: West</option>
+                      </select>
+                      <select
+                        value={distributorSortField}
+                        onChange={(e) => setDistributorSortField(e.target.value)}
+                        style={{
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '6px',
+                          borderRadius: '6px',
+                          fontSize: '12px'
+                        }}
+                      >
+                        <option value="name">Sort: Name</option>
+                        <option value="creditLimit">Sort: Credit Limit</option>
+                        <option value="balance">Sort: Balance</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* List View Table */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {(() => {
+                      const filtered = distributors
+                        .filter(d => d.name.toLowerCase().includes(distributorSearchQuery.toLowerCase()))
+                        .filter(d => distributorRegionFilter === 'all' || d.region === distributorRegionFilter)
+                        .sort((a, b) => {
+                          if (distributorSortField === 'creditLimit') return b.creditLimit - a.creditLimit;
+                          if (distributorSortField === 'balance') return b.balance - a.balance;
+                          return a.name.localeCompare(b.name);
+                        });
+
+                      // Client-side simulation of paginated results
+                      const totalCount = filtered.length;
+                      const offset = (distributorPage - 1) * distributorPageSize;
+                      const paginated = filtered.slice(offset, offset + distributorPageSize);
+                      const totalPages = Math.ceil(totalCount / distributorPageSize) || 1;
+
+                      if (paginated.length === 0) {
+                        return <div style={{ textAlign: 'center', opacity: 0.5, fontSize: '13px', padding: '24px 0' }}>No distributors found matching criteria.</div>;
+                      }
+
+                      return (
+                        <>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {paginated.map(dist => (
+                              <div key={dist.id} style={{
+                                backgroundColor: 'rgba(15,23,42,0.4)',
+                                padding: '16px',
+                                borderRadius: '8px',
+                                borderLeft: `4px solid ${dist.status === 'ACTIVE' ? '#10B981' : '#EF4444'}`,
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                                gap: '16px'
+                              }}>
+                                <div>
+                                  <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{dist.name}</div>
+                                  <div style={{ fontSize: '12px', opacity: 0.6, marginTop: '2px' }}>
+                                    ID: {dist.id} • Region: {dist.region} • Version: {dist.version}
+                                  </div>
+                                  <div style={{ fontSize: '11px', opacity: 0.5, marginTop: '4px', color: '#60A5FA' }}>
+                                    Credit Limit: ₹{dist.creditLimit.toLocaleString()} • Balance: ₹{dist.balance.toLocaleString()}
+                                  </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                  <span style={{
+                                    backgroundColor: dist.status === 'ACTIVE' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                    color: dist.status === 'ACTIVE' ? '#34D399' : '#F87171',
+                                    padding: '4px 10px',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    fontWeight: 'bold'
+                                  }}>
+                                    {dist.status}
+                                  </span>
+                                  {currentUserRole === 'admin' && (
+                                    <>
+                                      <button
+                                        onClick={() => {
+                                          setDistributorEditingId(dist.id);
+                                          setDistributorFormData({
+                                            name: dist.name,
+                                            region: dist.region,
+                                            creditLimit: dist.creditLimit,
+                                            status: dist.status,
+                                            version: dist.version
+                                          });
+                                          setDistributorFormErrors({});
+                                          setDistributorFormOpen(true);
+                                        }}
+                                        style={{
+                                          backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                                          border: '1px solid rgba(59, 130, 246, 0.4)',
+                                          color: '#60A5FA',
+                                          padding: '4px 8px',
+                                          borderRadius: '4px',
+                                          fontSize: '11px',
+                                          cursor: 'pointer',
+                                          fontWeight: 'bold'
+                                        }}
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        onClick={() => handleUpdateDistributorStatus(dist.id, dist.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE')}
+                                        style={{
+                                          backgroundColor: dist.status === 'ACTIVE' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                                          border: `1px solid ${dist.status === 'ACTIVE' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(16, 185, 129, 0.4)'}`,
+                                          color: dist.status === 'ACTIVE' ? '#F87171' : '#34D399',
+                                          padding: '4px 8px',
+                                          borderRadius: '4px',
+                                          fontSize: '11px',
+                                          cursor: 'pointer',
+                                          fontWeight: 'bold'
+                                        }}
+                                      >
+                                        {dist.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Pagination controls */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '12px', opacity: 0.8 }}>
+                            <div>Showing {offset + 1} to {Math.min(offset + distributorPageSize, totalCount)} of {totalCount} distributors</div>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button
+                                disabled={distributorPage === 1}
+                                onClick={() => setDistributorPage(prev => Math.max(1, prev - 1))}
+                                style={{
+                                  backgroundColor: 'rgba(255,255,255,0.05)',
+                                  color: distributorPage === 1 ? '#475569' : '#FFFFFF',
+                                  border: 'none',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  cursor: distributorPage === 1 ? 'not-allowed' : 'pointer'
+                                }}
+                              >
+                                Prev
+                              </button>
+                              <button
+                                disabled={distributorPage === totalPages}
+                                onClick={() => setDistributorPage(prev => Math.min(totalPages, prev + 1))}
+                                style={{
+                                  backgroundColor: 'rgba(255,255,255,0.05)',
+                                  color: distributorPage === totalPages ? '#475569' : '#FFFFFF',
+                                  border: 'none',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  cursor: distributorPage === totalPages ? 'not-allowed' : 'pointer'
+                                }}
+                              >
+                                Next
+                              </button>
+                            </div>
+                          </div>
+                        </>
                       );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                    })()}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1887,11 +2577,48 @@ const App = () => {
                 </p>
               </div>
 
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-                gap: '20px'
-              }}>
+              {/* Sub-tabs Selection */}
+              <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '2px' }}>
+                <button
+                  onClick={() => setSfaSubTab('tracking')}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: sfaSubTab === 'tracking' ? '#60A5FA' : '#94A3B8',
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    borderBottom: sfaSubTab === 'tracking' ? '2px solid #3B82F6' : 'none',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  📡 Live Operations
+                </button>
+                <button
+                  onClick={() => setSfaSubTab('surveys')}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: sfaSubTab === 'surveys' ? '#60A5FA' : '#94A3B8',
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    borderBottom: sfaSubTab === 'surveys' ? '2px solid #3B82F6' : 'none',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  📝 Surveys Console
+                </button>
+              </div>
+
+              {sfaSubTab === 'tracking' && (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+                  gap: '20px'
+                }}>
                 {/* Recent Orders placed via mobile */}
                 <div style={{
                   backgroundColor: 'rgba(30, 41, 59, 0.2)',
@@ -5622,6 +6349,448 @@ const App = () => {
                   </div>
                 </div>
               </div>
+            )}
+
+              {sfaSubTab === 'surveys' && (
+                <div style={{
+                  backgroundColor: 'rgba(30, 41, 59, 0.2)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '12px',
+                  padding: '20px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '15px', color: '#60A5FA' }}>Survey Management Console</h3>
+                      <p style={{ margin: '2px 0 0 0', opacity: 0.5, fontSize: '11px' }}>Design field agent surveys, manage lifecycle transitions, and audit response counts.</p>
+                    </div>
+                    {currentUserRole === 'admin' && (
+                      <button
+                        onClick={() => {
+                          setSurveyEditingId(null);
+                          setSurveyFormData({
+                            title: '',
+                            agentId: fieldReps[0]?.userId || 'agent-uuid-4444',
+                            outletId: outletCensuses[0]?.outletId || 'out-1',
+                            status: 'DRAFT',
+                            version: 1
+                          });
+                          setSurveyFormErrors({});
+                          setSurveyFormOpen(!surveyFormOpen);
+                        }}
+                        style={{
+                          backgroundColor: '#3B82F6',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {surveyFormOpen ? 'Close Form' : 'Design New Survey'}
+                      </button>
+                    )}
+                  </div>
+
+                  {surveyFormOpen && currentUserRole === 'admin' && (
+                    <form onSubmit={handleCreateOrUpdateSurvey} style={{
+                      backgroundColor: 'rgba(15,23,42,0.4)',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#60A5FA' }}>
+                        {surveyEditingId ? `Edit Survey Parameters (Optimistic Version: ${surveyFormData.version})` : 'New Survey Profile'}
+                      </h4>
+
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '12px'
+                      }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Survey Title *</label>
+                          <input
+                            type="text"
+                            value={surveyFormData.title}
+                            onChange={(e) => setSurveyFormData({ ...surveyFormData, title: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: surveyFormErrors.title ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          />
+                          {surveyFormErrors.title && <span style={{ color: '#EF4444', fontSize: '10px' }}>{surveyFormErrors.title}</span>}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Assigned Field Agent *</label>
+                          <select
+                            value={surveyFormData.agentId}
+                            onChange={(e) => setSurveyFormData({ ...surveyFormData, agentId: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            {fieldReps.map(rep => (
+                              <option key={rep.id} value={rep.userId}>{rep.firstName} {rep.lastName} ({rep.employeeCode})</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Target Retail Outlet *</label>
+                          <select
+                            value={surveyFormData.outletId}
+                            onChange={(e) => setSurveyFormData({ ...surveyFormData, outletId: e.target.value })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            {outletCensuses.map(c => (
+                              <option key={c.id} value={c.outletId}>{c.outletName} ({c.outletId})</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <label style={{ fontSize: '10px', opacity: 0.6 }}>Initial Status</label>
+                          <select
+                            value={surveyFormData.status}
+                            onChange={(e) => setSurveyFormData({ ...surveyFormData, status: e.target.value as any })}
+                            style={{
+                              backgroundColor: 'rgba(15,23,42,0.6)',
+                              color: '#F8FAFC',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              padding: '6px',
+                              borderRadius: '4px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            <option value="DRAFT">DRAFT</option>
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="COMPLETED">COMPLETED</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSurveyFormOpen(false);
+                            setSurveyEditingId(null);
+                          }}
+                          style={{
+                            backgroundColor: 'rgba(255,255,255,0.05)',
+                            color: '#94A3B8',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          style={{
+                            backgroundColor: '#10B981',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            padding: '6px 16px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {surveyEditingId ? 'Save Changes' : 'Design Survey'}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Filters, search and sort */}
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '16px',
+                    paddingBottom: '12px',
+                    borderBottom: '1px solid rgba(255,255,255,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <input
+                        type="text"
+                        placeholder="Search survey title..."
+                        value={surveySearchQuery}
+                        onChange={(e) => { setSurveySearchQuery(e.target.value); setSurveyPage(1); }}
+                        style={{
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          width: '180px'
+                        }}
+                      />
+                      <select
+                        value={surveyStatusFilter}
+                        onChange={(e) => { setSurveyStatusFilter(e.target.value); setSurveyPage(1); }}
+                        style={{
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '6px',
+                          borderRadius: '6px',
+                          fontSize: '12px'
+                        }}
+                      >
+                        <option value="all">Status: All</option>
+                        <option value="DRAFT">Status: DRAFT</option>
+                        <option value="ACTIVE">Status: ACTIVE</option>
+                        <option value="COMPLETED">Status: COMPLETED</option>
+                        <option value="CANCELLED">Status: CANCELLED</option>
+                      </select>
+                      <select
+                        value={surveySortField}
+                        onChange={(e) => setSurveySortField(e.target.value)}
+                        style={{
+                          backgroundColor: 'rgba(15,23,42,0.6)',
+                          color: '#F8FAFC',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '6px',
+                          borderRadius: '6px',
+                          fontSize: '12px'
+                        }}
+                      >
+                        <option value="title">Sort: Title</option>
+                        <option value="version">Sort: Version</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* List View */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {(() => {
+                      const filtered = surveys
+                        .filter(s => s.title.toLowerCase().includes(surveySearchQuery.toLowerCase()))
+                        .filter(s => surveyStatusFilter === 'all' || s.status === surveyStatusFilter)
+                        .sort((a, b) => {
+                          if (surveySortField === 'version') return b.version - a.version;
+                          return a.title.localeCompare(b.title);
+                        });
+
+                      const totalCount = filtered.length;
+                      const offset = (surveyPage - 1) * surveyPageSize;
+                      const paginated = filtered.slice(offset, offset + surveyPageSize);
+                      const totalPages = Math.ceil(totalCount / surveyPageSize) || 1;
+
+                      if (paginated.length === 0) {
+                        return <div style={{ textAlign: 'center', opacity: 0.5, fontSize: '13px', padding: '24px 0' }}>No surveys found matching criteria.</div>;
+                      }
+
+                      return (
+                        <>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {paginated.map(survey => {
+                              const rep = fieldReps.find(r => r.userId === survey.agentId);
+                              const out = outletCensuses.find(o => o.outletId === survey.outletId);
+                              
+                              return (
+                                <div key={survey.id} style={{
+                                  backgroundColor: 'rgba(15,23,42,0.4)',
+                                  padding: '16px',
+                                  borderRadius: '8px',
+                                  borderLeft: `4px solid ${
+                                    survey.status === 'COMPLETED' ? '#10B981' : 
+                                    (survey.status === 'ACTIVE' ? '#3B82F6' : 
+                                    (survey.status === 'CANCELLED' ? '#94A3B8' : '#FBBF24'))
+                                  }`,
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  flexWrap: 'wrap',
+                                  gap: '16px'
+                                }}>
+                                  <div>
+                                    <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{survey.title}</div>
+                                    <div style={{ fontSize: '12px', opacity: 0.6, marginTop: '2px' }}>
+                                      ID: {survey.id} • Version: {survey.version}
+                                    </div>
+                                    <div style={{ fontSize: '11px', opacity: 0.5, marginTop: '4px', color: '#60A5FA' }}>
+                                      Agent: {rep ? `${rep.firstName} ${rep.lastName}` : survey.agentId} • Outlet: {out ? out.outletName : survey.outletId}
+                                    </div>
+                                  </div>
+                                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <span style={{
+                                      backgroundColor: 
+                                        survey.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.15)' : 
+                                        (survey.status === 'ACTIVE' ? 'rgba(59, 130, 246, 0.15)' : 
+                                        (survey.status === 'CANCELLED' ? 'rgba(148, 163, 184, 0.15)' : 'rgba(245, 158, 11, 0.15)')),
+                                      color: 
+                                        survey.status === 'COMPLETED' ? '#34D399' : 
+                                        (survey.status === 'ACTIVE' ? '#60A5FA' : 
+                                        (survey.status === 'CANCELLED' ? '#94A3B8' : '#FBBF24')),
+                                      padding: '4px 10px',
+                                      borderRadius: '4px',
+                                      fontSize: '10px',
+                                      fontWeight: 'bold'
+                                    }}>
+                                      {survey.status}
+                                    </span>
+                                    {currentUserRole === 'admin' && (
+                                      <>
+                                        {survey.status === 'DRAFT' && (
+                                          <button
+                                            onClick={() => handleActivateSurvey(survey.id)}
+                                            style={{
+                                              backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                                              border: '1px solid rgba(59, 130, 246, 0.4)',
+                                              color: '#60A5FA',
+                                              padding: '4px 8px',
+                                              borderRadius: '4px',
+                                              fontSize: '11px',
+                                              cursor: 'pointer',
+                                              fontWeight: 'bold'
+                                            }}
+                                          >
+                                            Activate
+                                          </button>
+                                        )}
+                                        {survey.status === 'ACTIVE' && (
+                                          <button
+                                            onClick={() => handleCompleteSurvey(survey.id)}
+                                            style={{
+                                              backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                                              border: '1px solid rgba(16, 185, 129, 0.4)',
+                                              color: '#34D399',
+                                              padding: '4px 8px',
+                                              borderRadius: '4px',
+                                              fontSize: '11px',
+                                              cursor: 'pointer',
+                                              fontWeight: 'bold'
+                                            }}
+                                          >
+                                            Complete
+                                          </button>
+                                        )}
+                                        {(survey.status === 'DRAFT' || survey.status === 'ACTIVE') && (
+                                          <>
+                                            <button
+                                              onClick={() => {
+                                                setSurveyEditingId(survey.id);
+                                                setSurveyFormData({
+                                                  title: survey.title,
+                                                  agentId: survey.agentId,
+                                                  outletId: survey.outletId,
+                                                  status: survey.status,
+                                                  version: survey.version
+                                                });
+                                                setSurveyFormErrors({});
+                                                setSurveyFormOpen(true);
+                                              }}
+                                              style={{
+                                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                                color: '#FFFFFF',
+                                                padding: '4px 8px',
+                                                borderRadius: '4px',
+                                                fontSize: '11px',
+                                                cursor: 'pointer',
+                                                fontWeight: 'bold'
+                                              }}
+                                            >
+                                              Edit
+                                            </button>
+                                            <button
+                                              onClick={() => handleCancelSurvey(survey.id)}
+                                              style={{
+                                                backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                                                border: '1px solid rgba(239, 68, 68, 0.4)',
+                                                color: '#F87171',
+                                                padding: '4px 8px',
+                                                borderRadius: '4px',
+                                                fontSize: '11px',
+                                                cursor: 'pointer',
+                                                fontWeight: 'bold'
+                                              }}
+                                            >
+                                              Cancel
+                                            </button>
+                                          </>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* Pagination */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '12px', opacity: 0.8 }}>
+                            <div>Showing {offset + 1} to {Math.min(offset + surveyPageSize, totalCount)} of {totalCount} surveys</div>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button
+                                disabled={surveyPage === 1}
+                                onClick={() => setSurveyPage(prev => Math.max(1, prev - 1))}
+                                style={{
+                                  backgroundColor: 'rgba(255,255,255,0.05)',
+                                  color: surveyPage === 1 ? '#475569' : '#FFFFFF',
+                                  border: 'none',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  cursor: surveyPage === 1 ? 'not-allowed' : 'pointer'
+                                }}
+                              >
+                                Prev
+                              </button>
+                              <button
+                                disabled={surveyPage === totalPages}
+                                onClick={() => setSurveyPage(prev => Math.min(totalPages, prev + 1))}
+                                style={{
+                                  backgroundColor: 'rgba(255,255,255,0.05)',
+                                  color: surveyPage === totalPages ? '#475569' : '#FFFFFF',
+                                  border: 'none',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  cursor: surveyPage === totalPages ? 'not-allowed' : 'pointer'
+                                }}
+                              >
+                                Next
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

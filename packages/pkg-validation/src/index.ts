@@ -19,7 +19,10 @@ export * from './schemas/kpi-achievement.schema.js';
 export * from './schemas/field-rep.schema.js';
 export * from './schemas/survey.schema.js';
 export * from './schemas/distributor.schema.js';
+export * from './schemas/distributor_hierarchy.schema.js';
+export * from './schemas/kyc_document.schema.js';
 export * from './rules/business.rules.js';
+
 export * from './rules/order.rules.js';
 export * from './errors.js';
 

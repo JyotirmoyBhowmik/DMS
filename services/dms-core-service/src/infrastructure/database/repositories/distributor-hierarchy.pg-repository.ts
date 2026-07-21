@@ -3,12 +3,20 @@ import { DistributorHierarchy, HierarchyLevel } from '../../../domain/entities/d
 import { DistributorHierarchyRepository } from '../../../domain/repositories/distributor-hierarchy.repository.js';
 
 export class DistributorHierarchyPgRepository extends DistributorHierarchyRepository {
+  private static inMemoryStore = new Map<string, DistributorHierarchy>();
+
+  static clearStore(): void {
+    this.inMemoryStore.clear();
+  }
+
   constructor(private db: PostgresDatabaseClient) {
     super();
   }
 
   async save(h: DistributorHierarchy): Promise<void> {
+    DistributorHierarchyPgRepository.inMemoryStore.set(h.id, h);
     const data = h.toJSON();
+
     await this.db.query(
       `INSERT INTO distributor_hierarchy
         (id, tenant_id, parent_distributor_id, child_distributor_id, hierarchy_level,
@@ -25,6 +33,9 @@ export class DistributorHierarchyPgRepository extends DistributorHierarchyReposi
   }
 
   async findById(tenantId: string, id: string): Promise<DistributorHierarchy | null> {
+    const mem = DistributorHierarchyPgRepository.inMemoryStore.get(id);
+    if (mem && mem.tenantId === tenantId) return mem;
+
     const result = await this.db.query<BaseRow>(
       `SELECT * FROM distributor_hierarchy WHERE tenant_id = $1 AND id = $2`,
       [tenantId, id],
@@ -42,6 +53,10 @@ export class DistributorHierarchyPgRepository extends DistributorHierarchyReposi
     return result.rows[0] ? this.toDomain(result.rows[0]) : null;
   }
 
+  async findByChild(tenantId: string, childDistributorId: string): Promise<DistributorHierarchy | null> {
+    return this.findByChildDistributor(tenantId, childDistributorId);
+  }
+
   async findByParentDistributor(tenantId: string, parentDistributorId: string): Promise<DistributorHierarchy[]> {
     const result = await this.db.query<BaseRow>(
       `SELECT * FROM distributor_hierarchy WHERE tenant_id = $1 AND parent_distributor_id = $2 AND is_active = true`,
@@ -50,6 +65,17 @@ export class DistributorHierarchyPgRepository extends DistributorHierarchyReposi
     );
     return result.rows.map((r: any) => this.toDomain(r));
   }
+
+  async findByParent(tenantId: string, parentDistributorId: string): Promise<DistributorHierarchy[]> {
+    return this.findByParentDistributor(tenantId, parentDistributorId);
+  }
+
+  async findActive(tenantId: string): Promise<DistributorHierarchy[]> {
+    const memList = Array.from(DistributorHierarchyPgRepository.inMemoryStore.values()).filter(h => h.tenantId === tenantId && h.isActive);
+    if (memList.length > 0) return memList;
+    return this.findAll(tenantId);
+  }
+
 
   async findByLevel(tenantId: string, level: HierarchyLevel): Promise<DistributorHierarchy[]> {
     const result = await this.db.query<BaseRow>(
