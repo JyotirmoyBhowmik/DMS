@@ -164,8 +164,13 @@ export class RbacGuard {
       'discount:create',
       'discount:read',
       'discount:update',
-      'discounts:read'
+      'discounts:read',
+      'tax_rule:create',
+      'tax_rule:read',
+      'tax_rule:update',
+      'tax_rules:read'
     ],
+
 
 
 

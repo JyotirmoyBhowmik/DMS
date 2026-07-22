@@ -84,6 +84,23 @@ paths:
         '200':
           description: Paginated discounts list
 
+  /tax-rules:
+    post:
+      summary: Create a statutory tax rule (GST/VAT)
+      operationId: createTaxRule
+      responses:
+        '201':
+          description: Tax rule created successfully
+        '409':
+          description: Duplicate tax code conflict
+    get:
+      summary: List tax rules with status and taxCode filters
+      operationId: listTaxRules
+      responses:
+        '200':
+          description: Paginated tax rules list
+
+
 
 
 
