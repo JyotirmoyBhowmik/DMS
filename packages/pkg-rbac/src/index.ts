@@ -132,8 +132,13 @@ export class RbacGuard {
       'replacement:create',
       'replacement:read',
       'replacement:update',
-      'replacements:read'
+      'replacements:read',
+      'primary_sale:create',
+      'primary_sale:read',
+      'primary_sale:update',
+      'primary_sales:read'
     ],
+
 
 
 

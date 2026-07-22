@@ -361,6 +361,23 @@ paths:
         '200':
           description: Paginated replacements list
 
+  /primary-sales:
+    post:
+      summary: Record a manufacturer-to-distributor primary sale invoice
+      operationId: createPrimarySale
+      responses:
+        '201':
+          description: Primary sale invoice recorded successfully
+        '409':
+          description: Duplicate invoice number conflict
+    get:
+      summary: List primary sales with status, distributor, and warehouse filters
+      operationId: listPrimarySales
+      responses:
+        '200':
+          description: Paginated primary sales list
+
+
 
 
 
