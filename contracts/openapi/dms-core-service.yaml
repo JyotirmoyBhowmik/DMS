@@ -345,6 +345,23 @@ paths:
         '200':
           description: Paginated returns list
 
+  /replacements:
+    post:
+      summary: Request an inventory stock replacement for returned items
+      operationId: createReplacement
+      responses:
+        '201':
+          description: Replacement request created successfully
+        '409':
+          description: Duplicate replacement number conflict
+    get:
+      summary: List replacements with status, returnId, and warehouse filters
+      operationId: listReplacements
+      responses:
+        '200':
+          description: Paginated replacements list
+
+
 
 
 

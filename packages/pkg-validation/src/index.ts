@@ -33,7 +33,9 @@ export * from './schemas/stock_transfer.schema.js';
 export * from './schemas/goods_receipt.schema.js';
 export * from './schemas/purchase_order.schema.js';
 export * from './schemas/return.schema.js';
+export * from './schemas/replacement.schema.js';
 export * from './rules/business.rules.js';
+
 
 
 

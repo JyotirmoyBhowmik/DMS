@@ -128,8 +128,13 @@ export class RbacGuard {
       'return:create',
       'return:read',
       'return:update',
-      'returns:read'
+      'returns:read',
+      'replacement:create',
+      'replacement:read',
+      'replacement:update',
+      'replacements:read'
     ],
+
 
 
 
