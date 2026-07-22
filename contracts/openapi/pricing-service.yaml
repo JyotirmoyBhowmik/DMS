@@ -1,0 +1,21 @@
+openapi: 3.0.3
+info:
+  title: Pricing Service API
+  version: 1.0.0
+  description: Production OpenAPI contract for PriceLists, discount structures, and promotional pricing schemes.
+paths:
+  /price-lists:
+    post:
+      summary: Create a product pricing list
+      operationId: createPriceList
+      responses:
+        '201':
+          description: Price list created successfully
+        '409':
+          description: Duplicate price list code conflict
+    get:
+      summary: List price lists with status and currency filters
+      operationId: listPriceLists
+      responses:
+        '200':
+          description: Paginated price lists

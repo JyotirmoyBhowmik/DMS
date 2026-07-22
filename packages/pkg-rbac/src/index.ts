@@ -144,8 +144,13 @@ export class RbacGuard {
       'tertiary_sale:create',
       'tertiary_sale:read',
       'tertiary_sale:update',
-      'tertiary_sales:read'
+      'tertiary_sales:read',
+      'price_list:create',
+      'price_list:read',
+      'price_list:update',
+      'price_lists:read'
     ],
+
 
 
 
