@@ -160,8 +160,13 @@ export class RbacGuard {
       'channel_price_rule:create',
       'channel_price_rule:read',
       'channel_price_rule:update',
-      'channel_price_rules:read'
+      'channel_price_rules:read',
+      'discount:create',
+      'discount:read',
+      'discount:update',
+      'discounts:read'
     ],
+
 
 
 

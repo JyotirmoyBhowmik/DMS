@@ -68,5 +68,22 @@ paths:
         '200':
           description: Paginated channel price rules list
 
+  /discounts:
+    post:
+      summary: Create a promotional discount rule
+      operationId: createDiscount
+      responses:
+        '201':
+          description: Discount created successfully
+        '409':
+          description: Duplicate discount code conflict
+    get:
+      summary: List discounts with status, discountType, and code filters
+      operationId: listDiscounts
+      responses:
+        '200':
+          description: Paginated discounts list
+
+
 
 
