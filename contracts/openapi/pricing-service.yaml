@@ -19,3 +19,20 @@ paths:
       responses:
         '200':
           description: Paginated price lists
+
+  /price-slabs:
+    post:
+      summary: Create a quantity tier pricing slab rule
+      operationId: createPriceSlab
+      responses:
+        '201':
+          description: Price slab rule created successfully
+        '400':
+          description: Invalid quantity tier bounds
+    get:
+      summary: List price slabs with status, priceListId, and skuId filters
+      operationId: listPriceSlabs
+      responses:
+        '200':
+          description: Paginated price slabs list
+

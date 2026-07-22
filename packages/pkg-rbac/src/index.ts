@@ -148,8 +148,13 @@ export class RbacGuard {
       'price_list:create',
       'price_list:read',
       'price_list:update',
-      'price_lists:read'
+      'price_lists:read',
+      'price_slab:create',
+      'price_slab:read',
+      'price_slab:update',
+      'price_slabs:read'
     ],
+
 
 
 
