@@ -120,8 +120,13 @@ export class RbacGuard {
       'goods_receipt:create',
       'goods_receipt:read',
       'goods_receipt:update',
-      'goods_receipts:read'
+      'goods_receipts:read',
+      'purchase_order:create',
+      'purchase_order:read',
+      'purchase_order:update',
+      'purchase_orders:read'
     ],
+
 
 
 

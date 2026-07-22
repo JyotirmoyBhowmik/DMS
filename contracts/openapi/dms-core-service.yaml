@@ -313,6 +313,23 @@ paths:
         '200':
           description: Paginated goods receipts list
 
+  /purchase-orders:
+    post:
+      summary: Create a supplier replenishment purchase order
+      operationId: createPurchaseOrder
+      responses:
+        '201':
+          description: Purchase order created successfully
+        '409':
+          description: Duplicate PO number conflict
+    get:
+      summary: List purchase orders with status, supplier, and warehouse filters
+      operationId: listPurchaseOrders
+      responses:
+        '200':
+          description: Paginated purchase orders list
+
+
 
 
 
