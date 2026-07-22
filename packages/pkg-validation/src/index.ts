@@ -39,7 +39,9 @@ export * from './schemas/secondary_sale.schema.js';
 export * from './schemas/tertiary_sale.schema.js';
 export * from './schemas/price_list.schema.js';
 export * from './schemas/price_slab.schema.js';
+export * from './schemas/geo_price_rule.schema.js';
 export * from './rules/business.rules.js';
+
 
 
 

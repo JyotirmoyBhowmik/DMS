@@ -36,3 +36,20 @@ paths:
         '200':
           description: Paginated price slabs list
 
+  /geo-price-rules:
+    post:
+      summary: Create a region-specific geographic pricing rule
+      operationId: createGeoPriceRule
+      responses:
+        '201':
+          description: Geo price rule created successfully
+        '409':
+          description: Duplicate region code conflict
+    get:
+      summary: List geo price rules with status, priceListId, and regionCode filters
+      operationId: listGeoPriceRules
+      responses:
+        '200':
+          description: Paginated geo price rules list
+
+

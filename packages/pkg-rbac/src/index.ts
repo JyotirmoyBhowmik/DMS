@@ -152,8 +152,13 @@ export class RbacGuard {
       'price_slab:create',
       'price_slab:read',
       'price_slab:update',
-      'price_slabs:read'
+      'price_slabs:read',
+      'geo_price_rule:create',
+      'geo_price_rule:read',
+      'geo_price_rule:update',
+      'geo_price_rules:read'
     ],
+
 
 
 
