@@ -281,6 +281,23 @@ paths:
         '200':
           description: Paginated stock ledger list
 
+  /stock-transfers:
+    post:
+      summary: Request an inter-warehouse stock transfer
+      operationId: createStockTransfer
+      responses:
+        '201':
+          description: Stock transfer requested successfully
+        '409':
+          description: Duplicate transfer number conflict
+    get:
+      summary: List stock transfer requests with status and warehouse filters
+      operationId: listStockTransfers
+      responses:
+        '200':
+          description: Paginated stock transfers list
+
+
 
 
 

@@ -112,8 +112,13 @@ export class RbacGuard {
       'stock_ledger:create',
       'stock_ledger:read',
       'stock_ledger:update',
-      'stock_ledgers:read'
+      'stock_ledgers:read',
+      'stock_transfer:create',
+      'stock_transfer:read',
+      'stock_transfer:update',
+      'stock_transfers:read'
     ],
+
 
 
 
