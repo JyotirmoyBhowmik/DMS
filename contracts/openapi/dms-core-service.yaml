@@ -297,6 +297,23 @@ paths:
         '200':
           description: Paginated stock transfers list
 
+  /goods-receipts:
+    post:
+      summary: Record an incoming inventory goods receipt from a purchase order
+      operationId: createGoodsReceipt
+      responses:
+        '201':
+          description: Goods receipt recorded successfully
+        '409':
+          description: Duplicate receipt number conflict
+    get:
+      summary: List goods receipts with status, PO, and warehouse filters
+      operationId: listGoodsReceipts
+      responses:
+        '200':
+          description: Paginated goods receipts list
+
+
 
 
 

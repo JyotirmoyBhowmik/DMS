@@ -30,7 +30,9 @@ export * from './schemas/inventory.schema.js';
 export * from './schemas/batch.schema.js';
 export * from './schemas/stock_ledger.schema.js';
 export * from './schemas/stock_transfer.schema.js';
+export * from './schemas/goods_receipt.schema.js';
 export * from './rules/business.rules.js';
+
 
 
 

@@ -116,8 +116,13 @@ export class RbacGuard {
       'stock_transfer:create',
       'stock_transfer:read',
       'stock_transfer:update',
-      'stock_transfers:read'
+      'stock_transfers:read',
+      'goods_receipt:create',
+      'goods_receipt:read',
+      'goods_receipt:update',
+      'goods_receipts:read'
     ],
+
 
 
 
