@@ -221,6 +221,23 @@ paths:
         '200':
           description: Paginated product categories list
 
+  /skus:
+    post:
+      summary: Create a SKU entry
+      operationId: createSku
+      responses:
+        '201':
+          description: SKU created successfully
+        '409':
+          description: Duplicate SKU Code conflict
+    get:
+      summary: List SKUs with product and status filters
+      operationId: listSkus
+      responses:
+        '200':
+          description: Paginated SKUs list
+
+
 
 
 
