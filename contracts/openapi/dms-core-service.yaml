@@ -377,6 +377,23 @@ paths:
         '200':
           description: Paginated primary sales list
 
+  /secondary-sales:
+    post:
+      summary: Record a distributor-to-retailer secondary sale invoice
+      operationId: createSecondarySale
+      responses:
+        '201':
+          description: Secondary sale invoice recorded successfully
+        '409':
+          description: Duplicate invoice number conflict
+    get:
+      summary: List secondary sales with status, outlet, and warehouse filters
+      operationId: listSecondarySales
+      responses:
+        '200':
+          description: Paginated secondary sales list
+
+
 
 
 

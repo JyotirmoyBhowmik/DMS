@@ -136,8 +136,13 @@ export class RbacGuard {
       'primary_sale:create',
       'primary_sale:read',
       'primary_sale:update',
-      'primary_sales:read'
+      'primary_sales:read',
+      'secondary_sale:create',
+      'secondary_sale:read',
+      'secondary_sale:update',
+      'secondary_sales:read'
     ],
+
 
 
 
