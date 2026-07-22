@@ -27,7 +27,10 @@ export * from './schemas/product.schema.js';
 export * from './schemas/product_category.schema.js';
 export * from './schemas/sku.schema.js';
 export * from './schemas/inventory.schema.js';
+export * from './schemas/batch.schema.js';
+export * from './schemas/stock_ledger.schema.js';
 export * from './rules/business.rules.js';
+
 
 
 

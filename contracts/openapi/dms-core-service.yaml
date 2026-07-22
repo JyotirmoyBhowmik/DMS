@@ -253,6 +253,35 @@ paths:
         '200':
           description: Paginated inventory list
 
+  /batches:
+    post:
+      summary: Create a product inventory batch
+      operationId: createBatch
+      responses:
+        '201':
+          description: Batch created successfully
+    get:
+      summary: List product batches with filters
+      operationId: listBatches
+      responses:
+        '200':
+          description: Paginated batch list
+
+  /stock-ledgers:
+    post:
+      summary: Record a stock ledger transaction entry
+      operationId: createStockLedger
+      responses:
+        '201':
+          description: StockLedger entry recorded successfully
+    get:
+      summary: List stock ledger entries with filters
+      operationId: listStockLedgers
+      responses:
+        '200':
+          description: Paginated stock ledger list
+
+
 
 
 

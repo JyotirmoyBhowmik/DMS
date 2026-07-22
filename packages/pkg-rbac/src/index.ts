@@ -104,8 +104,17 @@ export class RbacGuard {
       'inventory:create',
       'inventory:read',
       'inventory:update',
-      'inventories:read'
+      'inventories:read',
+      'batch:create',
+      'batch:read',
+      'batch:update',
+      'batches:read',
+      'stock_ledger:create',
+      'stock_ledger:read',
+      'stock_ledger:update',
+      'stock_ledgers:read'
     ],
+
 
 
 
