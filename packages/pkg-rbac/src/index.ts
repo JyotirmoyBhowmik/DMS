@@ -124,8 +124,13 @@ export class RbacGuard {
       'purchase_order:create',
       'purchase_order:read',
       'purchase_order:update',
-      'purchase_orders:read'
+      'purchase_orders:read',
+      'return:create',
+      'return:read',
+      'return:update',
+      'returns:read'
     ],
+
 
 
 

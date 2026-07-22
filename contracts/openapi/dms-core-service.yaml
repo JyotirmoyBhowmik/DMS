@@ -329,6 +329,23 @@ paths:
         '200':
           description: Paginated purchase orders list
 
+  /returns:
+    post:
+      summary: Request an outlet stock return to warehouse
+      operationId: createReturn
+      responses:
+        '201':
+          description: Stock return requested successfully
+        '409':
+          description: Duplicate return number conflict
+    get:
+      summary: List stock returns with status, outlet, and warehouse filters
+      operationId: listReturns
+      responses:
+        '200':
+          description: Paginated returns list
+
+
 
 
 
