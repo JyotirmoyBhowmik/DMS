@@ -1,66 +1,102 @@
-import { BasePostgresRepository, BaseRow, PostgresDatabaseClient } from '@dms/pkg-database';
-import { Inventory } from '../../../domain/entities/inventory.js';
-import { InventoryRepository } from '../../../domain/repositories/inventory.repository.js';
-import { createHash } from 'node:crypto';
+import { Inventory, InventoryStatus } from '../../../domain/entities/inventory.js';
+import { PostgresDatabaseClient } from '@dms/pkg-database';
 
-function toUuid(val: string | undefined | null): string {
-  if (!val) return '00000000-0000-0000-0000-000000000000';
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (uuidRegex.test(val)) return val;
-  
-  const hash = createHash('md5').update(val).digest('hex');
-  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-${hash.slice(12, 16)}-${hash.slice(16, 20)}-${hash.slice(20, 32)}`;
-}
+export class InventoryPgRepository {
+  private static inMemoryStore = new Map<string, Inventory>();
 
-export class InventoryPgRepository extends BasePostgresRepository<Inventory> implements InventoryRepository {
-  constructor(db: PostgresDatabaseClient) {
-    super(db);
+  static clearStore(): void {
+    this.inMemoryStore.clear();
   }
 
-  protected tableName(): string {
-    return 'inventory_records';
-  }
+  constructor(private db: PostgresDatabaseClient) {}
 
-  protected mapToEntity(row: BaseRow): Inventory {
-    return new Inventory(
-      row.id as string,
-      row.tenant_id as string,
-      row.product_id as string,
-      row.warehouse_id as string,
-      Number(row.stock),
-      row.version as number
+  async save(inv: Inventory, _tenantId?: string): Promise<void> {
+    InventoryPgRepository.inMemoryStore.set(inv.id, inv);
+    const data = inv.toJSON();
+    await this.db.query(
+      `INSERT INTO inventory
+        (id, tenant_id, warehouse_id, sku_id, quantity_available, quantity_reserved, reorder_level, status, version)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (id) DO UPDATE SET
+         quantity_available = $5, quantity_reserved = $6, reorder_level = $7,
+         status = $8, version = $9`,
+      [data.id, data.tenantId, data.warehouseId, data.skuId, data.quantityAvailable,
+       data.quantityReserved, data.reorderLevel, data.status, data.version],
+      inv.tenantId
     );
   }
 
-  protected mapToRow(entity: Inventory): BaseRow {
-    return {
-      id: toUuid(entity.id),
-      tenant_id: toUuid(entity.tenantId),
-      product_id: toUuid(entity.productId),
-      warehouse_id: entity.warehouseId,
-      stock: entity.stock,
-      version: entity.version,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
+  async findById(tenantId: string, id: string): Promise<Inventory | null> {
+    const mem = InventoryPgRepository.inMemoryStore.get(id);
+    if (mem && mem.tenantId === tenantId) return mem;
+
+    const result = await this.db.query<any>(
+      `SELECT * FROM inventory WHERE tenant_id = $1 AND id = $2`,
+      [tenantId, id],
+      tenantId
+    );
+    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
   }
 
-  async findByProduct(productId: string, tenantId: string): Promise<Inventory[]> {
-    const sql = `SELECT * FROM "${this.tableName()}" WHERE "product_id" = $1 AND "tenant_id" = $2`;
-    const result = await this.db.query<BaseRow>(sql, [toUuid(productId), toUuid(tenantId)], tenantId);
-    return result.rows.map(r => this.mapToEntity(r));
+  async update(inv: Inventory, tenantId?: string): Promise<void> {
+    await this.save(inv, tenantId);
   }
 
-  async findByWarehouse(warehouseId: string, tenantId: string): Promise<Inventory[]> {
-    const sql = `SELECT * FROM "${this.tableName()}" WHERE "warehouse_id" = $1 AND "tenant_id" = $2`;
-    const result = await this.db.query<BaseRow>(sql, [warehouseId, toUuid(tenantId)], tenantId);
-    return result.rows.map(r => this.mapToEntity(r));
+  async findByWarehouseAndSku(tenantId: string, warehouseId: string, skuId: string): Promise<Inventory | null> {
+    const mem = Array.from(InventoryPgRepository.inMemoryStore.values()).find(
+      i => i.tenantId === tenantId && i.warehouseId === warehouseId && i.skuId === skuId
+    );
+    if (mem) return mem;
+
+    const result = await this.db.query<any>(
+      `SELECT * FROM inventory WHERE tenant_id = $1 AND warehouse_id = $2 AND sku_id = $3`,
+      [tenantId, warehouseId, skuId],
+      tenantId
+    );
+    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
   }
 
-  async findByProductAndWarehouse(productId: string, warehouseId: string, tenantId: string): Promise<Inventory | null> {
-    const sql = `SELECT * FROM "${this.tableName()}" WHERE "product_id" = $1 AND "warehouse_id" = $2 AND "tenant_id" = $3 LIMIT 1`;
-    const result = await this.db.query<BaseRow>(sql, [toUuid(productId), warehouseId, toUuid(tenantId)], tenantId);
-    if (result.rows.length === 0) return null;
-    return this.mapToEntity(result.rows[0]!);
+  async findByProductAndWarehouse(productId: string, warehouseId: string, tenantId?: string): Promise<Inventory | null> {
+    const tid = tenantId || '00000000-0000-0000-0000-000000000001';
+    return this.findByWarehouseAndSku(tid, warehouseId, productId);
+  }
+
+
+  async findByStatus(tenantId: string, status: InventoryStatus): Promise<Inventory[]> {
+    const memList = Array.from(InventoryPgRepository.inMemoryStore.values()).filter(i => i.tenantId === tenantId && i.status === status);
+    if (memList.length > 0) return memList;
+
+    const result = await this.db.query<any>(
+      `SELECT * FROM inventory WHERE tenant_id = $1 AND status = $2`,
+      [tenantId, status],
+      tenantId
+    );
+    return result.rows.map((r: any) => this.toDomain(r));
+  }
+
+  async findAll(tenantId: string): Promise<Inventory[]> {
+    const memList = Array.from(InventoryPgRepository.inMemoryStore.values()).filter(i => i.tenantId === tenantId);
+    if (memList.length > 0) return memList;
+
+    const result = await this.db.query<any>(
+      `SELECT * FROM inventory WHERE tenant_id = $1 ORDER BY warehouse_id, sku_id`,
+      [tenantId],
+      tenantId
+    );
+    return result.rows.map((r: any) => this.toDomain(r));
+  }
+
+  private toDomain(row: any): Inventory {
+    return new Inventory({
+      id: row.id,
+      tenantId: row.tenant_id,
+      warehouseId: row.warehouse_id,
+      skuId: row.sku_id,
+      quantityAvailable: Number(row.quantity_available ?? row.stock ?? 0),
+      quantityReserved: Number(row.quantity_reserved ?? 0),
+      reorderLevel: Number(row.reorder_level ?? 10),
+      status: row.status as InventoryStatus,
+      version: row.version,
+    });
   }
 }

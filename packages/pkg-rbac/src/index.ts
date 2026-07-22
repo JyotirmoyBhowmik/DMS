@@ -100,8 +100,13 @@ export class RbacGuard {
       'sku:create',
       'sku:read',
       'sku:update',
-      'skus:read'
+      'skus:read',
+      'inventory:create',
+      'inventory:read',
+      'inventory:update',
+      'inventories:read'
     ],
+
 
 
 

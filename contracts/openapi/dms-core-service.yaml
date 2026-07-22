@@ -237,6 +237,23 @@ paths:
         '200':
           description: Paginated SKUs list
 
+  /inventories:
+    post:
+      summary: Create an inventory stock record
+      operationId: createInventory
+      responses:
+        '201':
+          description: Inventory record created successfully
+        '409':
+          description: Duplicate warehouse and SKU inventory conflict
+    get:
+      summary: List inventory stock levels with warehouse and status filters
+      operationId: listInventories
+      responses:
+        '200':
+          description: Paginated inventory list
+
+
 
 
 

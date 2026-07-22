@@ -26,7 +26,9 @@ export * from './schemas/outlet.schema.js';
 export * from './schemas/product.schema.js';
 export * from './schemas/product_category.schema.js';
 export * from './schemas/sku.schema.js';
+export * from './schemas/inventory.schema.js';
 export * from './rules/business.rules.js';
+
 
 
 

@@ -28,9 +28,10 @@ export class DmsRepository {
     void this.saveProduct(Product.create({ id: 'p-003', tenantId: seedTenantId, sku: 'SKU-FMCG-003', name: 'Refined Sugar 2kg', category: 'Sweetener', price: 3.20, minThreshold: 100 }));
 
     // Seed Inventory
-    void this.saveInventory(Inventory.create({ id: 'i-001', tenantId: seedTenantId, productId: 'p-001', warehouseId: 'wh-main', stock: 120 })); // Low Stock
-    void this.saveInventory(Inventory.create({ id: 'i-002', tenantId: seedTenantId, productId: 'p-002', warehouseId: 'wh-main', stock: 450 })); // Adequate
-    void this.saveInventory(Inventory.create({ id: 'i-003', tenantId: seedTenantId, productId: 'p-003', warehouseId: 'wh-main', stock: 85 }));  // Low Stock
+    void this.saveInventory(Inventory.create({ id: 'i-001', tenantId: seedTenantId, skuId: 'p-001', warehouseId: 'wh-main', quantityAvailable: 120 })); // Low Stock
+    void this.saveInventory(Inventory.create({ id: 'i-002', tenantId: seedTenantId, skuId: 'p-002', warehouseId: 'wh-main', quantityAvailable: 450 })); // Adequate
+    void this.saveInventory(Inventory.create({ id: 'i-003', tenantId: seedTenantId, skuId: 'p-003', warehouseId: 'wh-main', quantityAvailable: 85 }));  // Low Stock
+
 
     // Seed Distributors
     void this.saveDistributor(Distributor.create({ id: 'd-001', tenantId: seedTenantId, name: 'Metro Wholesale Distributors', region: 'Northern Region', creditLimit: 50000, balance: 12450 }));
