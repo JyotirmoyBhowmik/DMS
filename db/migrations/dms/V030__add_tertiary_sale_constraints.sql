@@ -1,0 +1,37 @@
+-- Migration V030: Add TertiarySale constraints, indexes, RLS policies, and optimistic locking version column
+
+ALTER TABLE IF EXISTS tertiary_sales
+  ADD COLUMN IF NOT EXISTS invoice_number VARCHAR(255) NOT NULL DEFAULT 'INV-TER-DEFAULT',
+  ADD COLUMN IF NOT EXISTS consumer_id VARCHAR(255) NOT NULL DEFAULT 'consumer-default',
+  ADD COLUMN IF NOT EXISTS outlet_id VARCHAR(255) NOT NULL DEFAULT 'outlet-default',
+  ADD COLUMN IF NOT EXISTS sku_id VARCHAR(255) NOT NULL DEFAULT 'sku-default',
+  ADD COLUMN IF NOT EXISTS quantity INT NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS unit_price_cents BIGINT NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_amount_cents BIGINT NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS status VARCHAR(50) NOT NULL DEFAULT 'DRAFT',
+  ADD COLUMN IF NOT EXISTS version INT NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
+-- Constraints enforcing non-negative prices and positive quantity
+ALTER TABLE IF EXISTS tertiary_sales
+  DROP CONSTRAINT IF EXISTS chk_tertiary_sales_positive_quantity;
+ALTER TABLE IF EXISTS tertiary_sales
+  ADD CONSTRAINT chk_tertiary_sales_positive_quantity CHECK (quantity > 0);
+
+ALTER TABLE IF EXISTS tertiary_sales
+  DROP CONSTRAINT IF EXISTS chk_tertiary_sales_non_negative_amounts;
+ALTER TABLE IF EXISTS tertiary_sales
+  ADD CONSTRAINT chk_tertiary_sales_non_negative_amounts CHECK (unit_price_cents >= 0 AND total_amount_cents >= 0);
+
+-- Indexes for performance and common filters
+CREATE INDEX IF NOT EXISTS idx_tertiary_sales_tenant_status ON tertiary_sales (tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_tertiary_sales_consumer_outlet ON tertiary_sales (tenant_id, consumer_id, outlet_id);
+
+-- Row-Level Security Policy
+ALTER TABLE tertiary_sales ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS tertiary_sales_tenant_isolation_policy ON tertiary_sales;
+CREATE POLICY tertiary_sales_tenant_isolation_policy ON tertiary_sales
+  FOR ALL
+  USING (tenant_id = current_setting('app.current_tenant_id', true));

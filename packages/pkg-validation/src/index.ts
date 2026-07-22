@@ -36,7 +36,9 @@ export * from './schemas/return.schema.js';
 export * from './schemas/replacement.schema.js';
 export * from './schemas/primary_sale.schema.js';
 export * from './schemas/secondary_sale.schema.js';
+export * from './schemas/tertiary_sale.schema.js';
 export * from './rules/business.rules.js';
+
 
 
 

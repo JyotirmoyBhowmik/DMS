@@ -393,6 +393,23 @@ paths:
         '200':
           description: Paginated secondary sales list
 
+  /tertiary-sales:
+    post:
+      summary: Record a retailer-to-consumer tertiary sale invoice
+      operationId: createTertiarySale
+      responses:
+        '201':
+          description: Tertiary sale invoice recorded successfully
+        '409':
+          description: Duplicate invoice number conflict
+    get:
+      summary: List tertiary sales with status, consumer, and outlet filters
+      operationId: listTertiarySales
+      responses:
+        '200':
+          description: Paginated tertiary sales list
+
+
 
 
 
