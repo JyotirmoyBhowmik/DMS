@@ -156,8 +156,13 @@ export class RbacGuard {
       'geo_price_rule:create',
       'geo_price_rule:read',
       'geo_price_rule:update',
-      'geo_price_rules:read'
+      'geo_price_rules:read',
+      'channel_price_rule:create',
+      'channel_price_rule:read',
+      'channel_price_rule:update',
+      'channel_price_rules:read'
     ],
+
 
 
 

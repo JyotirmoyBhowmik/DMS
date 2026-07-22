@@ -52,4 +52,21 @@ paths:
         '200':
           description: Paginated geo price rules list
 
+  /channel-price-rules:
+    post:
+      summary: Create a trade channel pricing rule (GT/MT/ECOM/INSTITUTIONAL)
+      operationId: createChannelPriceRule
+      responses:
+        '201':
+          description: Channel price rule created successfully
+        '409':
+          description: Duplicate channel code conflict
+    get:
+      summary: List channel price rules with status, priceListId, and channelCode filters
+      operationId: listChannelPriceRules
+      responses:
+        '200':
+          description: Paginated channel price rules list
+
+
 
