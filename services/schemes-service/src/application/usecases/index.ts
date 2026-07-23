@@ -18,3 +18,7 @@ export * from './create-slab-reward.usecase.js';
 export * from './get-slab-reward.usecase.js';
 export * from './update-slab-reward.usecase.js';
 export * from './list-slab-rewards.usecase.js';
+export * from './create-scheme-payout.usecase.js';
+export * from './get-scheme-payout.usecase.js';
+export * from './update-scheme-payout.usecase.js';
+export * from './list-scheme-payouts.usecase.js';

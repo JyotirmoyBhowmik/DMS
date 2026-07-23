@@ -188,8 +188,13 @@ export class RbacGuard {
       'slab_reward:create',
       'slab_reward:read',
       'slab_reward:update',
-      'slab_rewards:read'
+      'slab_rewards:read',
+      'scheme_payout:create',
+      'scheme_payout:read',
+      'scheme_payout:update',
+      'scheme_payouts:read'
     ],
+
 
 
 

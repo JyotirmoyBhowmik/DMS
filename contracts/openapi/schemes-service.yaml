@@ -85,6 +85,23 @@ paths:
         '200':
           description: Paginated slab rewards list
 
+  /scheme-payouts:
+    post:
+      summary: Create a scheme payout to a distributor
+      operationId: createSchemePayout
+      responses:
+        '201':
+          description: Scheme payout created successfully
+        '409':
+          description: Duplicate payout code conflict
+    get:
+      summary: List scheme payouts with status, schemeId, distributorId, and payoutCode filters
+      operationId: listSchemePayouts
+      responses:
+        '200':
+          description: Paginated scheme payouts list
+
+
 
 
 
