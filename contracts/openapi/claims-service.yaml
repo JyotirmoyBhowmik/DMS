@@ -53,4 +53,21 @@ paths:
         '200':
           description: Paginated claim reconciliations list
 
+  /settlements:
+    post:
+      summary: Create a settlement
+      operationId: createSettlement
+      responses:
+        '201':
+          description: Settlement created successfully
+        '409':
+          description: Duplicate settlement code conflict
+    get:
+      summary: List settlements with filters and pagination
+      operationId: listSettlements
+      responses:
+        '200':
+          description: Paginated settlements list
+
+
 

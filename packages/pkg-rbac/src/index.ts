@@ -208,7 +208,13 @@ export class RbacGuard {
       'claim_reconciliation:update',
       'claim_reconciliation:delete',
       'claim_reconciliation:approve',
+      'settlement:create',
+      'settlement:read',
+      'settlement:update',
+      'settlement:delete',
+      'settlement:approve',
     ],
+
 
 
 
