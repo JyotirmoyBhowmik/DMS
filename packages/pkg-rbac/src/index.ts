@@ -203,7 +203,13 @@ export class RbacGuard {
       'scheme_claim:update',
       'scheme_claim:delete',
       'scheme_claim:approve',
+      'claim_reconciliation:create',
+      'claim_reconciliation:read',
+      'claim_reconciliation:update',
+      'claim_reconciliation:delete',
+      'claim_reconciliation:approve',
     ],
+
 
 
 

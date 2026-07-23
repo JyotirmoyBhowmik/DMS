@@ -37,3 +37,20 @@ paths:
         '200':
           description: Paginated scheme claims list
 
+  /claim-reconciliations:
+    post:
+      summary: Create a claim reconciliation
+      operationId: createClaimReconciliation
+      responses:
+        '201':
+          description: Claim reconciliation created successfully
+        '409':
+          description: Duplicate reconciliation code conflict
+    get:
+      summary: List claim reconciliations with filters and pagination
+      operationId: listClaimReconciliations
+      responses:
+        '200':
+          description: Paginated claim reconciliations list
+
+
