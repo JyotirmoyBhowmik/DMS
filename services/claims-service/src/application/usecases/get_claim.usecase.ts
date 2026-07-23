@@ -12,13 +12,14 @@ export class GetClaimUseCase {
     private readonly claimRepo?: IClaimRepository
   ) {}
 
-  async execute(tenantId: string, claimId: string): Promise<ClaimEntity> {
+  async execute(tenantId: string, claimId: string): Promise<any> {
     this.logger.info('Retrieving claim by ID', { claimId });
 
     if (this.db) {
       const repo = this.claimRepo || new ClaimPgRepository(this.db);
       return await repo.findById(claimId, tenantId);
     }
+
 
     throw new Error('Database client not configured');
   }

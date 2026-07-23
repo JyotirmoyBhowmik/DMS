@@ -1,0 +1,22 @@
+openapi: 3.0.3
+info:
+  title: Claims Service API
+  version: 1.0.0
+  description: OpenAPI 3.0 spec for DMS Claims Service managing distributor scheme claim submissions and approvals.
+
+paths:
+  /claims:
+    post:
+      summary: Submit a scheme claim request
+      operationId: createClaim
+      responses:
+        '201':
+          description: Claim submitted successfully
+        '409':
+          description: Duplicate claim code conflict
+    get:
+      summary: List claims with status, distributorId, schemeId, and claimCode filters
+      operationId: listClaims
+      responses:
+        '200':
+          description: Paginated claims list

@@ -74,7 +74,8 @@ export class RaiseClaimUseCase {
         const txRepo = this.claimRepo || new ClaimPgRepository(txDb);
 
         // 1. Save claim
-        await txRepo.save(entity, tenantId);
+        await txRepo.save(entity as any, tenantId);
+
 
         // 2. Record audit log
         const auditSql = `

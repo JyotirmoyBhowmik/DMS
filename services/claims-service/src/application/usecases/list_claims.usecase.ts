@@ -22,7 +22,8 @@ export class ListClaimsUseCase {
     private readonly claimRepo?: IClaimRepository
   ) {}
 
-  async execute(tenantId: string, query: ListClaimsQuery): Promise<PaginatedResult<ClaimEntity>> {
+  async execute(tenantId: string, query: ListClaimsQuery): Promise<any> {
+
     this.logger.info('Querying claims list', { status: query.status, distributorId: query.distributorId });
 
     if (this.db) {

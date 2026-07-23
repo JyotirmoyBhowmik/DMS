@@ -28,9 +28,13 @@ export class ValidateClaimUseCase {
       const txRepo = this.claimRepo || new ClaimPgRepository(txDb);
 
       // 1. Fetch claim
-      const entity = await txRepo.findById(claimId, tenantId);
+      const entity: any = await txRepo.findById(claimId, tenantId);
+      if (!entity) {
+        throw new Error(`Claim ${claimId} not found`);
+      }
       const aggregate = new ClaimAggregate(entity);
       const prevStatus = entity.status;
+
 
       // 2. Reconcile against Scheme
       const schemeRes = await conn.query(

@@ -63,10 +63,14 @@ export class SettleClaimUseCase {
       const txRepo = this.claimRepo || new ClaimPgRepository(txDb);
 
       // 2. Fetch claim
-      const entity = await txRepo.findById(claimId, tenantId);
+      const entity: any = await txRepo.findById(claimId, tenantId);
+      if (!entity) {
+        throw new Error(`Claim ${claimId} not found`);
+      }
       const aggregate = new ClaimAggregate(entity);
       const prevStatus = entity.status;
       const prevSettledAmount = entity.settledAmount;
+
 
       // 3. Perform state transition and validate
       aggregate.settle(amount);

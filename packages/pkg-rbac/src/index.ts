@@ -192,8 +192,13 @@ export class RbacGuard {
       'scheme_payout:create',
       'scheme_payout:read',
       'scheme_payout:update',
-      'scheme_payouts:read'
+      'scheme_payouts:read',
+      'claim:create',
+      'claim:read',
+      'claim:update',
+      'claims:read'
     ],
+
 
 
 
