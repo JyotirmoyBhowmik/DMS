@@ -50,6 +50,8 @@ export * from './schemas/scheme_budget.schema.js';
 export * from './schemas/slab_reward.schema.js';
 export * from './schemas/scheme_payout.schema.js';
 export * from './schemas/claim.schema.js';
+export * from './schemas/scheme_claim.schema.js';
+
 export * from './rules/business.rules.js';
 
 

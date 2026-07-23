@@ -20,3 +20,20 @@ paths:
       responses:
         '200':
           description: Paginated claims list
+
+  /scheme-claims:
+    post:
+      summary: Create a scheme claim
+      operationId: createSchemeClaim
+      responses:
+        '201':
+          description: Scheme claim created successfully
+        '409':
+          description: Duplicate claim code conflict
+    get:
+      summary: List scheme claims with filters and pagination
+      operationId: listSchemeClaims
+      responses:
+        '200':
+          description: Paginated scheme claims list
+
