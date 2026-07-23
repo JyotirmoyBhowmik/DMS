@@ -20,3 +20,20 @@ paths:
       responses:
         '200':
           description: Paginated schemes list
+
+  /scheme-promotions:
+    post:
+      summary: Create a promotional campaign for a scheme
+      operationId: createSchemePromotion
+      responses:
+        '201':
+          description: Scheme promotion created successfully
+        '409':
+          description: Duplicate promo code conflict
+    get:
+      summary: List scheme promotions with status, schemeId, and promoCode filters
+      operationId: listSchemePromotions
+      responses:
+        '200':
+          description: Paginated scheme promotions list
+

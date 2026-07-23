@@ -44,7 +44,9 @@ export * from './schemas/channel_price_rule.schema.js';
 export * from './schemas/discount.schema.js';
 export * from './schemas/tax_rule.schema.js';
 export * from './schemas/scheme.schema.js';
+export * from './schemas/scheme_promotion.schema.js';
 export * from './rules/business.rules.js';
+
 
 
 

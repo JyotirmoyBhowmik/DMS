@@ -172,8 +172,13 @@ export class RbacGuard {
       'scheme:create',
       'scheme:read',
       'scheme:update',
-      'schemes:read'
+      'schemes:read',
+      'scheme_promotion:create',
+      'scheme_promotion:read',
+      'scheme_promotion:update',
+      'scheme_promotions:read'
     ],
+
 
 
 
