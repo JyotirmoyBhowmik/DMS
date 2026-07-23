@@ -180,8 +180,13 @@ export class RbacGuard {
       'eligibility_rule:create',
       'eligibility_rule:read',
       'eligibility_rule:update',
-      'eligibility_rules:read'
+      'eligibility_rules:read',
+      'scheme_budget:create',
+      'scheme_budget:read',
+      'scheme_budget:update',
+      'scheme_budgets:read'
     ],
+
 
 
 

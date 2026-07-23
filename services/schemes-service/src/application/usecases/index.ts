@@ -10,3 +10,7 @@ export * from './create-eligibility-rule.usecase.js';
 export * from './get-eligibility-rule.usecase.js';
 export * from './update-eligibility-rule.usecase.js';
 export * from './list-eligibility-rules.usecase.js';
+export * from './create-scheme-budget.usecase.js';
+export * from './get-scheme-budget.usecase.js';
+export * from './update-scheme-budget.usecase.js';
+export * from './list-scheme-budgets.usecase.js';

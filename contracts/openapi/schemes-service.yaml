@@ -53,4 +53,21 @@ paths:
         '200':
           description: Paginated eligibility rules list
 
+  /scheme-budgets:
+    post:
+      summary: Create a scheme budget allocation
+      operationId: createSchemeBudget
+      responses:
+        '201':
+          description: Scheme budget created successfully
+        '409':
+          description: Duplicate budget code conflict
+    get:
+      summary: List scheme budgets with status, schemeId, and budgetCode filters
+      operationId: listSchemeBudgets
+      responses:
+        '200':
+          description: Paginated scheme budgets list
+
+
 
