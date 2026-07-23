@@ -37,3 +37,20 @@ paths:
         '200':
           description: Paginated scheme promotions list
 
+  /eligibility-rules:
+    post:
+      summary: Create an eligibility rule for a scheme
+      operationId: createEligibilityRule
+      responses:
+        '201':
+          description: Eligibility rule created successfully
+        '409':
+          description: Duplicate rule code conflict
+    get:
+      summary: List eligibility rules with status, schemeId, and ruleCode filters
+      operationId: listEligibilityRules
+      responses:
+        '200':
+          description: Paginated eligibility rules list
+
+

@@ -6,3 +6,7 @@ export * from './create-scheme-promotion.usecase.js';
 export * from './get-scheme-promotion.usecase.js';
 export * from './update-scheme-promotion.usecase.js';
 export * from './list-scheme-promotions.usecase.js';
+export * from './create-eligibility-rule.usecase.js';
+export * from './get-eligibility-rule.usecase.js';
+export * from './update-eligibility-rule.usecase.js';
+export * from './list-eligibility-rules.usecase.js';

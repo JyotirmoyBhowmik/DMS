@@ -176,8 +176,13 @@ export class RbacGuard {
       'scheme_promotion:create',
       'scheme_promotion:read',
       'scheme_promotion:update',
-      'scheme_promotions:read'
+      'scheme_promotions:read',
+      'eligibility_rule:create',
+      'eligibility_rule:read',
+      'eligibility_rule:update',
+      'eligibility_rules:read'
     ],
+
 
 
 
