@@ -69,5 +69,22 @@ paths:
         '200':
           description: Paginated scheme budgets list
 
+  /slab-rewards:
+    post:
+      summary: Create a slab reward tier for a scheme
+      operationId: createSlabReward
+      responses:
+        '201':
+          description: Slab reward tier created successfully
+        '409':
+          description: Duplicate slab code conflict
+    get:
+      summary: List slab rewards with status, schemeId, and slabCode filters
+      operationId: listSlabRewards
+      responses:
+        '200':
+          description: Paginated slab rewards list
+
+
 
 

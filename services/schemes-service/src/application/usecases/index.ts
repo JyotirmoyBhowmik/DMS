@@ -14,3 +14,7 @@ export * from './create-scheme-budget.usecase.js';
 export * from './get-scheme-budget.usecase.js';
 export * from './update-scheme-budget.usecase.js';
 export * from './list-scheme-budgets.usecase.js';
+export * from './create-slab-reward.usecase.js';
+export * from './get-slab-reward.usecase.js';
+export * from './update-slab-reward.usecase.js';
+export * from './list-slab-rewards.usecase.js';

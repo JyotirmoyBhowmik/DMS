@@ -184,8 +184,13 @@ export class RbacGuard {
       'scheme_budget:create',
       'scheme_budget:read',
       'scheme_budget:update',
-      'scheme_budgets:read'
+      'scheme_budgets:read',
+      'slab_reward:create',
+      'slab_reward:read',
+      'slab_reward:update',
+      'slab_rewards:read'
     ],
+
 
 
 

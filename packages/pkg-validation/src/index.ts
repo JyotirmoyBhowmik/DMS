@@ -47,7 +47,9 @@ export * from './schemas/scheme.schema.js';
 export * from './schemas/scheme_promotion.schema.js';
 export * from './schemas/eligibility_rule.schema.js';
 export * from './schemas/scheme_budget.schema.js';
+export * from './schemas/slab_reward.schema.js';
 export * from './rules/business.rules.js';
+
 
 
 
