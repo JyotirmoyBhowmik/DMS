@@ -953,7 +953,7 @@ export class GatewayController {
       let statusCode = 200;
 
       if (request.method === 'POST') {
-        const res = await this.schemesController.handlePostScheme(request.body, {
+        const res = await this.schemesController.handleCreate(request.body, {
           'x-tenant-id': tenantId,
         });
         statusCode = res.statusCode;
@@ -961,13 +961,13 @@ export class GatewayController {
       } else if (request.method === 'GET') {
         const id = params.id || (request.body as any)?.schemeId;
         if (id) {
-          const res = await this.schemesController.handleGetScheme(id, {
+          const res = await this.schemesController.handleGet(id, {
             'x-tenant-id': tenantId,
           });
           statusCode = res.statusCode;
           resultBody = res.body;
         } else {
-          const res = await this.schemesController.handleListSchemes(request.body || {}, {
+          const res = await this.schemesController.handleList(request.body || {}, {
             'x-tenant-id': tenantId,
           });
           statusCode = res.statusCode;
@@ -975,7 +975,7 @@ export class GatewayController {
         }
       } else if (request.method === 'PUT') {
         const id = params.id || (request.body as any)?.schemeId;
-        const res = await this.schemesController.handlePutScheme(id, request.body, {
+        const res = await this.schemesController.handleUpdate(id, request.body, {
           'x-tenant-id': tenantId,
         });
         statusCode = res.statusCode;

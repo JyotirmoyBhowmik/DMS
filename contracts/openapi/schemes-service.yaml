@@ -1,0 +1,22 @@
+openapi: 3.0.3
+info:
+  title: Schemes Service API
+  version: 1.0.0
+  description: OpenAPI 3.0 spec for DMS Schemes Service managing trade and promotional scheme rules.
+
+paths:
+  /schemes:
+    post:
+      summary: Create a promotional scheme
+      operationId: createScheme
+      responses:
+        '201':
+          description: Scheme created successfully
+        '409':
+          description: Duplicate scheme code conflict
+    get:
+      summary: List schemes with status, schemeType, and code filters
+      operationId: listSchemes
+      responses:
+        '200':
+          description: Paginated schemes list

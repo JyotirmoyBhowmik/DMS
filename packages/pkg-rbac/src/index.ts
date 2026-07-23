@@ -168,8 +168,13 @@ export class RbacGuard {
       'tax_rule:create',
       'tax_rule:read',
       'tax_rule:update',
-      'tax_rules:read'
+      'tax_rules:read',
+      'scheme:create',
+      'scheme:read',
+      'scheme:update',
+      'schemes:read'
     ],
+
 
 
 
