@@ -278,6 +278,96 @@ paths:
         '409':
           description: Version conflict
 
+  /api/v1/payments:
+    post:
+      summary: Create new payment record
+      operationId: createPayment
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+      responses:
+        '201':
+          description: Payment record created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List payments with pagination and filters
+      operationId: listPayments
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, PROCESSING, COMPLETED, FAILED, REFUNDED]
+      responses:
+        '200':
+          description: List of payment records
+
+  /api/v1/payments/{id}:
+    get:
+      summary: Get payment detail by ID
+      operationId: getPayment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Payment detail
+        '404':
+          description: Payment not found
+    put:
+      summary: Update payment status (with optimistic concurrency version check)
+      operationId: updatePayment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePaymentRequest'
+      responses:
+        '200':
+          description: Payment updated
+        '409':
+          description: Version conflict
+
 components:
   schemas:
     CreateInvoiceRequest:
@@ -422,6 +512,52 @@ components:
           type: string
           format: uuid
         debitNoteNumber:
+          type: string
+        status:
+          type: string
+        amountCents:
+          type: integer
+        version:
+          type: integer
+
+    CreatePaymentRequest:
+      type: object
+      required:
+        - distributorId
+        - paymentReference
+        - amountCents
+      properties:
+        distributorId:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        paymentReference:
+          type: string
+        amountCents:
+          type: integer
+          minimum: 1
+        paymentMethod:
+          type: string
+    UpdatePaymentRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [DRAFT, PROCESSING, COMPLETED, FAILED, REFUNDED]
+        version:
+          type: integer
+          minimum: 1
+    PaymentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        paymentReference:
           type: string
         status:
           type: string
