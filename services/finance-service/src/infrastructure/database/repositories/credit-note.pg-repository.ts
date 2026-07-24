@@ -117,8 +117,16 @@ export class CreditNotePgRepository implements CreditNoteRepository {
       );
     }
 
-    CreditNotePgRepository.inMemoryDb.set(creditNote.id, creditNote);
-    return creditNote;
+    const updatedCreditNote = new CreditNote({
+      ...creditNote.toJSON(),
+      invoiceId: creditNote.invoiceId,
+      idempotencyKey: creditNote.idempotencyKey,
+      version: creditNote.version + 1,
+      createdAt: creditNote.createdAt,
+      updatedAt: new Date()
+    });
+    CreditNotePgRepository.inMemoryDb.set(creditNote.id, updatedCreditNote);
+    return updatedCreditNote;
   }
 
   async delete(id: string, tenantId: string): Promise<void> {

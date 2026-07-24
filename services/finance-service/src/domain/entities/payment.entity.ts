@@ -17,7 +17,8 @@ export class InvalidPaymentStateTransitionError extends PaymentDomainError {
 
 export class PaymentValidationError extends PaymentDomainError {
   constructor(public readonly fields: Record<string, string>, message = 'Payment validation failed') {
-    super(message);
+    const detail = Object.values(fields).join('; ');
+    super(detail ? `${message}: ${detail}` : message);
     this.name = 'PaymentValidationError';
   }
 }

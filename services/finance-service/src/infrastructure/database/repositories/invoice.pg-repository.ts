@@ -113,8 +113,19 @@ export class InvoicePgRepository implements InvoiceRepository {
       );
     }
 
-    InvoicePgRepository.inMemoryDb.set(invoice.id, invoice);
-    return invoice;
+    const json = invoice.toJSON();
+    const updatedInvoice = new Invoice({
+      ...json,
+      orderId: invoice.orderId,
+      idempotencyKey: invoice.idempotencyKey,
+      paidAt: invoice.paidAt,
+      items: invoice.items,
+      version: invoice.version + 1,
+      createdAt: invoice.createdAt,
+      updatedAt: new Date()
+    });
+    InvoicePgRepository.inMemoryDb.set(invoice.id, updatedInvoice);
+    return updatedInvoice;
   }
 
   async delete(id: string, tenantId: string): Promise<void> {

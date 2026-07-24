@@ -117,8 +117,16 @@ export class DebitNotePgRepository implements DebitNoteRepository {
       );
     }
 
-    DebitNotePgRepository.inMemoryDb.set(debitNote.id, debitNote);
-    return debitNote;
+    const updatedDebitNote = new DebitNote({
+      ...debitNote.toJSON(),
+      invoiceId: debitNote.invoiceId,
+      idempotencyKey: debitNote.idempotencyKey,
+      version: debitNote.version + 1,
+      createdAt: debitNote.createdAt,
+      updatedAt: new Date()
+    });
+    DebitNotePgRepository.inMemoryDb.set(debitNote.id, updatedDebitNote);
+    return updatedDebitNote;
   }
 
   async delete(id: string, tenantId: string): Promise<void> {

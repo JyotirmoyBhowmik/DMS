@@ -116,8 +116,16 @@ export class PaymentPgRepository implements PaymentRepository {
       );
     }
 
-    PaymentPgRepository.inMemoryDb.set(payment.id, payment);
-    return payment;
+    const updatedPayment = new Payment({
+      ...payment.toJSON(),
+      invoiceId: payment.invoiceId,
+      idempotencyKey: payment.idempotencyKey,
+      version: payment.version + 1,
+      createdAt: payment.createdAt,
+      updatedAt: new Date()
+    });
+    PaymentPgRepository.inMemoryDb.set(payment.id, updatedPayment);
+    return updatedPayment;
   }
 
   async delete(id: string, tenantId: string): Promise<void> {

@@ -17,7 +17,8 @@ export class InvalidDebitNoteStateTransitionError extends DebitNoteDomainError {
 
 export class DebitNoteValidationError extends DebitNoteDomainError {
   constructor(public readonly fields: Record<string, string>, message = 'DebitNote validation failed') {
-    super(message);
+    const detail = Object.values(fields).join('; ');
+    super(detail ? `${message}: ${detail}` : message);
     this.name = 'DebitNoteValidationError';
   }
 }

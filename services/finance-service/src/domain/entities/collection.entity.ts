@@ -17,7 +17,8 @@ export class InvalidCollectionStateTransitionError extends CollectionDomainError
 
 export class CollectionValidationError extends CollectionDomainError {
   constructor(public readonly fields: Record<string, string>, message = 'Collection validation failed') {
-    super(message);
+    const detail = Object.values(fields).join('; ');
+    super(detail ? `${message}: ${detail}` : message);
     this.name = 'CollectionValidationError';
   }
 }

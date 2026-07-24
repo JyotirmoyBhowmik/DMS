@@ -16,7 +16,8 @@ export class InvalidCreditNoteStateTransitionError extends CreditNoteDomainError
 
 export class CreditNoteValidationError extends CreditNoteDomainError {
   constructor(public readonly fields: Record<string, string>, message = 'CreditNote validation failed') {
-    super(message);
+    const detail = Object.values(fields).join('; ');
+    super(detail ? `${message}: ${detail}` : message);
     this.name = 'CreditNoteValidationError';
   }
 }

@@ -116,8 +116,16 @@ export class CollectionPgRepository implements CollectionRepository {
       );
     }
 
-    CollectionPgRepository.inMemoryDb.set(collection.id, collection);
-    return collection;
+    const updatedCollection = new Collection({
+      ...collection.toJSON(),
+      invoiceId: collection.invoiceId,
+      idempotencyKey: collection.idempotencyKey,
+      version: collection.version + 1,
+      createdAt: collection.createdAt,
+      updatedAt: new Date()
+    });
+    CollectionPgRepository.inMemoryDb.set(collection.id, updatedCollection);
+    return updatedCollection;
   }
 
   async delete(id: string, tenantId: string): Promise<void> {
