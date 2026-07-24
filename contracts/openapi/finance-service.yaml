@@ -97,6 +97,97 @@ paths:
           description: Invoice updated
         '409':
           description: Version conflict
+
+  /api/v1/credit-notes:
+    post:
+      summary: Create new credit note
+      operationId: createCreditNote
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCreditNoteRequest'
+      responses:
+        '201':
+          description: Credit note created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditNoteResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List credit notes with pagination and filters
+      operationId: listCreditNotes
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, APPROVED, APPLIED, CANCELLED]
+      responses:
+        '200':
+          description: List of credit notes
+
+  /api/v1/credit-notes/{id}:
+    get:
+      summary: Get credit note detail by ID
+      operationId: getCreditNote
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Credit note detail
+        '404':
+          description: Credit note not found
+    put:
+      summary: Update credit note status (with optimistic concurrency version check)
+      operationId: updateCreditNote
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCreditNoteRequest'
+      responses:
+        '200':
+          description: Credit note updated
+        '409':
+          description: Version conflict
+
 components:
   schemas:
     CreateInvoiceRequest:
@@ -151,6 +242,53 @@ components:
         status:
           type: string
         netAmountCents:
+          type: integer
+        version:
+          type: integer
+
+    CreateCreditNoteRequest:
+      type: object
+      required:
+        - distributorId
+        - creditNoteNumber
+        - amountCents
+        - reason
+      properties:
+        distributorId:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        creditNoteNumber:
+          type: string
+        amountCents:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+    UpdateCreditNoteRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [DRAFT, APPROVED, APPLIED, CANCELLED]
+        version:
+          type: integer
+          minimum: 1
+    CreditNoteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        creditNoteNumber:
+          type: string
+        status:
+          type: string
+        amountCents:
           type: integer
         version:
           type: integer

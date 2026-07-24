@@ -2,6 +2,7 @@ import { InvoiceRepository } from '../../domain/repositories/invoice.repository.
 import { Invoice, InvoiceItem, InvoiceDomainError } from '../../domain/entities/invoice.entity.js';
 import { CreateInvoiceDto } from '../dtos/invoice.dto.js';
 import { validateCreateInvoiceInput } from '../../domain/validation/invoice.validation.js';
+import { InvoiceAuditService } from '../../infrastructure/audit/invoice.audit.js';
 
 export interface Principal {
   userId: string;
@@ -11,27 +12,29 @@ export interface Principal {
 }
 
 export class CreateInvoiceUseCase {
+  private auditService = new InvoiceAuditService();
+
   constructor(private readonly repository: InvoiceRepository) {}
 
-  async execute(principal: Principal, dto: CreateInvoiceDto, idempotencyKey?: string): Promise<Invoice> {
+  async execute(principal: Principal, dto: CreateInvoiceDto, idempotencyKey?: string, correlationId?: string): Promise<Invoice> {
     if (!principal || !principal.tenantId) {
       throw new InvoiceDomainError('Forbidden: Valid principal and tenantId are required');
     }
 
+    // Default-deny granular permission check (Task 1241)
     const hasPermission =
       principal.roles.includes('admin') ||
       principal.permissions.includes('finance:invoice:create') ||
       principal.permissions.includes('finance:*');
 
     if (!hasPermission) {
-      throw new InvoiceDomainError('Forbidden: Insufficient permissions to create invoice');
+      throw new InvoiceDomainError('Forbidden: Insufficient permissions to create invoice (finance:invoice:create required)');
     }
 
     validateCreateInvoiceInput(dto);
 
     const effectiveIdempotencyKey = idempotencyKey || dto.idempotencyKey;
 
-    // Idempotency check if idempotencyKey provided
     if (effectiveIdempotencyKey) {
       const existing = await this.repository.findByInvoiceNumber(dto.invoiceNumber, principal.tenantId);
       if (existing && existing.idempotencyKey === effectiveIdempotencyKey) {
@@ -39,7 +42,6 @@ export class CreateInvoiceUseCase {
       }
     }
 
-    // Check uniqueness of invoiceNumber
     const duplicate = await this.repository.findByInvoiceNumber(dto.invoiceNumber, principal.tenantId);
     if (duplicate) {
       throw new InvoiceDomainError(`Invoice with number '${dto.invoiceNumber}' already exists`);
@@ -72,6 +74,19 @@ export class CreateInvoiceUseCase {
     });
 
     const saved = await this.repository.save(invoice, principal.tenantId);
+
+    // Audit logging hook (Task 1242)
+    await this.auditService.recordMutation({
+      tenantId: principal.tenantId,
+      actorId: principal.userId,
+      action: 'INVOICE_CREATED',
+      entityType: 'Invoice',
+      entityId: saved.id,
+      correlationId: correlationId || 'N/A',
+      source: 'API',
+      newValue: saved.toJSON(),
+    });
+
     return saved;
   }
 }
