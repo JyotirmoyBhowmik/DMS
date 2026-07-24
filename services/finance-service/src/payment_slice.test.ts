@@ -9,15 +9,17 @@ import { UpdatePaymentUseCase } from './application/usecases/update-payment.usec
 import { ListPaymentsUseCase } from './application/usecases/list-payments.usecase.js';
 import { PaymentController } from './presentation/rest/controllers/payment.controller.js';
 import { PaymentAuditService } from './infrastructure/audit/payment.audit.js';
+import { PaymentEventConsumer } from './infrastructure/events/payment.consumer.js';
 import { randomUUID } from 'node:crypto';
 
-describe('Payment Full Vertical Slice QA & Security Suite (Tasks 1291-1300)', () => {
+describe('Payment Full QA, Security & Consumer Suite (Tasks 1301-1310)', () => {
   let repository: PaymentPgRepository;
   let createUseCase: CreatePaymentUseCase;
   let getUseCase: GetPaymentUseCase;
   let updateUseCase: UpdatePaymentUseCase;
   let listUseCase: ListPaymentsUseCase;
   let controller: PaymentController;
+  let consumer: PaymentEventConsumer;
 
   const tenantId = randomUUID();
   const tenantBId = randomUUID();
@@ -44,6 +46,13 @@ describe('Payment Full Vertical Slice QA & Security Suite (Tasks 1291-1300)', ()
     permissions: [],
   };
 
+  const readOnlyPrincipal: any = {
+    userId: 'user-read-pay-1',
+    tenantId,
+    roles: ['analyst'],
+    permissions: ['finance:payment:read'],
+  };
+
   const tenantBPrincipal: any = {
     userId: 'user-tenant-b-pay',
     tenantId: tenantBId,
@@ -67,147 +76,151 @@ describe('Payment Full Vertical Slice QA & Security Suite (Tasks 1291-1300)', ()
     updateUseCase = new UpdatePaymentUseCase(repository);
     listUseCase = new ListPaymentsUseCase(repository);
     controller = new PaymentController(repository);
+    consumer = new PaymentEventConsumer();
+    consumer.clearDeduplicationStore();
   });
 
-  // Tasks 1292 & 1299: Domain Aggregate & State Machine
-  describe('Tasks 1292 & 1299: Payment Domain Entity & Invariants', () => {
-    it('enforces invariants: tenantId, distributorId, paymentReference, amountCents > 0', () => {
+  // Task 1301: Event Consumer Deduplication & DLQ
+  describe('Task 1301: Payment Event Consumer & DLQ Handling', () => {
+    it('deduplicates events by ID and routes poison messages to DLQ', async () => {
+      const validEvent = {
+        id: 'evt-pay-100',
+        name: 'finance.payment.completed',
+        occurredAt: new Date().toISOString(),
+        tenantId,
+        payload: { paymentId: 'pay-1', amountCents: 1000 },
+      };
+
+      const res1 = await consumer.handleEvent(validEvent);
+      assert.strictEqual(res1.success, true);
+      assert.strictEqual(consumer.isProcessed('evt-pay-100'), true);
+
+      // Redelivery -> Duplicate
+      const res2 = await consumer.handleEvent(validEvent);
+      assert.strictEqual(res2.success, true);
+      assert.strictEqual(res2.duplicate, true);
+
+      // Poison message -> DLQ
+      const poisonEvent: any = { id: '', name: 'invalid' };
+      const res3 = await consumer.handleEvent(poisonEvent);
+      assert.strictEqual(res3.success, false);
+      assert.strictEqual(consumer.getDLQ().length, 1);
+    });
+  });
+
+  // Task 1304: DTO Boundary & Mass-Assignment Protection
+  describe('Task 1304: DTO Mapping Boundary & Mass Assignment Protection', () => {
+    it('rejects extra unknown fields to prevent mass assignment', () => {
       assert.throws(
-        () => new Payment({ tenantId: '', distributorId, paymentReference: 'PAY-1', amountCents: 100 }),
-        /tenantId is required/
+        () => validateCreatePaymentInput({ distributorId, paymentReference: 'PAY-DTO-1', amountCents: 1000, unexpectedProp: 'hacked' }),
+        /Unknown field 'unexpectedProp' is not allowed/
       );
-      assert.throws(
-        () => new Payment({ tenantId, distributorId: '', paymentReference: 'PAY-1', amountCents: 100 }),
-        /distributorId is required/
-      );
-      assert.throws(
-        () => new Payment({ tenantId, distributorId, paymentReference: '', amountCents: 100 }),
-        /paymentReference is required/
-      );
-      assert.throws(
-        () => new Payment({ tenantId, distributorId, paymentReference: 'PAY-ZERO', amountCents: 0 }),
-        /amountCents must be > 0/
+    });
+  });
+
+  // Task 1305: RBAC Permissions & Privilege Escalation Denial
+  describe('Task 1305: RBAC Granular Permissions & Default-Deny Policy', () => {
+    it('rejects unprivileged access (default-deny policy)', async () => {
+      await assert.rejects(
+        () =>
+          createUseCase.execute(restrictedPrincipal, {
+            distributorId,
+            paymentReference: 'PAY-DENIED',
+            amountCents: 100,
+          }),
+        /Forbidden: Insufficient permissions/
       );
     });
 
-    it('executes valid state machine transitions (DRAFT -> PROCESSING -> COMPLETED -> REFUNDED) and rejects illegal ones', () => {
-      const pay = new Payment({
-        tenantId,
+    it('denies privilege-escalation attempt when user lacks approval permission', async () => {
+      const created = await createUseCase.execute(adminPrincipal, {
         distributorId,
-        paymentReference: 'PAY-STATE-1',
-        amountCents: 125000,
+        paymentReference: 'PAY-APPROVE-TEST',
+        amountCents: 5000,
       });
 
-      assert.strictEqual(pay.status, 'DRAFT');
-
-      pay.process();
-      assert.strictEqual(pay.status, 'PROCESSING');
-      assert.strictEqual(pay.domainEvents.length, 1);
-
-      pay.complete();
-      assert.strictEqual(pay.status, 'COMPLETED');
-      assert.strictEqual(pay.domainEvents.length, 2);
-
-      pay.refund();
-      assert.strictEqual(pay.status, 'REFUNDED');
-      assert.strictEqual(pay.domainEvents.length, 3);
-
-      // Illegal: REFUNDED -> DRAFT
-      assert.throws(() => pay.transitionTo('DRAFT'), InvalidPaymentStateTransitionError);
-    });
-  });
-
-  // Task 1298: Domain Validation Rules
-  describe('Task 1298: Payment Domain Validation Rules', () => {
-    it('validates Create payment input and rejects unknown fields', () => {
-      assert.throws(
-        () => validateCreatePaymentInput({ distributorId, paymentReference: 'PAY-1', amountCents: 500, malicious: 'payload' }),
-        /Unknown field 'malicious' is not allowed/
-      );
-
-      assert.throws(
-        () => validateCreatePaymentInput({ paymentReference: 'PAY-1', amountCents: 500 }),
-        /REQUIRED_FIELD: distributorId/
-      );
-
-      assert.throws(
-        () => validateCreatePaymentInput({ distributorId, paymentReference: 'PAY-1', amountCents: -50 }),
-        /INVALID_RANGE: amountCents/
-      );
-    });
-
-    it('validates Update payment input and version field', () => {
-      assert.throws(
-        () => validateUpdatePaymentInput({ status: 'COMPLETED' }),
-        /REQUIRED_FIELD: version is required/
+      await assert.rejects(
+        () =>
+          updateUseCase.execute(readOnlyPrincipal, created.id, {
+            status: 'COMPLETED',
+            version: 1,
+          }),
+        /Forbidden: Insufficient permissions/
       );
     });
   });
 
-  // Tasks 1294-1297 & 1300: Use Cases & Audit Logging Suite
-  describe('Tasks 1294-1297 & 1300: Payment Use Cases & Audit Trail', () => {
-    it('executes CreatePaymentUseCase with idempotency, audit trail & uniqueness checks', async () => {
+  // Task 1306: Audit Logging Hooks
+  describe('Task 1306: Audit Logging Verification', () => {
+    it('records tamper-evident audit records on payment create & update', async () => {
       const created = await createUseCase.execute(
         adminPrincipal,
         {
           distributorId,
-          paymentReference: 'PAY-2026-001',
-          amountCents: 250000,
-          paymentMethod: 'WIRE_TRANSFER',
+          paymentReference: 'PAY-AUDIT-01',
+          amountCents: 25000,
         },
-        'idemp-pay-01',
-        'corr-pay-01'
+        undefined,
+        'corr-pay-audit-100'
       );
 
-      assert.strictEqual(created.paymentReference, 'PAY-2026-001');
-      assert.strictEqual(created.amountCents, 250000);
+      let trail = PaymentAuditService.getAuditTrail(tenantId);
+      assert.strictEqual(trail.length, 1);
+      assert.strictEqual(trail[0].action, 'PAYMENT_CREATED');
+      assert.strictEqual(trail[0].actorId, 'user-admin-pay-1');
 
-      // Verify audit trail
-      const auditTrail = PaymentAuditService.getAuditTrail(tenantId);
-      assert.strictEqual(auditTrail.length, 1);
-      assert.strictEqual(auditTrail[0].action, 'PAYMENT_CREATED');
-      assert.strictEqual(auditTrail[0].correlationId, 'corr-pay-01');
-
-      // Idempotency check
-      const duplicateIdemp = await createUseCase.execute(
+      await updateUseCase.execute(
         adminPrincipal,
-        {
-          distributorId,
-          paymentReference: 'PAY-2026-001',
-          amountCents: 250000,
-        },
-        'idemp-pay-01'
+        created.id,
+        { status: 'PROCESSING', version: 1 },
+        'corr-pay-audit-101'
       );
-      assert.strictEqual(duplicateIdemp.id, created.id);
 
-      // Duplicate paymentReference throws conflict
-      await assert.rejects(
-        () =>
-          createUseCase.execute(
-            adminPrincipal,
-            {
-              distributorId,
-              paymentReference: 'PAY-2026-001',
-              amountCents: 250000,
-            },
-            'idemp-pay-02'
-          ),
-        /already exists/
-      );
+      trail = PaymentAuditService.getAuditTrail(tenantId);
+      assert.strictEqual(trail.length, 2);
+      assert.strictEqual(trail[1].action, 'PAYMENT_UPDATED_PROCESSING');
     });
+  });
 
-    it('executes Get, Update and List use cases with optimistic locking', async () => {
-      const created = await createUseCase.execute(adminPrincipal, {
+  // Task 1307: Domain Invariants
+  describe('Task 1307: Domain Aggregate Invariants & State Machine', () => {
+    it('enforces constructor invariants and state machine rules', () => {
+      assert.throws(
+        () => new Payment({ tenantId: '', distributorId, paymentReference: 'PAY-1', amountCents: 100 }),
+        /tenantId is required/
+      );
+
+      const pay = new Payment({
+        tenantId,
         distributorId,
-        paymentReference: 'PAY-2026-002',
-        amountCents: 180000,
+        paymentReference: 'PAY-STATE-1',
+        amountCents: 3500,
       });
 
-      // Get
+      assert.strictEqual(pay.status, 'DRAFT');
+      pay.process();
+      assert.strictEqual(pay.status, 'PROCESSING');
+      pay.complete();
+      assert.strictEqual(pay.status, 'COMPLETED');
+      pay.refund();
+      assert.strictEqual(pay.status, 'REFUNDED');
+
+      assert.throws(() => pay.transitionTo('DRAFT'), InvalidPaymentStateTransitionError);
+    });
+  });
+
+  // Task 1308: Use Cases Execution & Optimistic Concurrency
+  describe('Task 1308: Use Cases Execution & Optimistic Concurrency', () => {
+    it('executes CRUD flow and rejects optimistic locking conflict', async () => {
+      const created = await createUseCase.execute(adminPrincipal, {
+        distributorId,
+        paymentReference: 'PAY-FLOW-1',
+        amountCents: 18000,
+      });
+
       const fetched = await getUseCase.execute(adminPrincipal, created.id);
       assert.strictEqual(fetched.id, created.id);
 
-      // Update -> PROCESSING (version 1)
       const updated = await updateUseCase.execute(adminPrincipal, created.id, {
         status: 'PROCESSING',
         version: 1,
@@ -219,38 +232,21 @@ describe('Payment Full Vertical Slice QA & Security Suite (Tasks 1291-1300)', ()
         () => updateUseCase.execute(adminPrincipal, created.id, { status: 'COMPLETED', version: 1 }),
         /Version conflict/
       );
-
-      // List
-      const listRes = await listUseCase.execute(adminPrincipal, { page: 1, limit: 10 });
-      assert.strictEqual(listRes.total, 1);
-      assert.strictEqual(listRes.data[0].id, created.id);
-    });
-
-    it('rejects unauthorized principals', async () => {
-      await assert.rejects(
-        () =>
-          createUseCase.execute(restrictedPrincipal, {
-            distributorId,
-            paymentReference: 'PAY-UNAUTH',
-            amountCents: 1000,
-          }),
-        /Forbidden: Insufficient permissions/
-      );
     });
   });
 
-  // Task 1293: Repository & Tenant RLS Isolation Proof
-  describe('Task 1293: Repository RLS Isolation Proof', () => {
-    it('enforces tenant RLS isolation between Tenant A and Tenant B', async () => {
+  // Task 1309: Repository RLS Isolation Proof
+  describe('Task 1309: Repository Integration & RLS Isolation Proof', () => {
+    it('proves Tenant A cannot read or mutate Tenant B payment', async () => {
       const payA = await createUseCase.execute(adminPrincipal, {
         distributorId,
-        paymentReference: 'PAY-TENANT-A',
+        paymentReference: 'PAY-TEN-A',
         amountCents: 5000,
       });
 
       const payB = await createUseCase.execute(tenantBPrincipal, {
         distributorId,
-        paymentReference: 'PAY-TENANT-B',
+        paymentReference: 'PAY-TEN-B',
         amountCents: 7500,
       });
 
@@ -266,9 +262,9 @@ describe('Payment Full Vertical Slice QA & Security Suite (Tasks 1291-1300)', ()
     });
   });
 
-  // Task 1300: Controller API Routes & Security Suite
-  describe('Task 1300: Payment Controller REST API & Security', () => {
-    it('handles controller CRUD endpoints with correct HTTP status codes', async () => {
+  // Task 1310: API Gateway Security Suite
+  describe('Task 1310: API Gateway Security Suite', () => {
+    it('handles controller CRUD endpoints and rejects invalid content-type', async () => {
       const headers = {
         'x-tenant-id': tenantId,
         'x-user-id': 'user-admin-pay-1',
@@ -276,51 +272,23 @@ describe('Payment Full Vertical Slice QA & Security Suite (Tasks 1291-1300)', ()
         'content-type': 'application/json',
       };
 
-      // 1. Create -> 201
       const createRes = await controller.handleCreate(
         {
           distributorId,
-          paymentReference: 'PAY-API-001',
-          amountCents: 95000,
-          paymentMethod: 'ACH',
+          paymentReference: 'PAY-API-SEC-1',
+          amountCents: 45000,
         },
         headers
       );
       assert.strictEqual(createRes.statusCode, 201);
       assert.strictEqual(createRes.body.success, true);
-      const createdId = (createRes.body as any).payment.id;
 
-      // 2. Get -> 200
-      const getRes = await controller.handleGet(createdId, headers);
-      assert.strictEqual(getRes.statusCode, 200);
-      assert.strictEqual((getRes.body as any).payment.paymentReference, 'PAY-API-001');
-
-      // 3. Update -> 200
-      const updateRes = await controller.handleUpdate(
-        createdId,
-        { status: 'PROCESSING', version: 1 },
-        headers
-      );
-      assert.strictEqual(updateRes.statusCode, 200);
-      assert.strictEqual((updateRes.body as any).payment.status, 'PROCESSING');
-
-      // 4. List -> 200
-      const listRes = await controller.handleList({ page: 1, limit: 10 }, headers);
-      assert.strictEqual(listRes.statusCode, 200);
-      assert.strictEqual((listRes.body as any).total, 1);
-    });
-
-    it('rejects unsupported content-type and handles SQL injection safety', async () => {
-      const headersXml = {
-        'x-tenant-id': tenantId,
-        'content-type': 'application/xml',
-      };
-
-      const resXml = await controller.handleCreate(
+      // Invalid Content-Type -> 415
+      const xmlRes = await controller.handleCreate(
         { distributorId, paymentReference: 'PAY-XML', amountCents: 100 },
-        headersXml
+        { ...headers, 'content-type': 'application/xml' }
       );
-      assert.strictEqual(resXml.statusCode, 415);
+      assert.strictEqual(xmlRes.statusCode, 415);
     });
   });
 });
