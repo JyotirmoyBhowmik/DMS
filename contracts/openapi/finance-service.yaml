@@ -188,6 +188,96 @@ paths:
         '409':
           description: Version conflict
 
+  /api/v1/debit-notes:
+    post:
+      summary: Create new debit note
+      operationId: createDebitNote
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDebitNoteRequest'
+      responses:
+        '201':
+          description: Debit note created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebitNoteResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List debit notes with pagination and filters
+      operationId: listDebitNotes
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, APPROVED, APPLIED, CANCELLED]
+      responses:
+        '200':
+          description: List of debit notes
+
+  /api/v1/debit-notes/{id}:
+    get:
+      summary: Get debit note detail by ID
+      operationId: getDebitNote
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Debit note detail
+        '404':
+          description: Debit note not found
+    put:
+      summary: Update debit note status (with optimistic concurrency version check)
+      operationId: updateDebitNote
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDebitNoteRequest'
+      responses:
+        '200':
+          description: Debit note updated
+        '409':
+          description: Version conflict
+
 components:
   schemas:
     CreateInvoiceRequest:
@@ -285,6 +375,53 @@ components:
           type: string
           format: uuid
         creditNoteNumber:
+          type: string
+        status:
+          type: string
+        amountCents:
+          type: integer
+        version:
+          type: integer
+
+    CreateDebitNoteRequest:
+      type: object
+      required:
+        - distributorId
+        - debitNoteNumber
+        - amountCents
+        - reason
+      properties:
+        distributorId:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        debitNoteNumber:
+          type: string
+        amountCents:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+    UpdateDebitNoteRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [DRAFT, APPROVED, APPLIED, CANCELLED]
+        version:
+          type: integer
+          minimum: 1
+    DebitNoteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        debitNoteNumber:
           type: string
         status:
           type: string

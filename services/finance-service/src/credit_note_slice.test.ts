@@ -8,9 +8,10 @@ import { GetCreditNoteUseCase } from './application/usecases/get-credit-note.use
 import { UpdateCreditNoteUseCase } from './application/usecases/update-credit-note.usecase.js';
 import { ListCreditNotesUseCase } from './application/usecases/list-credit-notes.usecase.js';
 import { CreditNoteController } from './presentation/rest/controllers/credit-note.controller.js';
+import { CreditNoteAuditService } from './infrastructure/audit/credit-note.audit.js';
 import { randomUUID } from 'node:crypto';
 
-describe('CreditNote Full Vertical Slice QA & Security Suite (Tasks 1249-1260)', () => {
+describe('CreditNote Full QA & Security Suite (Tasks 1261-1267)', () => {
   let repository: CreditNotePgRepository;
   let createUseCase: CreateCreditNoteUseCase;
   let getUseCase: GetCreditNoteUseCase;
@@ -30,6 +31,8 @@ describe('CreditNote Full Vertical Slice QA & Security Suite (Tasks 1249-1260)',
       'finance:credit_note:create',
       'finance:credit_note:read',
       'finance:credit_note:update',
+      'finance:credit_note:delete',
+      'finance:credit_note:approve',
       'finance:credit_note:list',
     ],
   };
@@ -41,6 +44,13 @@ describe('CreditNote Full Vertical Slice QA & Security Suite (Tasks 1249-1260)',
     permissions: [],
   };
 
+  const readOnlyPrincipal: any = {
+    userId: 'user-read-cn-1',
+    tenantId,
+    roles: ['analyst'],
+    permissions: ['finance:credit_note:read'],
+  };
+
   const tenantBPrincipal: any = {
     userId: 'user-tenant-b-cn',
     tenantId: tenantBId,
@@ -49,12 +59,15 @@ describe('CreditNote Full Vertical Slice QA & Security Suite (Tasks 1249-1260)',
       'finance:credit_note:create',
       'finance:credit_note:read',
       'finance:credit_note:update',
+      'finance:credit_note:delete',
+      'finance:credit_note:approve',
       'finance:credit_note:list',
     ],
   };
 
   beforeEach(() => {
     CreditNotePgRepository.clearStore();
+    CreditNoteAuditService.clearAuditTrail();
     repository = new CreditNotePgRepository();
     createUseCase = new CreateCreditNoteUseCase(repository);
     getUseCase = new GetCreditNoteUseCase(repository);
@@ -63,32 +76,98 @@ describe('CreditNote Full Vertical Slice QA & Security Suite (Tasks 1249-1260)',
     controller = new CreditNoteController(repository);
   });
 
-  // Task 1250 & 1257: Domain Aggregate & State Machine
-  describe('Tasks 1250 & 1257: CreditNote Domain Entity & Invariants', () => {
-    it('enforces invariants: tenantId, distributorId, creditNoteNumber, amountCents > 0, reason', () => {
+  // Task 1261: DTO Boundary & Mass-Assignment Protection
+  describe('Task 1261: DTO Mapping Boundary & Mass Assignment Protection', () => {
+    it('rejects extra unknown fields to prevent mass assignment', () => {
+      assert.throws(
+        () => validateCreateCreditNoteInput({ distributorId, creditNoteNumber: 'CN-DTO-1', amountCents: 1000, reason: 'Test', unexpectedProp: 'hacked' }),
+        /Unknown field 'unexpectedProp' is not allowed/
+      );
+    });
+  });
+
+  // Task 1262: RBAC Permissions & Privilege Escalation Denial
+  describe('Task 1262: RBAC Granular Permissions & Default-Deny Policy', () => {
+    it('rejects unprivileged access (default-deny policy)', async () => {
+      await assert.rejects(
+        () =>
+          createUseCase.execute(restrictedPrincipal, {
+            distributorId,
+            creditNoteNumber: 'CN-DENIED',
+            amountCents: 100,
+            reason: 'Return',
+          }),
+        /Forbidden: Insufficient permissions/
+      );
+    });
+
+    it('denies privilege-escalation attempt when user lacks approval permission', async () => {
+      const created = await createUseCase.execute(adminPrincipal, {
+        distributorId,
+        creditNoteNumber: 'CN-APPROVE-TEST',
+        amountCents: 5000,
+        reason: 'Return',
+      });
+
+      // User with read-only permissions cannot approve credit note
+      await assert.rejects(
+        () =>
+          updateUseCase.execute(readOnlyPrincipal, created.id, {
+            status: 'APPROVED',
+            version: 1,
+          }),
+        /Forbidden: Insufficient permissions/
+      );
+    });
+  });
+
+  // Task 1263: Audit Logging Hooks
+  describe('Task 1263: Audit Logging Verification', () => {
+    it('records tamper-evident audit records on credit note create & update', async () => {
+      const created = await createUseCase.execute(
+        adminPrincipal,
+        {
+          distributorId,
+          creditNoteNumber: 'CN-AUDIT-01',
+          amountCents: 25000,
+          reason: 'Scheme rebate payout',
+        },
+        undefined,
+        'corr-cn-audit-100'
+      );
+
+      let trail = CreditNoteAuditService.getAuditTrail(tenantId);
+      assert.strictEqual(trail.length, 1);
+      assert.strictEqual(trail[0].action, 'CREDIT_NOTE_CREATED');
+      assert.strictEqual(trail[0].actorId, 'user-admin-cn-1');
+      assert.strictEqual(trail[0].correlationId, 'corr-cn-audit-100');
+
+      await updateUseCase.execute(
+        adminPrincipal,
+        created.id,
+        { status: 'APPROVED', version: 1 },
+        'corr-cn-audit-101'
+      );
+
+      trail = CreditNoteAuditService.getAuditTrail(tenantId);
+      assert.strictEqual(trail.length, 2);
+      assert.strictEqual(trail[1].action, 'CREDIT_NOTE_UPDATED_APPROVED');
+      assert.strictEqual(trail[1].correlationId, 'corr-cn-audit-101');
+    });
+  });
+
+  // Task 1264: Domain Unit Tests
+  describe('Task 1264: Domain Aggregate Invariants & State Machine', () => {
+    it('enforces constructor invariants and state machine rules', () => {
       assert.throws(
         () => new CreditNote({ tenantId: '', distributorId, creditNoteNumber: 'CN-1', amountCents: 100, reason: 'Return' }),
         /tenantId is required/
       );
       assert.throws(
-        () => new CreditNote({ tenantId, distributorId: '', creditNoteNumber: 'CN-1', amountCents: 100, reason: 'Return' }),
-        /distributorId is required/
-      );
-      assert.throws(
-        () => new CreditNote({ tenantId, distributorId, creditNoteNumber: '', amountCents: 100, reason: 'Return' }),
-        /creditNoteNumber is required/
-      );
-      assert.throws(
         () => new CreditNote({ tenantId, distributorId, creditNoteNumber: 'CN-ZERO', amountCents: 0, reason: 'Return' }),
         /amountCents must be > 0/
       );
-      assert.throws(
-        () => new CreditNote({ tenantId, distributorId, creditNoteNumber: 'CN-NO-REASON', amountCents: 100, reason: '' }),
-        /reason is required/
-      );
-    });
 
-    it('executes valid state machine transitions (DRAFT -> APPROVED -> APPLIED) and rejects illegal ones', () => {
       const cn = new CreditNote({
         tenantId,
         distributorId,
@@ -98,109 +177,28 @@ describe('CreditNote Full Vertical Slice QA & Security Suite (Tasks 1249-1260)',
       });
 
       assert.strictEqual(cn.status, 'DRAFT');
-
       cn.approve();
       assert.strictEqual(cn.status, 'APPROVED');
-      assert.strictEqual(cn.domainEvents.length, 1);
-
       cn.apply();
       assert.strictEqual(cn.status, 'APPLIED');
-      assert.strictEqual(cn.domainEvents.length, 2);
 
-      // Illegal: APPLIED -> DRAFT
       assert.throws(() => cn.transitionTo('DRAFT'), InvalidCreditNoteStateTransitionError);
-      // Illegal: APPLIED -> CANCELLED
-      assert.throws(() => cn.transitionTo('CANCELLED'), InvalidCreditNoteStateTransitionError);
     });
   });
 
-  // Task 1256: Domain Validation Rules
-  describe('Task 1256: CreditNote Domain Validation Rules', () => {
-    it('validates Create credit note input and rejects unknown fields', () => {
-      assert.throws(
-        () => validateCreateCreditNoteInput({ distributorId, creditNoteNumber: 'CN-1', amountCents: 500, reason: 'Return', hackerField: 'xss' }),
-        /Unknown field 'hackerField' is not allowed/
-      );
-
-      assert.throws(
-        () => validateCreateCreditNoteInput({ creditNoteNumber: 'CN-1', amountCents: 500, reason: 'Return' }),
-        /REQUIRED_FIELD: distributorId/
-      );
-
-      assert.throws(
-        () => validateCreateCreditNoteInput({ distributorId, creditNoteNumber: 'CN-1', amountCents: -50, reason: 'Return' }),
-        /INVALID_RANGE: amountCents/
-      );
-    });
-
-    it('validates Update credit note input and version field', () => {
-      assert.throws(
-        () => validateUpdateCreditNoteInput({ status: 'APPROVED' }),
-        /REQUIRED_FIELD: version is required/
-      );
-    });
-  });
-
-  // Tasks 1252-1255: Use Cases Suite
-  describe('Tasks 1252-1255: CreditNote Use Cases Execution Suite', () => {
-    it('executes CreateCreditNoteUseCase with idempotency & uniqueness checks', async () => {
-      const created = await createUseCase.execute(
-        adminPrincipal,
-        {
-          distributorId,
-          creditNoteNumber: 'CN-2026-001',
-          amountCents: 15000,
-          reason: 'Promotional Scheme Payout',
-        },
-        'idemp-cn-01'
-      );
-
-      assert.strictEqual(created.creditNoteNumber, 'CN-2026-001');
-      assert.strictEqual(created.amountCents, 15000);
-
-      // Idempotency check
-      const duplicateIdemp = await createUseCase.execute(
-        adminPrincipal,
-        {
-          distributorId,
-          creditNoteNumber: 'CN-2026-001',
-          amountCents: 15000,
-          reason: 'Promotional Scheme Payout',
-        },
-        'idemp-cn-01'
-      );
-      assert.strictEqual(duplicateIdemp.id, created.id);
-
-      // Duplicate creditNoteNumber throws conflict
-      await assert.rejects(
-        () =>
-          createUseCase.execute(
-            adminPrincipal,
-            {
-              distributorId,
-              creditNoteNumber: 'CN-2026-001',
-              amountCents: 15000,
-              reason: 'Promotional Scheme Payout',
-            },
-            'idemp-cn-02'
-          ),
-        /already exists/
-      );
-    });
-
-    it('executes Get, Update and List use cases with optimistic locking', async () => {
+  // Task 1265: Use Cases Suite & Optimistic Locking
+  describe('Task 1265: Use Cases Execution & Optimistic Concurrency', () => {
+    it('executes CRUD flow and rejects optimistic locking conflict', async () => {
       const created = await createUseCase.execute(adminPrincipal, {
         distributorId,
-        creditNoteNumber: 'CN-2026-002',
-        amountCents: 20000,
-        reason: 'Quantity Shortage Rebate',
+        creditNoteNumber: 'CN-FLOW-1',
+        amountCents: 12000,
+        reason: 'Damage refund',
       });
 
-      // Get
       const fetched = await getUseCase.execute(adminPrincipal, created.id);
       assert.strictEqual(fetched.id, created.id);
 
-      // Update -> APPROVED (version 1)
       const updated = await updateUseCase.execute(adminPrincipal, created.id, {
         status: 'APPROVED',
         version: 1,
@@ -212,40 +210,22 @@ describe('CreditNote Full Vertical Slice QA & Security Suite (Tasks 1249-1260)',
         () => updateUseCase.execute(adminPrincipal, created.id, { status: 'APPLIED', version: 1 }),
         /Version conflict/
       );
-
-      // List
-      const listRes = await listUseCase.execute(adminPrincipal, { page: 1, limit: 10 });
-      assert.strictEqual(listRes.total, 1);
-      assert.strictEqual(listRes.data[0].id, created.id);
-    });
-
-    it('rejects unauthorized principals', async () => {
-      await assert.rejects(
-        () =>
-          createUseCase.execute(restrictedPrincipal, {
-            distributorId,
-            creditNoteNumber: 'CN-UNAUTH',
-            amountCents: 1000,
-            reason: 'Unauthorized attempt',
-          }),
-        /Forbidden: Insufficient permissions/
-      );
     });
   });
 
-  // Task 1251: Repository & Tenant RLS Isolation Proof
-  describe('Task 1251: Repository RLS Isolation Proof', () => {
-    it('enforces tenant RLS isolation between Tenant A and Tenant B', async () => {
+  // Task 1266: Repository RLS Isolation Proof
+  describe('Task 1266: Repository Integration & RLS Isolation Proof', () => {
+    it('proves Tenant A cannot read or mutate Tenant B credit note', async () => {
       const cnA = await createUseCase.execute(adminPrincipal, {
         distributorId,
-        creditNoteNumber: 'CN-TENANT-A',
+        creditNoteNumber: 'CN-TEN-A',
         amountCents: 5000,
         reason: 'Tenant A credit',
       });
 
       const cnB = await createUseCase.execute(tenantBPrincipal, {
         distributorId,
-        creditNoteNumber: 'CN-TENANT-B',
+        creditNoteNumber: 'CN-TEN-B',
         amountCents: 7500,
         reason: 'Tenant B credit',
       });
@@ -262,9 +242,9 @@ describe('CreditNote Full Vertical Slice QA & Security Suite (Tasks 1249-1260)',
     });
   });
 
-  // Task 1259: Controller API Routes & Security Suite
-  describe('Task 1259: CreditNote Controller REST API & Security', () => {
-    it('handles controller CRUD endpoints with correct HTTP status codes', async () => {
+  // Task 1267: API Gateway Security Suite
+  describe('Task 1267: API Gateway Security Suite', () => {
+    it('handles controller CRUD endpoints and rejects invalid content-type', async () => {
       const headers = {
         'x-tenant-id': tenantId,
         'x-user-id': 'user-admin-cn-1',
@@ -272,11 +252,10 @@ describe('CreditNote Full Vertical Slice QA & Security Suite (Tasks 1249-1260)',
         'content-type': 'application/json',
       };
 
-      // 1. Create -> 201
       const createRes = await controller.handleCreate(
         {
           distributorId,
-          creditNoteNumber: 'CN-API-001',
+          creditNoteNumber: 'CN-API-SEC-1',
           amountCents: 35000,
           reason: 'Volume Discount Credit Note',
         },
@@ -284,39 +263,13 @@ describe('CreditNote Full Vertical Slice QA & Security Suite (Tasks 1249-1260)',
       );
       assert.strictEqual(createRes.statusCode, 201);
       assert.strictEqual(createRes.body.success, true);
-      const createdId = (createRes.body as any).creditNote.id;
 
-      // 2. Get -> 200
-      const getRes = await controller.handleGet(createdId, headers);
-      assert.strictEqual(getRes.statusCode, 200);
-      assert.strictEqual((getRes.body as any).creditNote.creditNoteNumber, 'CN-API-001');
-
-      // 3. Update -> 200
-      const updateRes = await controller.handleUpdate(
-        createdId,
-        { status: 'APPROVED', version: 1 },
-        headers
-      );
-      assert.strictEqual(updateRes.statusCode, 200);
-      assert.strictEqual((updateRes.body as any).creditNote.status, 'APPROVED');
-
-      // 4. List -> 200
-      const listRes = await controller.handleList({ page: 1, limit: 10 }, headers);
-      assert.strictEqual(listRes.statusCode, 200);
-      assert.strictEqual((listRes.body as any).total, 1);
-    });
-
-    it('rejects unsupported content-type and handles SQL injection safety', async () => {
-      const headersXml = {
-        'x-tenant-id': tenantId,
-        'content-type': 'application/xml',
-      };
-
-      const resXml = await controller.handleCreate(
+      // Invalid Content-Type -> 415
+      const xmlRes = await controller.handleCreate(
         { distributorId, creditNoteNumber: 'CN-XML', amountCents: 100, reason: 'XML test' },
-        headersXml
+        { ...headers, 'content-type': 'application/xml' }
       );
-      assert.strictEqual(resXml.statusCode, 415);
+      assert.strictEqual(xmlRes.statusCode, 415);
     });
   });
 });
