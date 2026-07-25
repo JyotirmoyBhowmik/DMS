@@ -18,3 +18,157 @@ paths:
       responses:
         '200':
           description: Token refreshed
+
+  /api/v1/users:
+    post:
+      summary: Create new User
+      operationId: createUser
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: User email conflict
+    get:
+      summary: List Users with pagination and filters
+      operationId: listUsers
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE, SUSPENDED, LOCKED]
+      responses:
+        '200':
+          description: List of Users
+
+  /api/v1/users/{id}:
+    get:
+      summary: Get User detail by ID
+      operationId: getUser
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User detail
+        '404':
+          description: User not found
+    put:
+      summary: Update User status/profile (with optimistic concurrency version check)
+      operationId: updateUser
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated
+        '409':
+          description: Version conflict
+
+components:
+  schemas:
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - passwordHash
+      properties:
+        email:
+          type: string
+          format: email
+        passwordHash:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+    UpdateUserRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, SUSPENDED, LOCKED]
+        roles:
+          type: array
+          items:
+            type: string
+        version:
+          type: integer
+          minimum: 1
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+        version:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string

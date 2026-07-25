@@ -95,7 +95,8 @@ export class GetUserUseCase {
   constructor(private readonly userRepo: UserRepository) {}
 
   async execute(id: string, tenantId: string): Promise<User> {
-    return this.userRepo.findById(id, tenantId);
+    const found = await this.userRepo.findById(id, tenantId);
+    return found as User;
   }
 }
 
@@ -112,7 +113,11 @@ export class UpdateUserUseCase {
     this.logger.info('Updating user', { id: input.id, tenantId });
 
     const repo = this.userRepo || new UserPgRepository(this.db!);
-    const entity = await repo.findById(input.id, tenantId);
+    const entity = (await repo.findById(input.id, tenantId)) as User;
+
+    if (!entity) {
+      throw new Error(`User '${input.id}' not found`);
+    }
 
     if (input.status) {
       entity.status = input.status;
@@ -176,6 +181,9 @@ export class ListUsersUseCase {
   constructor(private readonly userRepo: UserRepository) {}
 
   async execute(tenantId: string, options?: any): Promise<any> {
-    return this.userRepo.findAll(tenantId, options);
+    if (this.userRepo.findAll) {
+      return this.userRepo.findAll(tenantId, options);
+    }
+    return this.userRepo.list(tenantId, options);
   }
 }
