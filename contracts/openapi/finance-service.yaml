@@ -728,6 +728,96 @@ paths:
         '409':
           description: Version conflict
 
+  /api/v1/ewaybills:
+    post:
+      summary: Create new eWayBill
+      operationId: createEWayBill
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEWayBillRequest'
+      responses:
+        '201':
+          description: eWayBill created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EWayBillResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List eWayBills with pagination and filters
+      operationId: listEWayBills
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [GENERATED, ACTIVE, CANCELLED, EXPIRED]
+      responses:
+        '200':
+          description: List of eWayBills
+
+  /api/v1/ewaybills/{id}:
+    get:
+      summary: Get eWayBill detail by ID
+      operationId: getEWayBill
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: eWayBill detail
+        '404':
+          description: eWayBill not found
+    put:
+      summary: Update eWayBill status (with optimistic concurrency version check)
+      operationId: updateEWayBill
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEWayBillRequest'
+      responses:
+        '200':
+          description: eWayBill updated
+        '409':
+          description: Version conflict
+
 components:
   schemas:
     CreateInvoiceRequest:
@@ -1072,6 +1162,55 @@ components:
         status:
           type: string
         totalAmountCents:
+          type: integer
+        version:
+          type: integer
+
+    CreateEWayBillRequest:
+      type: object
+      required:
+        - invoiceId
+        - ewayBillNumber
+      properties:
+        invoiceId:
+          type: string
+          format: uuid
+        ewayBillNumber:
+          type: string
+        validUntil:
+          type: string
+        vehicleNumber:
+          type: string
+        transporterId:
+          type: string
+        distanceKm:
+          type: integer
+          minimum: 0
+    UpdateEWayBillRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [GENERATED, ACTIVE, CANCELLED, EXPIRED]
+        version:
+          type: integer
+          minimum: 1
+    EWayBillResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        ewayBillNumber:
+          type: string
+        status:
+          type: string
+        distanceKm:
           type: integer
         version:
           type: integer

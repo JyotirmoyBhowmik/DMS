@@ -10,7 +10,9 @@ import { ListEInvoicesUseCase } from './application/usecases/list-einvoices.usec
 import { EInvoiceController } from './presentation/rest/controllers/einvoice.controller.js';
 import { EInvoiceAuditService } from './infrastructure/audit/einvoice.audit.js';
 
-describe('eInvoice Full Vertical Slice QA & Security Suite (Tasks 1377-1380)', () => {
+import { EInvoiceEventConsumer } from './infrastructure/events/einvoice.consumer.js';
+
+describe('eInvoice Full Vertical Slice QA & Security Suite (Tasks 1377-1387)', () => {
   const tenantA = '00000000-0000-0000-0000-000000000001';
   const tenantB = '00000000-0000-0000-0000-000000000002';
 
@@ -31,6 +33,34 @@ describe('eInvoice Full Vertical Slice QA & Security Suite (Tasks 1377-1380)', (
   beforeEach(() => {
     EInvoicePgRepository.clearInMemoryStore();
     EInvoiceAuditService.clearAuditLogs();
+  });
+
+  describe('Task 1387: eInvoice Event Consumer & DLQ Handling', () => {
+    test('deduplicates events by ID and routes poison messages to DLQ', async () => {
+      const consumer = new EInvoiceEventConsumer();
+
+      const validEvent = {
+        id: 'evt-einv-100',
+        name: 'finance.einvoice.generated',
+        tenantId: tenantA,
+        occurredAt: new Date().toISOString(),
+        payload: { irn: 'IRN-999' },
+      };
+
+      const res1 = await consumer.consume(validEvent);
+      assert.equal(res1.success, true);
+
+      // Duplicate event
+      const res2 = await consumer.consume(validEvent);
+      assert.equal(res2.success, true);
+      assert.equal(res2.reason, 'DUPLICATE_SKIPPED');
+
+      // Poison event
+      const resPoison = await consumer.consume({ id: '', name: 'invalid', tenantId: '', occurredAt: '' } as any);
+      assert.equal(resPoison.success, false);
+      assert.equal(resPoison.reason, 'POISON_EVENT');
+      assert.equal(consumer.getDlqMessages().length, 1);
+    });
   });
 
   describe('Task 1378: eInvoice Domain Entity & Invariants', () => {
