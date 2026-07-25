@@ -1,11 +1,20 @@
-import { Role } from '../entities/role.js';
-import { PaginatedResult, FindAllOptions } from '@dms/pkg-database';
+import { RoleAggregate, RoleStatus } from '../entities/role.entity.js';
+
+export interface ListRolesOptions {
+  page?: number;
+  limit?: number;
+  status?: RoleStatus;
+  searchName?: string;
+  sortBy?: 'createdAt' | 'name' | 'status';
+  sortOrder?: 'ASC' | 'DESC';
+}
 
 export interface RoleRepository {
-  save(entity: Role, tenantId: string): Promise<Role>;
-  findById(id: string, tenantId: string): Promise<Role>;
-  findAll(tenantId: string, options?: FindAllOptions): Promise<PaginatedResult<Role>>;
-  update(entity: Role, tenantId: string): Promise<Role>;
+  save(role: any, tenantId: string): Promise<any>;
+  findById(id: string, tenantId: string): Promise<any>;
+  findByName?(name: string, tenantId: string): Promise<any>;
+  list(tenantId: string, options?: ListRolesOptions): Promise<{ items: any[]; total: number }>;
+  findAll?(tenantId: string, options?: any): Promise<any>;
+  update(role: any, tenantId: string): Promise<any>;
   delete(id: string, tenantId: string): Promise<boolean>;
-  findByName(name: string, tenantId: string): Promise<Role | null>;
 }

@@ -169,6 +169,9 @@ export class ListRolesUseCase {
   constructor(private readonly roleRepo: RoleRepository) {}
 
   async execute(tenantId: string, options?: any): Promise<any> {
-    return this.roleRepo.findAll(tenantId, options);
+    if (this.roleRepo.findAll) {
+      return this.roleRepo.findAll(tenantId, options);
+    }
+    return this.roleRepo.list(tenantId, options);
   }
 }
