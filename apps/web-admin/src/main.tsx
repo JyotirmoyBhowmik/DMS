@@ -577,7 +577,7 @@ const App = () => {
   const [distributorSortField, setDistributorSortField] = useState('name');
   const [distributorPage, setDistributorPage] = useState(1);
   const distributorPageSize = 5;
-  const [dmsSubTab, setDmsSubTab] = useState<'inventory' | 'distributors' | 'settlements' | 'invoices' | 'credit-notes' | 'debit-notes' | 'payments' | 'collections' | 'outstandings'>('inventory');
+  const [dmsSubTab, setDmsSubTab] = useState<'inventory' | 'distributors' | 'settlements' | 'invoices' | 'credit-notes' | 'debit-notes' | 'payments' | 'collections' | 'outstandings' | 'ageing-reports'>('inventory');
 
   // Simulated Payment Management state for Web Admin (Tasks 1311 & 1312)
   const [payments, setPayments] = useState([
@@ -782,6 +782,47 @@ const App = () => {
   const [outstandingOptimisticConflict, setOutstandingOptimisticConflict] = useState(false);
   const [outstandingDeleteConfirmId, setOutstandingDeleteConfirmId] = useState<string | null>(null);
   const [outstandingE2eLog, setOutstandingE2eLog] = useState<string[]>([]);
+
+  // Simulated Ageing Report Management state for Web Admin
+  const [ageingReports, setAgeingReports] = useState<Array<{
+    id: string;
+    tenantId: string;
+    distributorId: string;
+    asOfDate: string;
+    currentBucketCents: number;
+    bucket1To30Cents: number;
+    bucket31To60Cents: number;
+    bucket61To90Cents: number;
+    bucket90PlusCents: number;
+    totalOutstandingCents: number;
+    status: 'GENERATED' | 'VERIFIED' | 'RECONCILED' | 'ARCHIVED';
+    version: number;
+    createdAt: string;
+  }>>([
+    { id: 'rep-uuid-001', tenantId: '00000000-0000-0000-0000-000000000001', distributorId: 'dist-uuid-101', asOfDate: '2026-07-25', currentBucketCents: 150000, bucket1To30Cents: 50000, bucket31To60Cents: 20000, bucket61To90Cents: 10000, bucket90PlusCents: 5000, totalOutstandingCents: 235000, status: 'GENERATED', version: 1, createdAt: '2026-07-25T08:00:00Z' },
+    { id: 'rep-uuid-002', tenantId: '00000000-0000-0000-0000-000000000001', distributorId: 'dist-uuid-102', asOfDate: '2026-07-25', currentBucketCents: 85000, bucket1To30Cents: 30000, bucket31To60Cents: 15000, bucket61To90Cents: 0, bucket90PlusCents: 0, totalOutstandingCents: 130000, status: 'VERIFIED', version: 2, createdAt: '2026-07-25T09:30:00Z' },
+  ]);
+  const [ageingSearchQuery, setAgeingSearchQuery] = useState('');
+  const [ageingStatusFilter, setAgeingStatusFilter] = useState('ALL');
+  const [ageingPage, setAgeingPage] = useState(1);
+  const ageingPageSize = 5;
+  const [ageingFormOpen, setAgeingFormOpen] = useState(false);
+  const [editingAgeingId, setEditingAgeingId] = useState<string | null>(null);
+  const [ageingFormData, setAgeingFormData] = useState({
+    distributorId: '',
+    asOfDate: '2026-07-25',
+    currentBucketCents: 0,
+    bucket1To30Cents: 0,
+    bucket31To60Cents: 0,
+    bucket61To90Cents: 0,
+    bucket90PlusCents: 0,
+    status: 'GENERATED' as 'GENERATED' | 'VERIFIED' | 'RECONCILED' | 'ARCHIVED',
+    version: 1
+  });
+  const [ageingFormErrors, setAgeingFormErrors] = useState<Record<string, string>>({});
+  const [ageingOptimisticConflict, setAgeingOptimisticConflict] = useState(false);
+  const [ageingDeleteConfirmId, setAgeingDeleteConfirmId] = useState<string | null>(null);
+  const [ageingE2eLog, setAgeingE2eLog] = useState<string[]>([]);
 
 
 
@@ -2388,6 +2429,22 @@ const App = () => {
                   }}
                 >
                   📊 Outstandings
+                </button>
+                <button
+                  onClick={() => setDmsSubTab('ageing-reports')}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: dmsSubTab === 'ageing-reports' ? '#60A5FA' : '#94A3B8',
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    borderBottom: dmsSubTab === 'ageing-reports' ? '2px solid #3B82F6' : 'none',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  📈 Ageing Reports
                 </button>
 
 

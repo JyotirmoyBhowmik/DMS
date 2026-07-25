@@ -548,6 +548,96 @@ paths:
         '409':
           description: Version conflict
 
+  /api/v1/ageing-reports:
+    post:
+      summary: Create new ageing report
+      operationId: createAgeingReport
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgeingReportRequest'
+      responses:
+        '201':
+          description: Ageing report created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgeingReportResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List ageing reports with pagination and filters
+      operationId: listAgeingReports
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [GENERATED, VERIFIED, RECONCILED, ARCHIVED]
+      responses:
+        '200':
+          description: List of ageing reports
+
+  /api/v1/ageing-reports/{id}:
+    get:
+      summary: Get ageing report detail by ID
+      operationId: getAgeingReport
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ageing report detail
+        '404':
+          description: Ageing report not found
+    put:
+      summary: Update ageing report status (with optimistic concurrency version check)
+      operationId: updateAgeingReport
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAgeingReportRequest'
+      responses:
+        '200':
+          description: Ageing report updated
+        '409':
+          description: Version conflict
+
 components:
   schemas:
     CreateInvoiceRequest:
@@ -789,5 +879,59 @@ components:
           type: string
         amountCents:
           type: integer
+        version:
+          type: integer
+
+    CreateAgeingReportRequest:
+      type: object
+      required:
+        - distributorId
+        - asOfDate
+      properties:
+        distributorId:
+          type: string
+        asOfDate:
+          type: string
+          format: date
+        currentBucketCents:
+          type: integer
+          minimum: 0
+        bucket1To30Cents:
+          type: integer
+          minimum: 0
+        bucket31To60Cents:
+          type: integer
+          minimum: 0
+        bucket61To90Cents:
+          type: integer
+          minimum: 0
+        bucket90PlusCents:
+          type: integer
+          minimum: 0
+    UpdateAgeingReportRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [GENERATED, VERIFIED, RECONCILED, ARCHIVED]
+        version:
+          type: integer
+          minimum: 1
+    AgeingReportResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        distributorId:
+          type: string
+        asOfDate:
+          type: string
+        totalOutstandingCents:
+          type: integer
+        status:
+          type: string
         version:
           type: integer
