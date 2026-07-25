@@ -577,7 +577,7 @@ const App = () => {
   const [distributorSortField, setDistributorSortField] = useState('name');
   const [distributorPage, setDistributorPage] = useState(1);
   const distributorPageSize = 5;
-  const [dmsSubTab, setDmsSubTab] = useState<'inventory' | 'distributors' | 'settlements' | 'invoices' | 'credit-notes' | 'debit-notes' | 'payments' | 'collections' | 'outstandings' | 'ageing-reports' | 'einvoices' | 'ewaybills' | 'tax-filings' | 'users' | 'roles'>('inventory');
+  const [dmsSubTab, setDmsSubTab] = useState<'inventory' | 'distributors' | 'settlements' | 'invoices' | 'credit-notes' | 'debit-notes' | 'payments' | 'collections' | 'outstandings' | 'ageing-reports' | 'einvoices' | 'ewaybills' | 'tax-filings' | 'users' | 'roles' | 'permissions'>('inventory');
 
   // Simulated Payment Management state for Web Admin (Tasks 1311 & 1312)
   const [payments, setPayments] = useState([
@@ -2525,6 +2525,22 @@ const App = () => {
                   }}
                 >
                   🔐 Roles
+                </button>
+                <button
+                  onClick={() => setDmsSubTab('permissions')}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: dmsSubTab === 'permissions' ? '#60A5FA' : '#94A3B8',
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    borderBottom: dmsSubTab === 'permissions' ? '2px solid #3B82F6' : 'none',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  🔑 Permissions
                 </button>
 
 

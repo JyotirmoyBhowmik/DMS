@@ -197,6 +197,94 @@ paths:
         '409':
           description: Version conflict
 
+  /api/v1/permissions:
+    post:
+      summary: Create new Permission
+      operationId: createPermission
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePermissionRequest'
+      responses:
+        '201':
+          description: Permission created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionResponse'
+        '400':
+          description: Validation error
+        '409':
+          description: Permission name conflict
+    get:
+      summary: List Permissions with pagination
+      operationId: listPermissions
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE, DEPRECATED]
+      responses:
+        '200':
+          description: List of Permissions
+
+  /api/v1/permissions/{id}:
+    get:
+      summary: Get Permission detail by ID
+      operationId: getPermission
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Permission detail
+        '404':
+          description: Permission not found
+    put:
+      summary: Update Permission status/profile (with optimistic concurrency version check)
+      operationId: updatePermission
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePermissionRequest'
+      responses:
+        '200':
+          description: Permission updated
+        '409':
+          description: Version conflict
+
 components:
   schemas:
     CreateUserRequest:
@@ -302,6 +390,66 @@ components:
           type: string
         isSystem:
           type: boolean
+        status:
+          type: string
+        version:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    CreatePermissionRequest:
+      type: object
+      required:
+        - name
+        - resource
+        - action
+      properties:
+        name:
+          type: string
+        resource:
+          type: string
+        action:
+          type: string
+        description:
+          type: string
+    UpdatePermissionRequest:
+      type: object
+      required:
+        - version
+      properties:
+        name:
+          type: string
+        resource:
+          type: string
+        action:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, DEPRECATED]
+        version:
+          type: integer
+          minimum: 1
+    PermissionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        resource:
+          type: string
+        action:
+          type: string
+        description:
+          type: string
         status:
           type: string
         version:

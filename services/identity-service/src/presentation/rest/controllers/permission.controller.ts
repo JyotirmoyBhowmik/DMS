@@ -1,97 +1,239 @@
-import { loadConfigSync } from '@dms/pkg-config';
-import { PostgresDatabaseClient, PgDriver } from '@dms/pkg-database';
-import { CreatePermissionUseCase, GetPermissionUseCase, UpdatePermissionUseCase, DeletePermissionUseCase, ListPermissionsUseCase } from '../../../application/usecases/permission.usecases.js';
+import { CreatePermissionUseCase } from '../../../application/usecases/create-permission.usecase.js';
+import { GetPermissionUseCase } from '../../../application/usecases/get-permission.usecase.js';
+import { UpdatePermissionUseCase } from '../../../application/usecases/update-permission.usecase.js';
+import { ListPermissionsUseCase } from '../../../application/usecases/list-permissions.usecase.js';
+import { PermissionDomainError, PermissionValidationError, InvalidPermissionStateTransitionError } from '../../../domain/entities/permission.entity.js';
 import { PermissionPgRepository } from '../../../infrastructure/database/repositories/permission.pg-repository.js';
-import { HttpResponse } from './auth.controller.js';
-
-const config = loadConfigSync();
+import { Principal } from '../../../application/usecases/create-user.usecase.js';
 
 export class PermissionController {
-  private db = new PostgresDatabaseClient(config.db, new PgDriver());
-  private permissionRepo = new PermissionPgRepository(this.db);
-  private createPermissionUseCase = new CreatePermissionUseCase(this.db, this.permissionRepo);
-  private getPermissionUseCase = new GetPermissionUseCase(this.permissionRepo);
-  private updatePermissionUseCase = new UpdatePermissionUseCase(this.db, this.permissionRepo);
-  private deletePermissionUseCase = new DeletePermissionUseCase(this.permissionRepo);
-  private listPermissionsUseCase = new ListPermissionsUseCase(this.permissionRepo);
+  private createUseCase: CreatePermissionUseCase;
+  private getUseCase: GetPermissionUseCase;
+  private updateUseCase: UpdatePermissionUseCase;
+  private listUseCase: ListPermissionsUseCase;
 
-  async handlePostPermission(requestBody: any, headers: Record<string, string>): Promise<HttpResponse> {
-    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+  constructor(
+    createUseCase?: CreatePermissionUseCase,
+    getUseCase?: GetPermissionUseCase,
+    updateUseCase?: UpdatePermissionUseCase,
+    listUseCase?: ListPermissionsUseCase
+  ) {
+    const repo = new PermissionPgRepository();
+    this.createUseCase = createUseCase || new CreatePermissionUseCase(repo);
+    this.getUseCase = getUseCase || new GetPermissionUseCase(repo);
+    this.updateUseCase = updateUseCase || new UpdatePermissionUseCase(repo);
+    this.listUseCase = listUseCase || new ListPermissionsUseCase(repo);
+  }
+
+  async create(req: any, res: any): Promise<void> {
     try {
-      const permission = await this.createPermissionUseCase.execute(tenantId, requestBody);
-      return {
-        statusCode: 201,
-        body: permission as any,
-      };
+      this.validateHeaders(req);
+      const principal = this.extractPrincipal(req);
+      const correlationId = (req.headers && req.headers['x-correlation-id']) || 'N/A';
+      const idempotencyKey = (req.headers && req.headers['x-idempotency-key']) as string | undefined;
+
+      const permission = await this.createUseCase.execute(principal, req.body, idempotencyKey, correlationId);
+
+      res.status(201).json({
+        success: true,
+        data: permission.toJSON(),
+        correlationId,
+      });
     } catch (err: any) {
-      return {
-        statusCode: 400,
-        body: { message: err.message },
-      };
+      this.handleError(err, res, req);
     }
   }
 
-  async handleGetPermission(id: string, headers: Record<string, string>): Promise<HttpResponse> {
-    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+  async getById(req: any, res: any): Promise<void> {
     try {
-      const permission = await this.getPermissionUseCase.execute(id, tenantId);
-      return {
-        statusCode: 200,
-        body: permission as any,
-      };
+      const principal = this.extractPrincipal(req);
+      const permission = await this.getUseCase.execute(req.params.id, principal);
+
+      res.status(200).json({
+        success: true,
+        data: permission.toJSON(),
+      });
     } catch (err: any) {
-      return {
-        statusCode: 404,
-        body: { message: err.message },
-      };
+      this.handleError(err, res, req);
     }
   }
 
-  async handlePutPermission(id: string, requestBody: any, headers: Record<string, string>): Promise<HttpResponse> {
-    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+  async update(req: any, res: any): Promise<void> {
     try {
-      const permission = await this.updatePermissionUseCase.execute(tenantId, { ...requestBody, id });
-      return {
-        statusCode: 200,
-        body: permission as any,
-      };
+      this.validateHeaders(req);
+      const principal = this.extractPrincipal(req);
+      const correlationId = (req.headers && req.headers['x-correlation-id']) || 'N/A';
+
+      const permission = await this.updateUseCase.execute(req.params.id, principal, req.body, correlationId);
+
+      res.status(200).json({
+        success: true,
+        data: permission.toJSON(),
+        correlationId,
+      });
     } catch (err: any) {
-      return {
-        statusCode: 400,
-        body: { message: err.message },
-      };
+      this.handleError(err, res, req);
     }
   }
 
-  async handleDeletePermission(id: string, headers: Record<string, string>): Promise<HttpResponse> {
-    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+  async list(req: any, res: any): Promise<void> {
     try {
-      const success = await this.deletePermissionUseCase.execute(id, tenantId);
-      return {
-        statusCode: success ? 200 : 404,
-        body: { success },
+      const principal = this.extractPrincipal(req);
+      const options = {
+        page: req.query?.page ? parseInt(req.query.page, 10) : undefined,
+        limit: req.query?.limit ? parseInt(req.query.limit, 10) : undefined,
+        status: req.query?.status,
+        resource: req.query?.resource,
+        searchName: req.query?.searchName,
       };
+
+      const result = await this.listUseCase.execute(principal, options);
+
+      res.status(200).json({
+        success: true,
+        data: result.items.map(item => item.toJSON()),
+        meta: {
+          total: result.total,
+          page: result.page,
+          limit: result.limit,
+        },
+      });
     } catch (err: any) {
-      return {
-        statusCode: 400,
-        body: { message: err.message },
-      };
+      this.handleError(err, res, req);
     }
   }
 
-  async handleListPermissions(requestBody: any, headers: Record<string, string>): Promise<HttpResponse> {
-    const tenantId = headers['x-tenant-id'] || 'mock-tenant';
+  // --- API Gateway Compatibility Handlers ---
+
+  async handlePostPermission(body: any, headers?: any): Promise<{ statusCode: number; body: any }> {
     try {
-      const result = await this.listPermissionsUseCase.execute(tenantId, requestBody);
-      return {
-        statusCode: 200,
-        body: result as any,
-      };
+      const principal = this.extractPrincipalFromHeaders(headers);
+      const permission = await this.createUseCase.execute(principal, body);
+      return { statusCode: 201, body: permission.toJSON() };
     } catch (err: any) {
-      return {
-        statusCode: 400,
-        body: { message: err.message },
-      };
+      return { statusCode: 400, body: { error: err.message } };
     }
+  }
+
+  async handleGetPermission(id: string, headers?: any): Promise<{ statusCode: number; body: any }> {
+    try {
+      const principal = this.extractPrincipalFromHeaders(headers);
+      const permission = await this.getUseCase.execute(id, principal);
+      return { statusCode: 200, body: permission.toJSON() };
+    } catch (err: any) {
+      return { statusCode: 404, body: { error: err.message } };
+    }
+  }
+
+  async handleListPermissions(queryOrBody?: any, headers?: any): Promise<{ statusCode: number; body: any }> {
+    try {
+      const principal = this.extractPrincipalFromHeaders(headers);
+      const result = await this.listUseCase.execute(principal, queryOrBody || {});
+      return { statusCode: 200, body: result.items.map(i => i.toJSON()) };
+    } catch (err: any) {
+      return { statusCode: 400, body: { error: err.message } };
+    }
+  }
+
+  async handlePutPermission(id: string, body: any, headers?: any): Promise<{ statusCode: number; body: any }> {
+    try {
+      const principal = this.extractPrincipalFromHeaders(headers);
+      const permission = await this.updateUseCase.execute(id, principal, body);
+      return { statusCode: 200, body: permission.toJSON() };
+    } catch (err: any) {
+      return { statusCode: 400, body: { error: err.message } };
+    }
+  }
+
+  async handleDeletePermission(id: string, headers?: any): Promise<{ statusCode: number; body: any }> {
+    try {
+      const repo = new PermissionPgRepository();
+      const tenantId = (headers && headers['x-tenant-id']) || '00000000-0000-0000-0000-000000000001';
+      const deleted = await repo.delete(id, tenantId);
+      return { statusCode: deleted ? 200 : 404, body: { success: deleted } };
+    } catch (err: any) {
+      return { statusCode: 400, body: { error: err.message } };
+    }
+  }
+
+  private validateHeaders(req: any): void {
+    const contentType = req.headers && req.headers['content-type'];
+    if (contentType && !contentType.includes('application/json')) {
+      throw new PermissionDomainError('Unsupported Media Type: Content-Type must be application/json');
+    }
+  }
+
+  private extractPrincipal(req: any): Principal {
+    return this.extractPrincipalFromHeaders(req.headers);
+  }
+
+  private extractPrincipalFromHeaders(headers: any): Principal {
+    const tenantId = (headers && headers['x-tenant-id']) || '00000000-0000-0000-0000-000000000001';
+    const userId = (headers && headers['x-user-id']) || 'user-default';
+    const rolesStr = (headers && headers['x-user-roles']) || 'admin';
+    const permsStr = (headers && headers['x-user-permissions']) || 'identity:*';
+
+    return {
+      userId,
+      tenantId,
+      roles: rolesStr.split(','),
+      permissions: permsStr.split(','),
+    };
+  }
+
+  private handleError(err: any, res: any, req: any): void {
+    const correlationId = (req.headers && req.headers['x-correlation-id']) || 'N/A';
+
+    if (err instanceof PermissionValidationError) {
+      res.status(422).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: err.message,
+          fields: err.fields,
+        },
+        correlationId,
+      });
+      return;
+    }
+
+    if (err instanceof InvalidPermissionStateTransitionError) {
+      res.status(409).json({
+        success: false,
+        error: {
+          code: 'INVALID_STATE_TRANSITION',
+          message: err.message,
+        },
+        correlationId,
+      });
+      return;
+    }
+
+    if (err instanceof PermissionDomainError) {
+      let statusCode = 400;
+      if (err.message.includes('Forbidden')) statusCode = 403;
+      else if (err.message.includes('not found')) statusCode = 404;
+      else if (err.message.includes('already exists') || err.message.includes('Optimistic')) statusCode = 409;
+      else if (err.message.includes('Unsupported Media Type')) statusCode = 415;
+
+      res.status(statusCode).json({
+        success: false,
+        error: {
+          code: 'DOMAIN_ERROR',
+          message: err.message,
+        },
+        correlationId,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'An unexpected internal server error occurred',
+      },
+      correlationId,
+    });
   }
 }

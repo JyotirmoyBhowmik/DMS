@@ -174,6 +174,9 @@ export class ListPermissionsUseCase {
   constructor(private readonly permissionRepo: PermissionRepository) {}
 
   async execute(tenantId: string, options?: any): Promise<any> {
-    return this.permissionRepo.findAll(tenantId, options);
+    if (this.permissionRepo.findAll) {
+      return this.permissionRepo.findAll(tenantId, options);
+    }
+    return this.permissionRepo.list(tenantId, options);
   }
 }
