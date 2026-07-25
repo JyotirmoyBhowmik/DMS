@@ -10,7 +10,9 @@ import { ListEWayBillsUseCase } from './application/usecases/list-ewaybills.usec
 import { EWayBillController } from './presentation/rest/controllers/ewaybill.controller.js';
 import { EWayBillAuditService } from './infrastructure/audit/ewaybill.audit.js';
 
-describe('eWayBill Full Vertical Slice QA & Security Suite (Tasks 1399-1400)', () => {
+import { EWayBillEventConsumer } from './infrastructure/events/ewaybill.consumer.js';
+
+describe('eWayBill Full Vertical Slice QA & Security Suite (Tasks 1399-1419)', () => {
   const tenantA = '00000000-0000-0000-0000-000000000001';
   const tenantB = '00000000-0000-0000-0000-000000000002';
 
@@ -31,6 +33,34 @@ describe('eWayBill Full Vertical Slice QA & Security Suite (Tasks 1399-1400)', (
   beforeEach(() => {
     EWayBillPgRepository.clearInMemoryStore();
     EWayBillAuditService.clearAuditLogs();
+  });
+
+  describe('Task 1408: eWayBill Event Consumer & DLQ Handling', () => {
+    test('deduplicates events by ID and routes poison messages to DLQ', async () => {
+      const consumer = new EWayBillEventConsumer();
+
+      const validEvent = {
+        id: 'evt-eway-100',
+        name: 'finance.ewaybill.generated',
+        tenantId: tenantA,
+        occurredAt: new Date().toISOString(),
+        payload: { ewayBillNumber: 'EWAY-999' },
+      };
+
+      const res1 = await consumer.consume(validEvent);
+      assert.equal(res1.success, true);
+
+      // Duplicate event
+      const res2 = await consumer.consume(validEvent);
+      assert.equal(res2.success, true);
+      assert.equal(res2.reason, 'DUPLICATE_SKIPPED');
+
+      // Poison event
+      const resPoison = await consumer.consume({ id: '', name: 'invalid', tenantId: '', occurredAt: '' } as any);
+      assert.equal(resPoison.success, false);
+      assert.equal(resPoison.reason, 'POISON_EVENT');
+      assert.equal(consumer.getDlqMessages().length, 1);
+    });
   });
 
   describe('Task 1400: eWayBill Domain Entity & Invariants', () => {
