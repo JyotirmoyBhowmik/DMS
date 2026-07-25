@@ -10,7 +10,9 @@ import { ListTaxFilingsUseCase } from './application/usecases/list-tax-filings.u
 import { TaxFilingController } from './presentation/rest/controllers/tax-filing.controller.js';
 import { TaxFilingAuditService } from './infrastructure/audit/tax-filing.audit.js';
 
-describe('TaxFiling Full Vertical Slice QA & Security Suite (Task 1420)', () => {
+import { TaxFilingEventConsumer } from './infrastructure/events/tax-filing.consumer.js';
+
+describe('TaxFiling Full Vertical Slice QA & Security Suite (Tasks 1421-1440)', () => {
   const tenantA = '00000000-0000-0000-0000-000000000001';
   const tenantB = '00000000-0000-0000-0000-000000000002';
 
@@ -31,6 +33,34 @@ describe('TaxFiling Full Vertical Slice QA & Security Suite (Task 1420)', () => 
   beforeEach(() => {
     TaxFilingPgRepository.clearInMemoryStore();
     TaxFilingAuditService.clearAuditLogs();
+  });
+
+  describe('Task 1429: TaxFiling Event Consumer & DLQ Handling', () => {
+    test('deduplicates events by ID and routes poison messages to DLQ', async () => {
+      const consumer = new TaxFilingEventConsumer();
+
+      const validEvent = {
+        id: 'evt-tax-100',
+        name: 'finance.tax_filing.filed',
+        tenantId: tenantA,
+        occurredAt: new Date().toISOString(),
+        payload: { period: '2026-Q2', taxType: 'GST' },
+      };
+
+      const res1 = await consumer.consume(validEvent);
+      assert.equal(res1.success, true);
+
+      // Duplicate event
+      const res2 = await consumer.consume(validEvent);
+      assert.equal(res2.success, true);
+      assert.equal(res2.reason, 'DUPLICATE_SKIPPED');
+
+      // Poison event
+      const resPoison = await consumer.consume({ id: '', name: 'invalid', tenantId: '', occurredAt: '' } as any);
+      assert.equal(resPoison.success, false);
+      assert.equal(resPoison.reason, 'POISON_EVENT');
+      assert.equal(consumer.getDlqMessages().length, 1);
+    });
   });
 
   describe('Task 1420: TaxFiling Domain Entity & Invariants', () => {
