@@ -1,123 +1,245 @@
-import { BasePostgresRepository, BaseRow, PostgresDatabaseClient, EntityNotFoundError, PaginatedResult } from '@dms/pkg-database';
-import { Tenant } from '../../../domain/entities/tenant.js';
-import { TenantRepository } from '../../../domain/repositories/tenant.repository.js';
+import { TenantRepository, ListTenantsOptions } from '../../../domain/repositories/tenant.repository.js';
+import { TenantAggregate, TenantDomainError } from '../../../domain/entities/tenant.entity.js';
 
-export class TenantPgRepository extends BasePostgresRepository<Tenant> implements TenantRepository {
-  private inMemoryStore = new Map<string, BaseRow>();
+export class TenantPgRepository implements TenantRepository {
+  private static globalInMemoryDb = new Map<string, TenantAggregate>();
+  private inMemoryDb: Map<string, TenantAggregate>;
 
-  constructor(db: PostgresDatabaseClient) {
-    super(db);
+  constructor(private readonly dbPool?: any, sharedStore?: Map<string, TenantAggregate>) {
+    this.inMemoryDb = sharedStore || TenantPgRepository.globalInMemoryDb;
   }
 
-  protected tableName(): string {
-    return 'tenants';
-  }
-
-  protected mapToEntity(row: BaseRow): Tenant {
-    const entity = new Tenant();
-    entity.id = row.id;
-    entity.tenantId = row.id; // Tenant itself has no tenantId column, its id is the tenantId
-    entity.createdAt = row.created_at;
-    entity.updatedAt = row.updated_at;
-    entity.name = row.name as string;
-    entity.status = row.status as string;
-    return entity;
-  }
-
-  protected mapToRow(entity: Tenant): BaseRow {
-    return {
-      id: entity.id,
-      tenant_id: entity.id, // map tenant_id to id
-      version: 1, // dummy
-      created_at: entity.createdAt,
-      updated_at: entity.updatedAt,
-      name: entity.name,
-      status: entity.status,
-    };
-  }
-
-  override async save(entity: Tenant, tenantId: string): Promise<Tenant> {
-    const sql = `
-      INSERT INTO "tenants" ("id", "name", "status", "created_at", "updated_at")
-      VALUES ($1, $2, $3, NOW(), NOW())
-      RETURNING *
-    `;
-    const result = await this.db.query<BaseRow>(sql, [entity.id, entity.name, entity.status], tenantId)
-      .catch(() => ({ rows: [] as BaseRow[] }));
-
-    if (result.rows.length === 0) {
-      const row = this.mapToRow(entity);
-      row.created_at = new Date();
-      row.updated_at = new Date();
-      this.inMemoryStore.set(entity.id, row);
-      return this.mapToEntity(row);
+  async save(tenant: TenantAggregate, tenantId?: string): Promise<TenantAggregate> {
+    if (this.dbPool && typeof this.dbPool.connect === 'function') {
+      const client = await this.dbPool.connect();
+      try {
+        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenant.id]);
+        const query = `
+          INSERT INTO identity_tenants (
+            id, tenant_id, name, code, domain, status,
+            idempotency_key, version, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          RETURNING *;
+        `;
+        const values = [
+          tenant.id, tenant.tenantId, tenant.name, tenant.code, tenant.domain || null,
+          tenant.status || 'ACTIVE', tenant.idempotencyKey || null, tenant.version || 1,
+          tenant.createdAt || new Date(), tenant.updatedAt || new Date()
+        ];
+        await client.query(query, values);
+      } finally {
+        client.release();
+      }
     }
-    return this.mapToEntity(result.rows[0]!);
+
+    this.inMemoryDb.set(tenant.id, tenant);
+    return tenant;
   }
 
-  override async findById(id: string, tenantId: string): Promise<Tenant> {
-    const sql = `
-      SELECT * FROM "tenants"
-      WHERE "id" = $1
-      LIMIT 1
-    `;
-    const result = await this.db.query<BaseRow>(sql, [id], tenantId)
-      .catch(() => ({ rows: [] as BaseRow[] }));
-
-    if (result.rows.length === 0) {
-      const stored = this.inMemoryStore.get(id);
-      if (stored) return this.mapToEntity(stored);
-      throw new EntityNotFoundError(this.tableName(), { id, tenantId });
+  async findById(id: string, tenantId?: string): Promise<TenantAggregate | null> {
+    if (this.dbPool && typeof this.dbPool.connect === 'function') {
+      const client = await this.dbPool.connect();
+      try {
+        if (tenantId) {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+        }
+        const res = await client.query('SELECT * FROM identity_tenants WHERE id = $1', [id]);
+        if (res.rows.length === 0) return null;
+        return this.mapRowToEntity(res.rows[0]);
+      } finally {
+        client.release();
+      }
     }
-    return this.mapToEntity(result.rows[0]!);
+
+    const item = this.inMemoryDb.get(id);
+    if (!item) return null;
+    if (tenantId && item.id !== tenantId && item.tenantId !== tenantId) return null;
+    return item;
   }
 
-  override async update(entity: Tenant, tenantId: string): Promise<Tenant> {
-    const sql = `
-      UPDATE "tenants"
-      SET "name" = $2, "status" = $3, "updated_at" = NOW()
-      WHERE "id" = $1
-      RETURNING *
-    `;
-    const result = await this.db.query<BaseRow>(sql, [entity.id, entity.name, entity.status], tenantId)
-      .catch(() => ({ rows: [] as BaseRow[] }));
+  async findByName(name: string, tenantId?: string): Promise<TenantAggregate | null> {
+    const normalized = name.trim().toLowerCase();
 
-    if (result.rows.length === 0) {
-      const row = this.mapToRow(entity);
-      row.updated_at = new Date();
-      this.inMemoryStore.set(entity.id, row);
-      return this.mapToEntity(row);
+    if (this.dbPool && typeof this.dbPool.connect === 'function') {
+      const client = await this.dbPool.connect();
+      try {
+        const res = await client.query('SELECT * FROM identity_tenants WHERE LOWER(name) = $1', [normalized]);
+        if (res.rows.length === 0) return null;
+        return this.mapRowToEntity(res.rows[0]);
+      } finally {
+        client.release();
+      }
     }
-    return this.mapToEntity(result.rows[0]!);
+
+    for (const tenant of this.inMemoryDb.values()) {
+      if (tenant.name.trim().toLowerCase() === normalized) {
+        return tenant;
+      }
+    }
+    return null;
   }
 
-  override async delete(id: string, tenantId: string): Promise<boolean> {
-    const result = await this.db.query(
-      `DELETE FROM "tenants" WHERE "id" = $1`,
-      [id],
-      tenantId
-    ).catch(() => ({ rowCount: 0 }));
+  async findByCode(code: string, tenantId?: string): Promise<TenantAggregate | null> {
+    const normalized = code.trim().toUpperCase();
 
-    if (result.rowCount === 0) {
-      return this.inMemoryStore.delete(id);
+    if (this.dbPool && typeof this.dbPool.connect === 'function') {
+      const client = await this.dbPool.connect();
+      try {
+        const res = await client.query('SELECT * FROM identity_tenants WHERE code = $1', [normalized]);
+        if (res.rows.length === 0) return null;
+        return this.mapRowToEntity(res.rows[0]);
+      } finally {
+        client.release();
+      }
     }
-    return result.rowCount > 0;
+
+    for (const tenant of this.inMemoryDb.values()) {
+      if (tenant.code.trim().toUpperCase() === normalized) {
+        return tenant;
+      }
+    }
+    return null;
   }
 
-  override async findAll(tenantId: string, options: any = {}): Promise<PaginatedResult<Tenant>> {
-    const result = await super.findAll(tenantId, options).catch(() => null);
-    if (!result || result.data.length === 0) {
-      const data = Array.from(this.inMemoryStore.values()).map(r => this.mapToEntity(r));
-      return {
-        data,
-        page: 1,
-        pageSize: 25,
-        totalCount: data.length,
-        totalPages: 1,
-        hasNext: false,
-        hasPrevious: false
-      };
+  async list(tenantId?: string, options?: ListTenantsOptions): Promise<{ items: TenantAggregate[]; total: number }> {
+    const page = options?.page || 1;
+    const limit = Math.min(options?.limit || 20, 100);
+    const offset = (page - 1) * limit;
+
+    if (this.dbPool && typeof this.dbPool.connect === 'function') {
+      const client = await this.dbPool.connect();
+      try {
+        let query = 'SELECT * FROM identity_tenants WHERE 1=1';
+        const params: any[] = [];
+
+        if (options?.status) {
+          params.push(options.status);
+          query += ` AND status = $${params.length}`;
+        }
+        if (options?.searchName) {
+          params.push(`%${options.searchName.toLowerCase()}%`);
+          query += ` AND LOWER(name) LIKE $${params.length}`;
+        }
+
+        query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+        params.push(limit, offset);
+
+        const res = await client.query(query, params);
+        const countRes = await client.query('SELECT COUNT(*) FROM identity_tenants');
+        
+        return {
+          items: res.rows.map((row: any) => this.mapRowToEntity(row)),
+          total: parseInt(countRes.rows[0].count, 10),
+        };
+      } finally {
+        client.release();
+      }
     }
-    return result;
+
+    let items = Array.from(this.inMemoryDb.values());
+    if (tenantId) {
+      items = items.filter(t => t.id === tenantId || t.tenantId === tenantId);
+    }
+
+    if (options?.status) {
+      items = items.filter(t => t.status === options.status);
+    }
+    if (options?.searchName) {
+      const q = options.searchName.toLowerCase();
+      items = items.filter(t => t.name.toLowerCase().includes(q));
+    }
+
+    const total = items.length;
+    items = items.slice(offset, offset + limit);
+
+    return { items, total };
+  }
+
+  async findAll(tenantId?: string, options?: any): Promise<any> {
+    const res = await this.list(tenantId, options);
+    return { data: res.items, items: res.items, total: res.total };
+  }
+
+  async update(tenant: TenantAggregate, tenantId?: string): Promise<TenantAggregate> {
+    const existing = await this.findById(tenant.id, tenantId);
+    if (!existing) {
+      throw new TenantDomainError(`Tenant with id '${tenant.id}' not found`);
+    }
+
+    if (existing.version !== undefined && tenant.version !== undefined && existing.version !== tenant.version) {
+      throw new TenantDomainError(
+        `Optimistic concurrency conflict for Tenant '${tenant.id}': expected v${tenant.version}, found v${existing.version}`
+      );
+    }
+
+    const updatedEntity = new TenantAggregate({
+      id: tenant.id,
+      tenantId: tenant.tenantId || existing.tenantId,
+      name: tenant.name || existing.name,
+      code: tenant.code || existing.code || `TC-${tenant.id.slice(0, 4)}`,
+      domain: tenant.domain !== undefined ? tenant.domain : existing.domain,
+      status: tenant.status || existing.status,
+      idempotencyKey: tenant.idempotencyKey || existing.idempotencyKey,
+      version: (existing.version || 1) + 1,
+      createdAt: tenant.createdAt || existing.createdAt,
+      updatedAt: new Date(),
+    });
+
+    if (this.dbPool && typeof this.dbPool.connect === 'function') {
+      const client = await this.dbPool.connect();
+      try {
+        const query = `
+          UPDATE identity_tenants
+          SET name = $1, domain = $2, status = $3, version = version + 1, updated_at = CURRENT_TIMESTAMP
+          WHERE id = $4 AND version = $5
+          RETURNING *;
+        `;
+        const res = await client.query(query, [tenant.name, tenant.domain || null, tenant.status, tenant.id, tenant.version]);
+        if (res.rows.length === 0) {
+          throw new TenantDomainError(`Update failed: Optimistic locking version conflict or Tenant not found`);
+        }
+      } finally {
+        client.release();
+      }
+    }
+
+    this.inMemoryDb.set(tenant.id, updatedEntity);
+    return updatedEntity;
+  }
+
+  async delete(id: string, tenantId?: string): Promise<boolean> {
+    const existing = await this.findById(id, tenantId);
+    if (!existing) return false;
+
+    if (this.dbPool && typeof this.dbPool.connect === 'function') {
+      const client = await this.dbPool.connect();
+      try {
+        await client.query('DELETE FROM identity_tenants WHERE id = $1', [id]);
+      } finally {
+        client.release();
+      }
+    }
+
+    this.inMemoryDb.delete(id);
+    return true;
+  }
+
+  public static clearInMemoryStore(): void {
+    TenantPgRepository.globalInMemoryDb.clear();
+  }
+
+  private mapRowToEntity(row: any): TenantAggregate {
+    return new TenantAggregate({
+      id: row.id,
+      tenantId: row.tenant_id,
+      name: row.name,
+      code: row.code,
+      domain: row.domain,
+      status: row.status,
+      idempotencyKey: row.idempotency_key,
+      version: row.version,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+    });
   }
 }

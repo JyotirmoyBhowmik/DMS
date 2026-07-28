@@ -458,3 +458,60 @@ components:
           type: string
         updatedAt:
           type: string
+    CreateTenantRequest:
+      type: object
+      required:
+        - name
+        - code
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+        domain:
+          type: string
+          maxLength: 128
+        idempotencyKey:
+          type: string
+    UpdateTenantRequest:
+      type: object
+      required:
+        - version
+      properties:
+        name:
+          type: string
+        domain:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, SUSPENDED]
+        version:
+          type: integer
+          minimum: 1
+    TenantResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+        domain:
+          type: string
+        status:
+          type: string
+        version:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string

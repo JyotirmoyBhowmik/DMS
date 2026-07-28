@@ -32,7 +32,7 @@ export class CreateTenantUseCase {
     const newTenantId = randomUUID();
     const entity = new Tenant();
     entity.id = newTenantId;
-    entity.tenantId = newTenantId; // It is its own tenant
+    entity.tenantId = tenantId;
     entity.name = input.name;
     entity.status = input.status || 'ACTIVE';
 
@@ -162,6 +162,9 @@ export class ListTenantsUseCase {
   constructor(private readonly tenantRepo: TenantRepository) {}
 
   async execute(tenantId: string, options?: any): Promise<any> {
-    return this.tenantRepo.findAll(tenantId, options);
+    if (this.tenantRepo.findAll) {
+      return this.tenantRepo.findAll(tenantId, options);
+    }
+    return this.tenantRepo.list(tenantId, options);
   }
 }

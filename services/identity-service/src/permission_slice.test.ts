@@ -168,7 +168,7 @@ describe('Permission Full Vertical Slice QA & Security Suite (Tasks 1483-1501)',
     });
 
     test('executes Get, Update and List use cases with optimistic locking', async () => {
-      const repository = new PermissionPgRepository();
+      const repository = new PermissionPgRepository(undefined, new Map());
       const createUseCase = new CreatePermissionUseCase(repository);
       const getUseCase = new GetPermissionUseCase(repository);
       const updateUseCase = new UpdatePermissionUseCase(repository);

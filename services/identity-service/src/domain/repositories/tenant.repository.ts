@@ -1,10 +1,21 @@
-import { Tenant } from '../entities/tenant.js';
-import { PaginatedResult, FindAllOptions } from '@dms/pkg-database';
+import { TenantAggregate, TenantStatus } from '../entities/tenant.entity.js';
+
+export interface ListTenantsOptions {
+  page?: number;
+  limit?: number;
+  status?: TenantStatus;
+  searchName?: string;
+  sortBy?: 'createdAt' | 'name' | 'status';
+  sortOrder?: 'ASC' | 'DESC';
+}
 
 export interface TenantRepository {
-  save(entity: Tenant, tenantId: string): Promise<Tenant>;
-  findById(id: string, tenantId: string): Promise<Tenant>;
-  findAll(tenantId: string, options?: FindAllOptions): Promise<PaginatedResult<Tenant>>;
-  update(entity: Tenant, tenantId: string): Promise<Tenant>;
-  delete(id: string, tenantId: string): Promise<boolean>;
+  save(tenant: any, tenantId?: string): Promise<any>;
+  findById(id: string, tenantId?: string): Promise<any>;
+  findByName?(name: string, tenantId?: string): Promise<any>;
+  findByCode?(code: string, tenantId?: string): Promise<any>;
+  list(tenantId?: string, options?: ListTenantsOptions): Promise<{ items: any[]; total: number }>;
+  findAll?(tenantId?: string, options?: any): Promise<any>;
+  update(tenant: any, tenantId?: string): Promise<any>;
+  delete(id: string, tenantId?: string): Promise<boolean>;
 }

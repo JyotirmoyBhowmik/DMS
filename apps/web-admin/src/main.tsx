@@ -579,6 +579,35 @@ const App = () => {
   const distributorPageSize = 5;
   const [dmsSubTab, setDmsSubTab] = useState<'inventory' | 'distributors' | 'settlements' | 'invoices' | 'credit-notes' | 'debit-notes' | 'payments' | 'collections' | 'outstandings' | 'ageing-reports' | 'einvoices' | 'ewaybills' | 'tax-filings' | 'users' | 'roles' | 'permissions'>('inventory');
 
+  // Permission Web Admin state (Tasks 1502 & 1503)
+  const [dmsPermissions, setDmsPermissions] = useState([
+    { id: 'perm-uuid-001', name: 'orders:create', resource: 'orders', action: 'create', description: 'Create purchase orders', status: 'ACTIVE', version: 1, createdAt: '2026-06-01' },
+    { id: 'perm-uuid-002', name: 'orders:read', resource: 'orders', action: 'read', description: 'Read purchase orders', status: 'ACTIVE', version: 1, createdAt: '2026-06-01' },
+    { id: 'perm-uuid-003', name: 'inventory:update', resource: 'inventory', action: 'update', description: 'Update inventory stock levels', status: 'ACTIVE', version: 2, createdAt: '2026-06-02' },
+    { id: 'perm-uuid-004', name: 'users:manage', resource: 'users', action: 'manage', description: 'Manage users and roles', status: 'INACTIVE', version: 1, createdAt: '2026-06-05' },
+    { id: 'perm-uuid-005', name: 'claims:approve', resource: 'claims', action: 'approve', description: 'Approve claim reconciliations', status: 'DEPRECATED', version: 3, createdAt: '2026-05-20' },
+  ]);
+  const [permSearchQuery, setPermSearchQuery] = useState('');
+  const [permStatusFilter, setPermStatusFilter] = useState('ALL');
+  const [permSortField, setPermSortField] = useState<'name' | 'resource' | 'action'>('name');
+  const [permPage, setPermPage] = useState(1);
+  const permPageSize = 5;
+  const [permLoading, setPermLoading] = useState(false);
+  const [permError, setPermError] = useState<string | null>(null);
+  const [permFormOpen, setPermFormOpen] = useState(false);
+  const [editingPermId, setEditingPermId] = useState<string | null>(null);
+  const [permFormData, setPermFormData] = useState({
+    name: '',
+    resource: '',
+    action: '',
+    description: '',
+    status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE' | 'DEPRECATED',
+    version: 1
+  });
+  const [permFormErrors, setPermFormErrors] = useState<Record<string, string>>({});
+  const [permOptimisticConflict, setPermOptimisticConflict] = useState(false);
+  const [permDeleteConfirmId, setPermDeleteConfirmId] = useState<string | null>(null);
+
   // Simulated Payment Management state for Web Admin (Tasks 1311 & 1312)
   const [payments, setPayments] = useState([
     { id: 'pay-uuid-001', paymentReference: 'PAY-2026-001', distributorId: 'dist-uuid-201', invoiceId: 'inv-uuid-001', amountCents: 250000, paymentMethod: 'WIRE_TRANSFER', currency: 'USD', status: 'COMPLETED', version: 1, createdAt: '2026-06-15' },
@@ -6947,6 +6976,592 @@ const App = () => {
                             style={{ backgroundColor: '#EF4444', color: '#FFFFFF', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
                           >
                             Confirm Write-Off
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {dmsSubTab === 'permissions' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Top Bar: Search, Filters, Create */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    backgroundColor: 'rgba(30, 41, 59, 0.4)',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255,255,255,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <input
+                        type="text"
+                        placeholder="Search permission name, resource, action..."
+                        value={permSearchQuery}
+                        onChange={e => { setPermSearchQuery(e.target.value); setPermPage(1); }}
+                        style={{
+                          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          color: '#FFFFFF',
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          width: '260px'
+                        }}
+                      />
+                      <select
+                        value={permStatusFilter}
+                        onChange={e => { setPermStatusFilter(e.target.value); setPermPage(1); }}
+                        style={{
+                          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          color: '#FFFFFF',
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          fontSize: '13px'
+                        }}
+                      >
+                        <option value="ALL">All Statuses</option>
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="INACTIVE">INACTIVE</option>
+                        <option value="DEPRECATED">DEPRECATED</option>
+                      </select>
+                      <select
+                        value={permSortField}
+                        onChange={e => setPermSortField(e.target.value as any)}
+                        style={{
+                          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          color: '#FFFFFF',
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          fontSize: '13px'
+                        }}
+                      >
+                        <option value="name">Sort by Name</option>
+                        <option value="resource">Sort by Resource</option>
+                        <option value="action">Sort by Action</option>
+                      </select>
+                    </div>
+
+                    {/* Permission-aware action: only admin can create */}
+                    {currentUserRole === 'admin' && (
+                      <button
+                        onClick={() => {
+                          setEditingPermId(null);
+                          setPermFormData({
+                            name: '',
+                            resource: '',
+                            action: '',
+                            description: '',
+                            status: 'ACTIVE',
+                            version: 1
+                          });
+                          setPermFormErrors({});
+                          setPermOptimisticConflict(false);
+                          setPermFormOpen(true);
+                        }}
+                        style={{
+                          backgroundColor: '#3B82F6',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          padding: '10px 18px',
+                          borderRadius: '8px',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        ➕ Create Permission
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Error State Banner */}
+                  {permError && (
+                    <div style={{
+                      backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      color: '#F87171',
+                      padding: '12px 16px',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '13px'
+                    }}>
+                      <span>⚠️ Error loading permissions: {permError}</span>
+                      <button
+                        onClick={() => setPermError(null)}
+                        style={{
+                          backgroundColor: '#EF4444',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          padding: '4px 10px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Table & Data rendering */}
+                  {permLoading ? (
+                    <div style={{ padding: '40px', textAlign: 'center', color: '#94A3B8' }}>
+                      ⏳ Loading permissions from server...
+                    </div>
+                  ) : (() => {
+                    const filtered = dmsPermissions.filter(p => {
+                      const matchesStatus = permStatusFilter === 'ALL' || p.status === permStatusFilter;
+                      const q = permSearchQuery.toLowerCase();
+                      const matchesSearch = !q || p.name.toLowerCase().includes(q) || p.resource.toLowerCase().includes(q) || p.action.toLowerCase().includes(q);
+                      return matchesStatus && matchesSearch;
+                    }).sort((a, b) => (a[permSortField] || '').localeCompare(b[permSortField] || ''));
+
+                    const totalPages = Math.ceil(filtered.length / permPageSize) || 1;
+                    const paginated = filtered.slice((permPage - 1) * permPageSize, permPage * permPageSize);
+
+                    if (filtered.length === 0) {
+                      return (
+                        <div style={{
+                          backgroundColor: 'rgba(30, 41, 59, 0.2)',
+                          borderRadius: '12px',
+                          padding: '40px',
+                          textAlign: 'center',
+                          color: '#94A3B8',
+                          border: '1px dashed rgba(255,255,255,0.1)'
+                        }}>
+                          🔍 No permissions found matching current filters.
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <>
+                        <div style={{
+                          backgroundColor: 'rgba(30, 41, 59, 0.2)',
+                          border: '1px solid rgba(255,255,255,0.05)',
+                          borderRadius: '12px',
+                          overflow: 'hidden'
+                        }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                            <thead>
+                              <tr style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', color: '#94A3B8', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                <th style={{ padding: '12px 16px' }}>Permission Name</th>
+                                <th style={{ padding: '12px 16px' }}>Resource</th>
+                                <th style={{ padding: '12px 16px' }}>Action</th>
+                                <th style={{ padding: '12px 16px' }}>Description</th>
+                                <th style={{ padding: '12px 16px' }}>Status</th>
+                                <th style={{ padding: '12px 16px' }}>Version</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {paginated.map(perm => {
+                                const statusColor = perm.status === 'ACTIVE' ? '#10B981' : (perm.status === 'INACTIVE' ? '#F59E0B' : '#94A3B8');
+                                return (
+                                  <tr key={perm.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                    <td style={{ padding: '12px 16px', fontWeight: 'bold', color: '#60A5FA', fontFamily: 'monospace' }}>
+                                      {perm.name}
+                                    </td>
+                                    <td style={{ padding: '12px 16px', opacity: 0.9 }}>{perm.resource}</td>
+                                    <td style={{ padding: '12px 16px', opacity: 0.9 }}>{perm.action}</td>
+                                    <td style={{ padding: '12px 16px', opacity: 0.7, maxWidth: '200px' }}>{perm.description}</td>
+                                    <td style={{ padding: '12px 16px' }}>
+                                      <span style={{
+                                        backgroundColor: `rgba(${perm.status === 'ACTIVE' ? '16, 185, 129' : (perm.status === 'INACTIVE' ? '245, 158, 11' : '148, 163, 184')}, 0.15)`,
+                                        color: statusColor,
+                                        padding: '3px 8px',
+                                        borderRadius: '12px',
+                                        fontSize: '11px',
+                                        fontWeight: 'bold',
+                                        border: `1px solid ${statusColor}33`
+                                      }}>
+                                        {perm.status}
+                                      </span>
+                                    </td>
+                                    <td style={{ padding: '12px 16px', opacity: 0.7 }}>v{perm.version}</td>
+                                    <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                                      {currentUserRole === 'admin' ? (
+                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                          <button
+                                            onClick={() => {
+                                              setEditingPermId(perm.id);
+                                              setPermFormData({
+                                                name: perm.name,
+                                                resource: perm.resource,
+                                                action: perm.action,
+                                                description: perm.description,
+                                                status: perm.status as any,
+                                                version: perm.version
+                                              });
+                                              setPermFormErrors({});
+                                              setPermOptimisticConflict(false);
+                                              setPermFormOpen(true);
+                                            }}
+                                            style={{
+                                              backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                                              color: '#60A5FA',
+                                              border: '1px solid rgba(59, 130, 246, 0.3)',
+                                              padding: '4px 10px',
+                                              borderRadius: '6px',
+                                              cursor: 'pointer',
+                                              fontSize: '12px'
+                                            }}
+                                          >
+                                            Edit
+                                          </button>
+                                          <button
+                                            onClick={() => setPermDeleteConfirmId(perm.id)}
+                                            style={{
+                                              backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                                              color: '#F87171',
+                                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                                              padding: '4px 10px',
+                                              borderRadius: '6px',
+                                              cursor: 'pointer',
+                                              fontSize: '12px'
+                                            }}
+                                          >
+                                            Delete
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <span style={{ fontSize: '11px', color: '#64748B' }}>Read-only</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Server-Side Pagination Controls */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+                          <span style={{ fontSize: '12px', color: '#94A3B8' }}>
+                            Showing page {permPage} of {totalPages} ({filtered.length} total permissions)
+                          </span>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                              disabled={permPage === 1}
+                              onClick={() => setPermPage(p => Math.max(1, p - 1))}
+                              style={{
+                                backgroundColor: 'rgba(30, 41, 59, 0.4)',
+                                color: permPage === 1 ? '#475569' : '#FFFFFF',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                padding: '6px 12px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                cursor: permPage === 1 ? 'not-allowed' : 'pointer'
+                              }}
+                            >
+                              Previous
+                            </button>
+                            <button
+                              disabled={permPage === totalPages}
+                              onClick={() => setPermPage(p => Math.min(totalPages, p + 1))}
+                              style={{
+                                backgroundColor: 'rgba(30, 41, 59, 0.4)',
+                                color: permPage === totalPages ? '#475569' : '#FFFFFF',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                padding: '6px 12px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                cursor: permPage === totalPages ? 'not-allowed' : 'pointer'
+                              }}
+                            >
+                              Next
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
+
+                  {/* Create / Edit Form Modal */}
+                  {permFormOpen && currentUserRole === 'admin' && (
+                    <div style={{
+                      position: 'fixed',
+                      top: 0, left: 0, right: 0, bottom: 0,
+                      backgroundColor: 'rgba(0,0,0,0.8)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 1000
+                    }}>
+                      <div style={{
+                        backgroundColor: '#1E293B',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        padding: '24px',
+                        width: '500px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <h3 style={{ margin: 0, fontSize: '16px', color: '#60A5FA' }}>
+                            {editingPermId ? `Edit Permission (v${permFormData.version})` : 'New Permission Definition'}
+                          </h3>
+                          <button
+                            onClick={() => setPermFormOpen(false)}
+                            style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '18px', cursor: 'pointer' }}
+                          >
+                            ✖
+                          </button>
+                        </div>
+
+                        {permOptimisticConflict && (
+                          <div style={{
+                            backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                            border: '1px solid rgba(245, 158, 11, 0.3)',
+                            color: '#FBBF24',
+                            padding: '10px 14px',
+                            borderRadius: '6px',
+                            fontSize: '12px'
+                          }}>
+                            ⚠️ Optimistic Concurrency Conflict: Permission has been modified by another transaction. Please cancel and reload.
+                          </div>
+                        )}
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <div>
+                            <label style={{ fontSize: '11px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>
+                              Permission Name * (e.g. orders:create)
+                            </label>
+                            <input
+                              type="text"
+                              value={permFormData.name}
+                              onChange={e => setPermFormData({ ...permFormData, name: e.target.value })}
+                              style={{
+                                width: '100%',
+                                backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                                border: permFormErrors.name ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                                color: '#FFFFFF',
+                                padding: '8px 12px',
+                                borderRadius: '6px',
+                                fontSize: '13px'
+                              }}
+                            />
+                            {permFormErrors.name && <span style={{ color: '#EF4444', fontSize: '11px' }}>{permFormErrors.name}</span>}
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <div>
+                              <label style={{ fontSize: '11px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>
+                                Resource * (e.g. orders)
+                              </label>
+                              <input
+                                type="text"
+                                value={permFormData.resource}
+                                onChange={e => setPermFormData({ ...permFormData, resource: e.target.value })}
+                                style={{
+                                  width: '100%',
+                                  backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                                  border: permFormErrors.resource ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                                  color: '#FFFFFF',
+                                  padding: '8px 12px',
+                                  borderRadius: '6px',
+                                  fontSize: '13px'
+                                }}
+                              />
+                              {permFormErrors.resource && <span style={{ color: '#EF4444', fontSize: '11px' }}>{permFormErrors.resource}</span>}
+                            </div>
+                            <div>
+                              <label style={{ fontSize: '11px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>
+                                Action * (e.g. create)
+                              </label>
+                              <input
+                                type="text"
+                                value={permFormData.action}
+                                onChange={e => setPermFormData({ ...permFormData, action: e.target.value })}
+                                style={{
+                                  width: '100%',
+                                  backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                                  border: permFormErrors.action ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)',
+                                  color: '#FFFFFF',
+                                  padding: '8px 12px',
+                                  borderRadius: '6px',
+                                  fontSize: '13px'
+                                }}
+                              />
+                              {permFormErrors.action && <span style={{ color: '#EF4444', fontSize: '11px' }}>{permFormErrors.action}</span>}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: '11px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>
+                              Description
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={permFormData.description}
+                              onChange={e => setPermFormData({ ...permFormData, description: e.target.value })}
+                              style={{
+                                width: '100%',
+                                backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                color: '#FFFFFF',
+                                padding: '8px 12px',
+                                borderRadius: '6px',
+                                fontSize: '13px',
+                                resize: 'none'
+                              }}
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: '11px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>
+                              Status
+                            </label>
+                            <select
+                              value={permFormData.status}
+                              onChange={e => setPermFormData({ ...permFormData, status: e.target.value as any })}
+                              style={{
+                                width: '100%',
+                                backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                color: '#FFFFFF',
+                                padding: '8px 12px',
+                                borderRadius: '6px',
+                                fontSize: '13px'
+                              }}
+                            >
+                              <option value="ACTIVE">ACTIVE</option>
+                              <option value="INACTIVE">INACTIVE</option>
+                              <option value="DEPRECATED">DEPRECATED</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '12px' }}>
+                          <button
+                            onClick={() => setPermFormOpen(false)}
+                            style={{
+                              backgroundColor: 'rgba(255,255,255,0.08)',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              padding: '8px 16px',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              fontSize: '13px'
+                            }}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              // Client-side validation mirroring server rules
+                              const errors: Record<string, string> = {};
+                              if (!permFormData.name.trim()) errors.name = 'Permission name is required';
+                              if (!permFormData.resource.trim()) errors.resource = 'Resource is required';
+                              if (!permFormData.action.trim()) errors.action = 'Action is required';
+
+                              if (Object.keys(errors).length > 0) {
+                                setPermFormErrors(errors);
+                                return;
+                              }
+
+                              if (editingPermId) {
+                                // Optimistic concurrency check
+                                const current = dmsPermissions.find(p => p.id === editingPermId);
+                                if (current && current.version !== permFormData.version) {
+                                  setPermOptimisticConflict(true);
+                                  return;
+                                }
+                                setDmsPermissions(prev => prev.map(p => p.id === editingPermId ? {
+                                  ...p,
+                                  name: permFormData.name,
+                                  resource: permFormData.resource,
+                                  action: permFormData.action,
+                                  description: permFormData.description,
+                                  status: permFormData.status,
+                                  version: p.version + 1
+                                } : p));
+                              } else {
+                                const newRecord = {
+                                  id: `perm-uuid-${Date.now()}`,
+                                  name: permFormData.name,
+                                  resource: permFormData.resource,
+                                  action: permFormData.action,
+                                  description: permFormData.description,
+                                  status: permFormData.status,
+                                  version: 1,
+                                  createdAt: new Date().toISOString().split('T')[0]
+                                };
+                                setDmsPermissions(prev => [newRecord, ...prev]);
+                              }
+                              setPermFormOpen(false);
+                            }}
+                            style={{
+                              backgroundColor: '#3B82F6',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              padding: '8px 16px',
+                              borderRadius: '8px',
+                              fontWeight: 'bold',
+                              cursor: 'pointer',
+                              fontSize: '13px'
+                            }}
+                          >
+                            {editingPermId ? 'Save Changes' : 'Create Permission'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Destructive Delete Confirmation Modal */}
+                  {permDeleteConfirmId && (
+                    <div style={{
+                      position: 'fixed',
+                      top: 0, left: 0, right: 0, bottom: 0,
+                      backgroundColor: 'rgba(0,0,0,0.8)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 1100
+                    }}>
+                      <div style={{
+                        backgroundColor: '#1E293B',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(239, 68, 68, 0.4)',
+                        padding: '24px',
+                        width: '420px',
+                        textAlign: 'center'
+                      }}>
+                        <div style={{ fontSize: '36px', marginBottom: '12px' }}>⚠️</div>
+                        <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#F87171' }}>
+                          Confirm Permission Revocation
+                        </h4>
+                        <p style={{ fontSize: '13px', color: '#94A3B8', margin: '12px 0 20px 0' }}>
+                          Are you sure you want to delete permission <b>{dmsPermissions.find(p => p.id === permDeleteConfirmId)?.name}</b>? Any roles relying on this permission will be affected.
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                          <button
+                            onClick={() => setPermDeleteConfirmId(null)}
+                            style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFFFFF', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDmsPermissions(prev => prev.filter(p => p.id !== permDeleteConfirmId));
+                              setPermDeleteConfirmId(null);
+                            }}
+                            style={{ backgroundColor: '#EF4444', color: '#FFFFFF', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                          >
+                            Confirm Delete
                           </button>
                         </div>
                       </div>
