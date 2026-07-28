@@ -26,6 +26,26 @@ export class UpdateAuditLogUseCase {
     return this.mapToResponse(auditLog);
   }
 
+  public async approveAuditLog(principal: Principal, id: string): Promise<AuditLogResponseDto> {
+    if (!principal || !principal.tenantId) {
+      throw new Error('Unauthorized: Tenant context required.');
+    }
+    if (!principal.permissions.includes('audit:approve') && !principal.roles.includes('admin')) {
+      throw new Error('Forbidden: Insufficient permissions to approve audit log.');
+    }
+
+    const auditLog = await this.repository.findById(id, principal.tenantId);
+    if (!auditLog) {
+      throw new Error(`AuditLog with ID '${id}' not found.`);
+    }
+
+    auditLog.approve();
+
+    await this.repository.save(auditLog);
+
+    return this.mapToResponse(auditLog);
+  }
+
   public async deleteAuditLog(principal: Principal, id: string): Promise<boolean> {
     if (!principal || !principal.tenantId) {
       throw new Error('Unauthorized: Tenant context required.');

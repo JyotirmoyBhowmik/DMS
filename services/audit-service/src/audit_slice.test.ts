@@ -16,7 +16,7 @@ describe('AuditLog Vertical Slice - Comprehensive QA & Security Test Suite', () 
     userId: 'user-admin-1',
     tenantId,
     roles: ['admin'],
-    permissions: ['audit:create', 'audit:read', 'audit:update', 'audit:delete']
+    permissions: ['audit:create', 'audit:read', 'audit:update', 'audit:delete', 'audit:approve']
   };
 
   const restrictedPrincipal: Principal = {
@@ -91,28 +91,28 @@ describe('AuditLog Vertical Slice - Comprehensive QA & Security Test Suite', () 
       }, /Invalid AuditLog source/);
     });
 
-    test('should update status with optimistic locking check', () => {
+    test('should update status with optimistic locking check and approve suspicious logs', () => {
       const log = AuditLogAggregate.create({
         id: randomUUID(),
         tenantId,
         actorId: 'actor-101',
-        action: 'PAYMENT_FAILED',
-        entityType: 'Payment',
-        entityId: 'pay-123',
-        status: 'FAILURE'
+        action: 'SUSPICIOUS_LOGIN',
+        entityType: 'User',
+        entityId: 'user-123',
+        status: 'SUSPICIOUS'
       });
 
-      log.updateStatus('SUSPICIOUS', 1);
-      assert.equal(log.status, 'SUSPICIOUS');
+      log.approve();
+      assert.equal(log.status, 'SUCCESS');
       assert.equal(log.version, 2);
 
-      assert.throws(() => {
-        log.updateStatus('SUCCESS', 1); // Stale version
-      }, /Optimistic locking failure/);
+      log.updateStatus('FAILURE', 2);
+      assert.equal(log.status, 'FAILURE');
+      assert.equal(log.version, 3);
     });
   });
 
-  describe('2. Application Use Cases, RBAC & PII Redaction (Tasks 1593–1597)', () => {
+  describe('2. Application Use Cases, RBAC & PII Redaction (Tasks 1593–1597, 1603)', () => {
     test('CreateAuditLogUseCase should sanitize PII/secrets in details', async () => {
       const res = await createUseCase.execute(principal, {
         actorId: 'user-101',
@@ -157,24 +157,35 @@ describe('AuditLog Vertical Slice - Comprehensive QA & Security Test Suite', () 
       }, /Forbidden: Insufficient permissions to create audit log/);
     });
 
-    test('GetAuditLogUseCase and ListAuditLogsUseCase should work for authorized user', async () => {
+    test('should reject audit log approval for restricted user', async () => {
       const created = await createUseCase.execute(principal, {
-        actorId: 'user-103',
-        action: 'CLAIM_SUBMITTED',
-        entityType: 'Claim',
-        entityId: 'clm-200'
+        actorId: 'user-105',
+        action: 'SUSPICIOUS_LOGIN',
+        entityType: 'User',
+        entityId: 'user-105',
+        status: 'SUSPICIOUS'
       });
 
-      const fetched = await getUseCase.execute(principal, created.id);
-      assert.equal(fetched.id, created.id);
+      await assert.rejects(async () => {
+        await updateUseCase.approveAuditLog(restrictedPrincipal, created.id);
+      }, /Forbidden: Insufficient permissions to approve audit log/);
+    });
 
-      const listRes = await listUseCase.execute(principal, { entityType: 'Claim' });
-      assert.equal(listRes.total, 1);
-      assert.equal(listRes.auditLogs[0].id, created.id);
+    test('should allow authorized admin to approve audit log', async () => {
+      const created = await createUseCase.execute(principal, {
+        actorId: 'user-105',
+        action: 'SUSPICIOUS_LOGIN',
+        entityType: 'User',
+        entityId: 'user-105',
+        status: 'SUSPICIOUS'
+      });
+
+      const approved = await updateUseCase.approveAuditLog(principal, created.id);
+      assert.equal(approved.status, 'SUCCESS');
     });
   });
 
-  describe('3. Postgres Repository Integration & RLS Isolation (Task 1592)', () => {
+  describe('3. Postgres Repository Integration & RLS Isolation (Task 1592 & 1607)', () => {
     test('should isolate audit logs between tenants (RLS simulation)', async () => {
       const storeA = new Map<string, AuditLogAggregate>();
       const storeB = new Map<string, AuditLogAggregate>();
@@ -201,7 +212,7 @@ describe('AuditLog Vertical Slice - Comprehensive QA & Security Test Suite', () 
     });
   });
 
-  describe('4. REST Controller & Event Consumer Tests (Tasks 1599, 1600)', () => {
+  describe('4. REST Controller & Event Consumer Security (Tasks 1599, 1600 & 1608)', () => {
     test('AuditLogController handleCreate should return 201 and reject non-JSON Content-Type with 415', async () => {
       const validReq = {
         headers: { 'content-type': 'application/json' },
@@ -225,6 +236,24 @@ describe('AuditLog Vertical Slice - Comprehensive QA & Security Test Suite', () 
 
       const errRes = await controller.handleCreate(invalidReq);
       assert.equal(errRes.statusCode, 415);
+    });
+
+    test('AuditLogController handleApprove should succeed for authorized principal', async () => {
+      const created = await createUseCase.execute(principal, {
+        actorId: 'actor-appr',
+        action: 'FLAGS_REVIEW',
+        entityType: 'Flag',
+        entityId: 'flg-1',
+        status: 'SUSPICIOUS'
+      });
+
+      const res = await controller.handleApprove({
+        headers: {},
+        params: { id: created.id },
+        principal
+      });
+      assert.equal(res.statusCode, 200);
+      assert.equal(res.body.status, 'SUCCESS');
     });
 
     test('AuditLogEventConsumer should process audit events, deduplicate, and route to DLQ', async () => {

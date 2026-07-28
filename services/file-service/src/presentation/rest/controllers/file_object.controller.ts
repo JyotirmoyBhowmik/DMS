@@ -1,8 +1,8 @@
-import { CreateAuditLogUseCase, Principal } from '../../../application/usecases/create-audit-log.usecase.js';
-import { GetAuditLogUseCase } from '../../../application/usecases/get-audit-log.usecase.js';
-import { UpdateAuditLogUseCase } from '../../../application/usecases/update-audit-log.usecase.js';
-import { ListAuditLogsUseCase } from '../../../application/usecases/list-audit-logs.usecase.js';
-import { CreateAuditLogDto, ListAuditLogsQueryDto, UpdateAuditLogStatusDto } from '../../../application/dtos/audit_log.dto.js';
+import { CreateFileObjectUseCase, Principal } from '../../../application/usecases/create-file-object.usecase.js';
+import { GetFileObjectUseCase } from '../../../application/usecases/get-file-object.usecase.js';
+import { UpdateFileObjectUseCase } from '../../../application/usecases/update-file-object.usecase.js';
+import { ListFileObjectsUseCase } from '../../../application/usecases/list-file-objects.usecase.js';
+import { CreateFileObjectDto, ListFileObjectsQueryDto, UpdateFileObjectDto } from '../../../application/dtos/file_object.dto.js';
 
 export interface HttpRequest {
   headers: Record<string, string>;
@@ -18,12 +18,12 @@ export interface HttpResponse {
   body: any;
 }
 
-export class AuditLogController {
+export class FileObjectController {
   constructor(
-    private readonly createUseCase: CreateAuditLogUseCase,
-    private readonly getUseCase: GetAuditLogUseCase,
-    private readonly updateUseCase: UpdateAuditLogUseCase,
-    private readonly listUseCase: ListAuditLogsUseCase
+    private readonly createUseCase: CreateFileObjectUseCase,
+    private readonly getUseCase: GetFileObjectUseCase,
+    private readonly updateUseCase: UpdateFileObjectUseCase,
+    private readonly listUseCase: ListFileObjectsUseCase
   ) {}
 
   public async handleCreate(req: HttpRequest): Promise<HttpResponse> {
@@ -42,7 +42,7 @@ export class AuditLogController {
       }
 
       const principal = this.extractPrincipal(req);
-      const dto: CreateAuditLogDto = req.body;
+      const dto: CreateFileObjectDto = req.body;
       const idempotencyKey = req.headers['x-idempotency-key'] || req.headers['X-Idempotency-Key'];
       if (idempotencyKey) {
         dto.idempotencyKey = idempotencyKey;
@@ -70,7 +70,7 @@ export class AuditLogController {
             timestamp: new Date().toISOString(),
             status_code: 400,
             error_code: 'BAD_REQUEST',
-            message: 'AuditLog ID route parameter is required.'
+            message: 'FileObject ID route parameter is required.'
           }
         };
       }
@@ -86,7 +86,7 @@ export class AuditLogController {
     }
   }
 
-  public async handleUpdateStatus(req: HttpRequest): Promise<HttpResponse> {
+  public async handleUpdate(req: HttpRequest): Promise<HttpResponse> {
     try {
       const principal = this.extractPrincipal(req);
       const id = req.params?.id;
@@ -97,40 +97,13 @@ export class AuditLogController {
             timestamp: new Date().toISOString(),
             status_code: 400,
             error_code: 'BAD_REQUEST',
-            message: 'AuditLog ID route parameter is required.'
+            message: 'FileObject ID route parameter is required.'
           }
         };
       }
 
-      const dto: UpdateAuditLogStatusDto = req.body;
-      const result = await this.updateUseCase.updateStatus(principal, id, dto);
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: result
-      };
-    } catch (err: any) {
-      return this.mapErrorToResponse(err);
-    }
-  }
-
-  public async handleApprove(req: HttpRequest): Promise<HttpResponse> {
-    try {
-      const principal = this.extractPrincipal(req);
-      const id = req.params?.id;
-      if (!id) {
-        return {
-          statusCode: 400,
-          body: {
-            timestamp: new Date().toISOString(),
-            status_code: 400,
-            error_code: 'BAD_REQUEST',
-            message: 'AuditLog ID route parameter is required.'
-          }
-        };
-      }
-
-      const result = await this.updateUseCase.approveAuditLog(principal, id);
+      const dto: UpdateFileObjectDto = req.body;
+      const result = await this.updateUseCase.execute(principal, id, dto);
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -152,16 +125,16 @@ export class AuditLogController {
             timestamp: new Date().toISOString(),
             status_code: 400,
             error_code: 'BAD_REQUEST',
-            message: 'AuditLog ID route parameter is required.'
+            message: 'FileObject ID route parameter is required.'
           }
         };
       }
 
-      const deleted = await this.updateUseCase.deleteAuditLog(principal, id);
+      const deleted = await this.updateUseCase.deleteFileObject(principal, id);
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: { success: deleted, message: 'AuditLog deleted successfully' }
+        body: { success: deleted, message: 'FileObject deleted successfully' }
       };
     } catch (err: any) {
       return this.mapErrorToResponse(err);
@@ -171,10 +144,9 @@ export class AuditLogController {
   public async handleList(req: HttpRequest): Promise<HttpResponse> {
     try {
       const principal = this.extractPrincipal(req);
-      const query: ListAuditLogsQueryDto = {
-        actorId: req.query?.actorId,
-        action: req.query?.action,
-        entityType: req.query?.entityType,
+      const query: ListFileObjectsQueryDto = {
+        filename: req.query?.filename,
+        mimeType: req.query?.mimeType,
         status: req.query?.status,
         page: req.query?.page ? parseInt(req.query.page, 10) : undefined,
         pageSize: req.query?.pageSize ? parseInt(req.query.pageSize, 10) : undefined
@@ -197,7 +169,7 @@ export class AuditLogController {
     const tenantId = req.headers['x-tenant-id'] || req.headers['X-Tenant-ID'] || '00000000-0000-0000-0000-000000000001';
     const userId = req.headers['x-user-id'] || req.headers['X-User-ID'] || 'user-default';
     const roles = (req.headers['x-user-roles'] || 'admin').split(',');
-    const permissions = (req.headers['x-user-permissions'] || 'audit:create,audit:read,audit:update,audit:delete,audit:approve').split(',');
+    const permissions = (req.headers['x-user-permissions'] || 'file:create,file:read,file:update,file:delete').split(',');
 
     return { userId, tenantId, roles, permissions };
   }
@@ -219,7 +191,7 @@ export class AuditLogController {
     } else if (msg.includes('Optimistic locking failure') || msg.includes('Duplicate request')) {
       statusCode = 409;
       errorCode = 'CONFLICT';
-    } else if (msg.includes('Invalid') || msg.includes('required') || msg.includes('must be')) {
+    } else if (msg.includes('Invalid') || msg.includes('required') || msg.includes('must be') || msg.includes('Cannot transition')) {
       statusCode = 400;
       errorCode = 'BAD_REQUEST';
     }

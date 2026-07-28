@@ -2,12 +2,23 @@
   "name": "@dms/file-service",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "main": "./dist/main.js",
-  "scripts": { "build": "tsc", "typecheck": "tsc --noEmit" },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --test-concurrency=1 \"dist/**/*.test.js\""
+  },
   "dependencies": {
-    "@dms/pkg-crypto": "workspace:*", "@dms/pkg-database": "workspace:*", "@dms/pkg-events": "workspace:*",
-    "@dms/pkg-logger": "workspace:*", "@dms/pkg-validation": "workspace:*", "@dms/pkg-rbac": "workspace:*",
+    "@dms/pkg-crypto": "workspace:*",
+    "@dms/pkg-database": "workspace:*",
+    "@dms/pkg-events": "workspace:*",
+    "@dms/pkg-logger": "workspace:*",
+    "@dms/pkg-validation": "workspace:*",
+    "@dms/pkg-rbac": "workspace:*",
     "@dms/pkg-http": "workspace:*"
   },
-  "devDependencies": { "typescript": "^5.3.3" }
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
 }

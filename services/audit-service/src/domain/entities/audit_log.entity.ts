@@ -115,6 +115,14 @@ export class AuditLogAggregate {
     this.props.updatedAt = new Date();
   }
 
+  public approve(): void {
+    if (this.props.status === 'SUSPICIOUS') {
+      this.props.status = 'SUCCESS';
+      this.props.version += 1;
+      this.props.updatedAt = new Date();
+    }
+  }
+
   public get id(): string { return this.props.id; }
   public get tenantId(): string { return this.props.tenantId; }
   public get actorId(): string { return this.props.actorId; }

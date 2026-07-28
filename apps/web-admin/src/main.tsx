@@ -662,6 +662,18 @@ const App = () => {
   const [notifPage, setNotifPage] = useState(1);
   const [notifDeleteConfirmId, setNotifDeleteConfirmId] = useState<string | null>(null);
 
+  // AuditLog Web Admin State (Tasks 1609 & 1610)
+  const [auditLogs, setAuditLogs] = useState([
+    { id: 'audit-uuid-001', tenantId: '00000000-0000-0000-0000-000000000001', actorId: 'user-admin-1', action: 'USER_LOGIN', entityType: 'User', entityId: 'user-admin-1', source: 'WEB', status: 'SUCCESS', version: 1, createdAt: '2026-07-28T10:00:00Z' },
+    { id: 'audit-uuid-002', tenantId: '00000000-0000-0000-0000-000000000001', actorId: 'user-sales-2', action: 'ORDER_CREATE', entityType: 'Order', entityId: 'ord-1002', source: 'MOBILE', status: 'SUCCESS', version: 1, createdAt: '2026-07-28T09:30:00Z' },
+    { id: 'audit-uuid-003', tenantId: '00000000-0000-0000-0000-000000000001', actorId: 'system-agent', action: 'SUSPICIOUS_LOGIN', entityType: 'User', entityId: 'user-admin-1', source: 'API', status: 'SUSPICIOUS', version: 1, createdAt: '2026-07-28T08:00:00Z' }
+  ]);
+  const [auditLogSearchQuery, setAuditLogSearchQuery] = useState('');
+  const [auditLogSourceFilter, setAuditLogSourceFilter] = useState('ALL');
+  const [auditLogStatusFilter, setAuditLogStatusFilter] = useState('ALL');
+  const [auditLogPage, setAuditLogPage] = useState(1);
+  const [auditLogDeleteConfirmId, setAuditLogDeleteConfirmId] = useState<string | null>(null);
+
   // Simulated Payment Management state for Web Admin (Tasks 1311 & 1312)
   const [payments, setPayments] = useState([
     { id: 'pay-uuid-001', paymentReference: 'PAY-2026-001', distributorId: 'dist-uuid-201', invoiceId: 'inv-uuid-001', amountCents: 250000, paymentMethod: 'WIRE_TRANSFER', currency: 'USD', status: 'COMPLETED', version: 1, createdAt: '2026-06-15' },
@@ -12173,7 +12185,8 @@ const App = () => {
                   { id: 'permissions', label: 'Permissions' },
                   { id: 'mfa', label: 'MFA Devices' },
                   { id: 'notification-templates', label: 'Notification Templates' },
-                  { id: 'notifications', label: 'Notifications Log' }
+                  { id: 'notifications', label: 'Notifications Log' },
+                  { id: 'audit-logs', label: 'Audit Logs' }
                 ].map(sub => (
                   <button
                     key={sub.id}
@@ -12853,6 +12866,131 @@ const App = () => {
                             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
                               <button onClick={() => setNotifDeleteConfirmId(null)} style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Close</button>
                               <button onClick={() => { setNotifications(prev => prev.map(n => n.id === notifDeleteConfirmId ? { ...n, status: 'CANCELLED' } : n)); setNotifDeleteConfirmId(null); }} style={{ backgroundColor: '#EF4444', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Confirm Cancel</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {(identitySubTab as string) === 'audit-logs' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <input
+                          type="text"
+                          placeholder="Search Actor / Action..."
+                          value={auditLogSearchQuery}
+                          onChange={e => { setAuditLogSearchQuery(e.target.value); setAuditLogPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', width: '220px' }}
+                        />
+                        <select
+                          value={auditLogSourceFilter}
+                          onChange={e => { setAuditLogSourceFilter(e.target.value); setAuditLogPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="ALL">All Sources</option>
+                          <option value="WEB">WEB</option>
+                          <option value="MOBILE">MOBILE</option>
+                          <option value="API">API</option>
+                          <option value="SYSTEM">SYSTEM</option>
+                        </select>
+                        <select
+                          value={auditLogStatusFilter}
+                          onChange={e => { setAuditLogStatusFilter(e.target.value); setAuditLogPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="ALL">All Statuses</option>
+                          <option value="SUCCESS">SUCCESS</option>
+                          <option value="FAILURE">FAILURE</option>
+                          <option value="SUSPICIOUS">SUSPICIOUS</option>
+                        </select>
+                      </div>
+
+                      {(() => {
+                        let filtered = auditLogs.filter(a => {
+                          const matchesQuery = !auditLogSearchQuery || a.actorId.toLowerCase().includes(auditLogSearchQuery.toLowerCase()) || a.action.toLowerCase().includes(auditLogSearchQuery.toLowerCase());
+                          const matchesSource = auditLogSourceFilter === 'ALL' || a.source === auditLogSourceFilter;
+                          const matchesStatus = auditLogStatusFilter === 'ALL' || a.status === auditLogStatusFilter;
+                          return matchesQuery && matchesSource && matchesStatus;
+                        });
+
+                        const totalPages = Math.max(1, Math.ceil(filtered.length / 5));
+                        const page = Math.min(auditLogPage, totalPages);
+                        const paginated = filtered.slice((page - 1) * 5, page * 5);
+
+                        return (
+                          <>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: '#FFF' }}>
+                              <thead>
+                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: 'left', opacity: 0.7 }}>
+                                  <th style={{ padding: '10px 8px' }}>Actor ID</th>
+                                  <th style={{ padding: '10px 8px' }}>Action</th>
+                                  <th style={{ padding: '10px 8px' }}>Entity</th>
+                                  <th style={{ padding: '10px 8px' }}>Source</th>
+                                  <th style={{ padding: '10px 8px' }}>Status</th>
+                                  <th style={{ padding: '10px 8px' }}>Version</th>
+                                  <th style={{ padding: '10px 8px' }}>Created</th>
+                                  <th style={{ padding: '10px 8px', textAlign: 'right' }}>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {paginated.map(a => (
+                                  <tr key={a.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <td style={{ padding: '10px 8px', fontWeight: 600, color: '#60A5FA' }}>{a.actorId}</td>
+                                    <td style={{ padding: '10px 8px', fontWeight: 600 }}>{a.action}</td>
+                                    <td style={{ padding: '10px 8px', opacity: 0.8 }}>{a.entityType}:{a.entityId}</td>
+                                    <td style={{ padding: '10px 8px' }}>{a.source}</td>
+                                    <td style={{ padding: '10px 8px' }}>
+                                      <span style={{
+                                        backgroundColor: a.status === 'SUCCESS' ? 'rgba(16, 185, 129, 0.15)' :
+                                                         a.status === 'SUSPICIOUS' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                        color: a.status === 'SUCCESS' ? '#10B981' :
+                                               a.status === 'SUSPICIOUS' ? '#F59E0B' : '#EF4444',
+                                        padding: '2px 8px',
+                                        borderRadius: '4px',
+                                        fontSize: '11px',
+                                        fontWeight: 700
+                                      }}>{a.status}</span>
+                                    </td>
+                                    <td style={{ padding: '10px 8px', opacity: 0.8 }}>v{a.version}</td>
+                                    <td style={{ padding: '10px 8px', opacity: 0.6, fontSize: '11px' }}>{a.createdAt.split('T')[0]}</td>
+                                    <td style={{ padding: '10px 8px', textAlign: 'right' }}>
+                                      {currentUserRole === 'admin' && (
+                                        <>
+                                          {a.status === 'SUSPICIOUS' && (
+                                            <button onClick={() => {
+                                              setAuditLogs(prev => prev.map(item => item.id === a.id ? { ...item, status: 'SUCCESS', version: item.version + 1 } : item));
+                                            }} style={{ background: 'none', border: 'none', color: '#10B981', cursor: 'pointer', marginRight: '8px' }}>Approve</button>
+                                          )}
+                                          <button onClick={() => setAuditLogDeleteConfirmId(a.id)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}>Delete</button>
+                                        </>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                              <span style={{ fontSize: '11px', color: '#94A3B8' }}>Page {auditLogPage} of {totalPages} ({filtered.length} total)</span>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button disabled={auditLogPage === 1} onClick={() => setAuditLogPage(p => Math.max(1, p - 1))} style={{ backgroundColor: 'rgba(30,41,59,0.4)', color: auditLogPage === 1 ? '#475569' : '#FFF', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: auditLogPage === 1 ? 'not-allowed' : 'pointer' }}>Prev</button>
+                                <button disabled={auditLogPage === totalPages} onClick={() => setAuditLogPage(p => Math.min(totalPages, p + 1))} style={{ backgroundColor: 'rgba(30,41,59,0.4)', color: auditLogPage === totalPages ? '#475569' : '#FFF', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: auditLogPage === totalPages ? 'not-allowed' : 'pointer' }}>Next</button>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+
+                      {auditLogDeleteConfirmId && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+                          <div style={{ backgroundColor: '#1E293B', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.4)', padding: '20px', width: '380px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>⚠️</div>
+                            <h4 style={{ margin: 0, color: '#F87171', fontSize: '15px' }}>Delete Audit Log</h4>
+                            <p style={{ fontSize: '12px', color: '#94A3B8', margin: '10px 0 16px 0' }}>Are you sure you want to delete audit log for action <b>{auditLogs.find(a => a.id === auditLogDeleteConfirmId)?.action}</b>?</p>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                              <button onClick={() => setAuditLogDeleteConfirmId(null)} style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
+                              <button onClick={() => { setAuditLogs(prev => prev.filter(a => a.id !== auditLogDeleteConfirmId)); setAuditLogDeleteConfirmId(null); }} style={{ backgroundColor: '#EF4444', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Confirm Delete</button>
                             </div>
                           </div>
                         </div>

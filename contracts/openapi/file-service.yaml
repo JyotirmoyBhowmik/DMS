@@ -2,12 +2,179 @@ openapi: 3.0.3
 info:
   title: File Service API
   version: 1.0.0
-  description: Dynamic pre-signed URLs and secure file uploads API.
+  description: Multi-tenant FileObject metadata and storage management engine.
 paths:
-  /files/upload/initiate:
+  /api/v1/files:
     post:
-      summary: Initiate dynamic pre-signed secure upload URL
-      operationId: initiateUpload
+      summary: Register FileObject
+      operationId: createFileObject
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFileObjectRequest'
+      responses:
+        '201':
+          description: FileObject created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileObjectResponse'
+        '400':
+          description: Invalid input or domain validation failure
+        '409':
+          description: Idempotency conflict
+    get:
+      summary: List FileObjects with pagination and filters
+      operationId: listFileObjects
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: filename
+          schema:
+            type: string
+        - in: query
+          name: mimeType
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [PENDING, UPLOADED, ARCHIVED, DELETED]
       responses:
         '200':
-          description: Pre-signed upload url generated
+          description: Paginated list of FileObjects
+
+  /api/v1/files/{id}:
+    get:
+      summary: Get FileObject details by ID
+      operationId: getFileObject
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: FileObject details
+        '404':
+          description: FileObject not found
+    put:
+      summary: Update FileObject status or metadata
+      operationId: updateFileObject
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFileObjectRequest'
+      responses:
+        '200':
+          description: FileObject updated successfully
+        '409':
+          description: Optimistic locking conflict
+
+components:
+  schemas:
+    CreateFileObjectRequest:
+      type: object
+      required:
+        - filename
+        - mimeType
+        - sizeBytes
+        - storagePath
+        - checksum
+      properties:
+        filename:
+          type: string
+        mimeType:
+          type: string
+        sizeBytes:
+          type: integer
+          minimum: 0
+        storagePath:
+          type: string
+        checksum:
+          type: string
+
+    UpdateFileObjectRequest:
+      type: object
+      required:
+        - expectedVersion
+      properties:
+        filename:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, UPLOADED, ARCHIVED, DELETED]
+        expectedVersion:
+          type: integer
+          minimum: 1
+
+    FileObjectResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - filename
+        - mimeType
+        - sizeBytes
+        - storagePath
+        - checksum
+        - status
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        mimeType:
+          type: string
+        sizeBytes:
+          type: integer
+        storagePath:
+          type: string
+        checksum:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, UPLOADED, ARCHIVED, DELETED]
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
