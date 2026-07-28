@@ -1,34 +1,44 @@
-import { AuditController } from './presentation/rest/controllers/audit.controller.js';
+import { AuditLogPgRepository } from './infrastructure/database/repositories/audit_log.pg-repository.js';
+import { CreateAuditLogUseCase } from './application/usecases/create-audit-log.usecase.js';
+import { GetAuditLogUseCase } from './application/usecases/get-audit-log.usecase.js';
+import { UpdateAuditLogUseCase } from './application/usecases/update-audit-log.usecase.js';
+import { ListAuditLogsUseCase } from './application/usecases/list-audit-logs.usecase.js';
+import { AuditLogController } from './presentation/rest/controllers/audit_log.controller.js';
 
-const controller = new AuditController();
-const headers = { 'x-tenant-id': 'tenant-uuid-1111' };
+const repo = new AuditLogPgRepository();
+const createUseCase = new CreateAuditLogUseCase(repo);
+const getUseCase = new GetAuditLogUseCase(repo);
+const updateUseCase = new UpdateAuditLogUseCase(repo);
+const listUseCase = new ListAuditLogsUseCase(repo);
 
-async function bootstrap() {
+const controller = new AuditLogController(createUseCase, getUseCase, updateUseCase, listUseCase);
+
+async function bootstrap(): Promise<void> {
   process.stdout.write('\n=== AUDIT-SERVICE BOOTSTRAP ===\n');
 
-  // 1. Record several audit events
-  await controller.handlePostRecordEvent({ eventId: 'evt-101', type: 'order.placed', data: { total: 250 } }, headers);
-  await controller.handlePostRecordEvent({ eventId: 'evt-102', type: 'inventory.replenished', data: { replenished: 100 } }, headers);
-  await controller.handlePostRecordEvent({ eventId: 'evt-103', type: 'user.onboarded', data: { name: 'Metro Store' } }, headers);
+  const req = {
+    headers: {
+      'content-type': 'application/json',
+      'x-tenant-id': '00000000-0000-0000-0000-000000000001',
+      'x-user-id': 'admin-1',
+      'x-user-roles': 'admin',
+      'x-user-permissions': 'audit:create,audit:read,audit:update,audit:delete'
+    },
+    body: {
+      actorId: 'user-admin-1',
+      action: 'USER_LOGIN',
+      entityType: 'User',
+      entityId: 'user-admin-1',
+      source: 'WEB',
+      details: { ip: '127.0.0.1', passwordToken: 'secret' }
+    }
+  };
 
-  // 2. Verify integrity of current chain
-  const ver1 = await controller.handleVerifyChain();
-  process.stdout.write(`\n🛡️ Verification 1: Intact Chain (status=${ver1.statusCode}):\n`);
-  process.stdout.write(`  Valid: ${ver1.body.isChainValid} | Blocks: ${ver1.body.totalBlocks}\n`);
-  for (const log of ver1.body.logs) {
-    process.stdout.write(`    - ${log}\n`);
-  }
+  const createRes = await controller.handleCreate(req);
+  process.stdout.write(`\n📜 Create AuditLog Result (status=${createRes.statusCode}):\n${JSON.stringify(createRes.body, null, 2)}\n`);
 
-  // 3. Simulate database tampering on Block 2
-  await controller.simulateTampering(2, { eventId: 'evt-101', type: 'order.placed', data: { total: 999999 } }); // tampered amount
-
-  // 4. Verify integrity of chain again
-  const ver2 = await controller.handleVerifyChain();
-  process.stdout.write(`\n🛡️ Verification 2: Tampered Chain (status=${ver2.statusCode}):\n`);
-  process.stdout.write(`  Valid: ${ver2.body.isChainValid} | Blocks: ${ver2.body.totalBlocks}\n`);
-  for (const log of ver2.body.logs) {
-    process.stdout.write(`    - ${log}\n`);
-  }
+  const listRes = await controller.handleList({ headers: req.headers, query: { page: 1, pageSize: 10 } });
+  process.stdout.write(`\n📋 AuditLogs List (count=${listRes.body.total}):\n${JSON.stringify(listRes.body, null, 2)}\n`);
 
   process.stdout.write('\n=== AUDIT-SERVICE BOOTSTRAP COMPLETE ===\n');
 }

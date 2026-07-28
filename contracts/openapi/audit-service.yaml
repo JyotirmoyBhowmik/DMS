@@ -2,19 +2,198 @@ openapi: 3.0.3
 info:
   title: Audit Service API
   version: 1.0.0
-  description: Cryptographic integrity audit chain ledger service API.
+  description: Multi-tenant audit trail and compliance logging engine.
 paths:
-  /audit/records:
+  /api/v1/audit-logs:
     post:
-      summary: Ingest domain event and append to audit chain block
-      operationId: recordAuditLog
+      summary: Create AuditLog record
+      operationId: createAuditLog
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAuditLogRequest'
       responses:
         '201':
-          description: Audit log appended successfully
-  /audit/verify:
+          description: AuditLog created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogResponse'
+        '400':
+          description: Invalid input or domain validation failure
+        '409':
+          description: Idempotency conflict
     get:
-      summary: Scan and verify cryptographic hash chain integrity
-      operationId: verifyChain
+      summary: List AuditLogs with pagination and filters
+      operationId: listAuditLogs
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: actorId
+          schema:
+            type: string
+        - in: query
+          name: action
+          schema:
+            type: string
+        - in: query
+          name: entityType
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [SUCCESS, FAILURE, SUSPICIOUS]
       responses:
         '200':
-          description: Hash chain integrity validation results
+          description: Paginated list of AuditLogs
+
+  /api/v1/audit-logs/{id}:
+    get:
+      summary: Get AuditLog by ID
+      operationId: getAuditLog
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: AuditLog details
+        '404':
+          description: AuditLog not found
+    put:
+      summary: Update AuditLog status
+      operationId: updateAuditLogStatus
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAuditLogStatusRequest'
+      responses:
+        '200':
+          description: AuditLog status updated successfully
+        '409':
+          description: Optimistic locking conflict
+
+components:
+  schemas:
+    CreateAuditLogRequest:
+      type: object
+      required:
+        - actorId
+        - action
+        - entityType
+        - entityId
+      properties:
+        actorId:
+          type: string
+        action:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: string
+        source:
+          type: string
+          enum: [WEB, MOBILE, API, SYSTEM]
+        correlationId:
+          type: string
+        details:
+          type: object
+        ipAddress:
+          type: string
+        status:
+          type: string
+          enum: [SUCCESS, FAILURE, SUSPICIOUS]
+
+    UpdateAuditLogStatusRequest:
+      type: object
+      required:
+        - status
+        - expectedVersion
+      properties:
+        status:
+          type: string
+          enum: [SUCCESS, FAILURE, SUSPICIOUS]
+        expectedVersion:
+          type: integer
+          minimum: 1
+
+    AuditLogResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - actorId
+        - action
+        - entityType
+        - entityId
+        - source
+        - details
+        - status
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        actorId:
+          type: string
+        action:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: string
+        source:
+          type: string
+          enum: [WEB, MOBILE, API, SYSTEM]
+        correlationId:
+          type: string
+        details:
+          type: object
+        ipAddress:
+          type: string
+        status:
+          type: string
+          enum: [SUCCESS, FAILURE, SUSPICIOUS]
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

@@ -25,9 +25,25 @@ export class NotificationAuditService {
       entityId,
       userId,
       timestamp: new Date().toISOString(),
-      details
+      details: this.sanitizeDetails(details)
     };
     NotificationAuditService.logs.push(entry);
+  }
+
+  private static sanitizeDetails(details: Record<string, any>): Record<string, any> {
+    const sensitiveKeys = ['password', 'secret', 'token', 'ssn', 'creditCard', 'authHeader'];
+    const sanitized: Record<string, any> = {};
+
+    for (const [key, value] of Object.entries(details)) {
+      if (sensitiveKeys.some(sk => key.toLowerCase().includes(sk.toLowerCase()))) {
+        sanitized[key] = '***REDACTED***';
+      } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        sanitized[key] = this.sanitizeDetails(value);
+      } else {
+        sanitized[key] = value;
+      }
+    }
+    return sanitized;
   }
 
   public static getAuditLogs(): AuditLogEntry[] {

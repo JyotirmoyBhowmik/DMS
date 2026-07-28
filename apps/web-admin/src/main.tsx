@@ -650,6 +650,18 @@ const App = () => {
   const [notifTemplateOptimisticConflict, setNotifTemplateOptimisticConflict] = useState(false);
   const [notifTemplateDeleteConfirmId, setNotifTemplateDeleteConfirmId] = useState<string | null>(null);
 
+  // Notification Web Admin State (Tasks 1588 & 1589)
+  const [notifications, setNotifications] = useState([
+    { id: 'notif-uuid-001', tenantId: '00000000-0000-0000-0000-000000000001', recipient: 'user1@example.com', channel: 'EMAIL', status: 'QUEUED', version: 1, createdAt: '2026-07-28T10:00:00Z', updatedAt: '2026-07-28T10:00:00Z' },
+    { id: 'notif-uuid-002', tenantId: '00000000-0000-0000-0000-000000000001', recipient: '+15551234567', channel: 'SMS', status: 'SENT', version: 1, createdAt: '2026-07-28T09:30:00Z', updatedAt: '2026-07-28T09:31:00Z' },
+    { id: 'notif-uuid-003', tenantId: '00000000-0000-0000-0000-000000000001', recipient: 'push-device-token-123', channel: 'PUSH', status: 'FAILED', version: 1, createdAt: '2026-07-28T08:00:00Z', updatedAt: '2026-07-28T08:01:00Z' }
+  ]);
+  const [notifSearchQuery, setNotifSearchQuery] = useState('');
+  const [notifChannelFilter, setNotifChannelFilter] = useState('ALL');
+  const [notifStatusFilter, setNotifStatusFilter] = useState('ALL');
+  const [notifPage, setNotifPage] = useState(1);
+  const [notifDeleteConfirmId, setNotifDeleteConfirmId] = useState<string | null>(null);
+
   // Simulated Payment Management state for Web Admin (Tasks 1311 & 1312)
   const [payments, setPayments] = useState([
     { id: 'pay-uuid-001', paymentReference: 'PAY-2026-001', distributorId: 'dist-uuid-201', invoiceId: 'inv-uuid-001', amountCents: 250000, paymentMethod: 'WIRE_TRANSFER', currency: 'USD', status: 'COMPLETED', version: 1, createdAt: '2026-06-15' },
@@ -12160,7 +12172,8 @@ const App = () => {
                   { id: 'tenants', label: 'Tenants' },
                   { id: 'permissions', label: 'Permissions' },
                   { id: 'mfa', label: 'MFA Devices' },
-                  { id: 'notification-templates', label: 'Notification Templates' }
+                  { id: 'notification-templates', label: 'Notification Templates' },
+                  { id: 'notifications', label: 'Notifications Log' }
                 ].map(sub => (
                   <button
                     key={sub.id}
@@ -12715,6 +12728,131 @@ const App = () => {
                             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
                               <button onClick={() => setNotifTemplateDeleteConfirmId(null)} style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
                               <button onClick={() => { setNotificationTemplates(prev => prev.filter(t => t.id !== notifTemplateDeleteConfirmId)); setNotifTemplateDeleteConfirmId(null); }} style={{ backgroundColor: '#EF4444', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Confirm Delete</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {(identitySubTab as string) === 'notifications' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <input
+                          type="text"
+                          placeholder="Search Recipient..."
+                          value={notifSearchQuery}
+                          onChange={e => { setNotifSearchQuery(e.target.value); setNotifPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', width: '220px' }}
+                        />
+                        <select
+                          value={notifChannelFilter}
+                          onChange={e => { setNotifChannelFilter(e.target.value); setNotifPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="ALL">All Channels</option>
+                          <option value="EMAIL">EMAIL</option>
+                          <option value="SMS">SMS</option>
+                          <option value="PUSH">PUSH</option>
+                          <option value="WHATSAPP">WHATSAPP</option>
+                        </select>
+                        <select
+                          value={notifStatusFilter}
+                          onChange={e => { setNotifStatusFilter(e.target.value); setNotifPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="ALL">All Statuses</option>
+                          <option value="QUEUED">QUEUED</option>
+                          <option value="PROCESSING">PROCESSING</option>
+                          <option value="SENT">SENT</option>
+                          <option value="FAILED">FAILED</option>
+                          <option value="CANCELLED">CANCELLED</option>
+                        </select>
+                      </div>
+
+                      {(() => {
+                        let filtered = notifications.filter(n => {
+                          const matchesQuery = !notifSearchQuery || n.recipient.toLowerCase().includes(notifSearchQuery.toLowerCase());
+                          const matchesChannel = notifChannelFilter === 'ALL' || n.channel === notifChannelFilter;
+                          const matchesStatus = notifStatusFilter === 'ALL' || n.status === notifStatusFilter;
+                          return matchesQuery && matchesChannel && matchesStatus;
+                        });
+
+                        const totalPages = Math.max(1, Math.ceil(filtered.length / 5));
+                        const page = Math.min(notifPage, totalPages);
+                        const paginated = filtered.slice((page - 1) * 5, page * 5);
+
+                        return (
+                          <>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: '#FFF' }}>
+                              <thead>
+                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: 'left', opacity: 0.7 }}>
+                                  <th style={{ padding: '10px 8px' }}>Recipient</th>
+                                  <th style={{ padding: '10px 8px' }}>Channel</th>
+                                  <th style={{ padding: '10px 8px' }}>Status</th>
+                                  <th style={{ padding: '10px 8px' }}>Version</th>
+                                  <th style={{ padding: '10px 8px' }}>Created</th>
+                                  <th style={{ padding: '10px 8px', textAlign: 'right' }}>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {paginated.map(n => (
+                                  <tr key={n.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <td style={{ padding: '10px 8px', fontWeight: 600, color: '#60A5FA' }}>{n.recipient}</td>
+                                    <td style={{ padding: '10px 8px' }}>{n.channel}</td>
+                                    <td style={{ padding: '10px 8px' }}>
+                                      <span style={{
+                                        backgroundColor: n.status === 'SENT' ? 'rgba(16, 185, 129, 0.15)' :
+                                                         n.status === 'PROCESSING' ? 'rgba(59, 130, 246, 0.15)' :
+                                                         n.status === 'FAILED' ? 'rgba(239, 68, 68, 0.15)' :
+                                                         n.status === 'CANCELLED' ? 'rgba(100, 116, 139, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                                        color: n.status === 'SENT' ? '#10B981' :
+                                               n.status === 'PROCESSING' ? '#60A5FA' :
+                                               n.status === 'FAILED' ? '#EF4444' :
+                                               n.status === 'CANCELLED' ? '#94A3B8' : '#F59E0B',
+                                        padding: '2px 8px',
+                                        borderRadius: '4px',
+                                        fontSize: '11px',
+                                        fontWeight: 700
+                                      }}>{n.status}</span>
+                                    </td>
+                                    <td style={{ padding: '10px 8px', opacity: 0.8 }}>v{n.version}</td>
+                                    <td style={{ padding: '10px 8px', opacity: 0.6, fontSize: '11px' }}>{n.createdAt.split('T')[0]}</td>
+                                    <td style={{ padding: '10px 8px', textAlign: 'right' }}>
+                                      {currentUserRole === 'admin' && (
+                                        <>
+                                          <button onClick={() => {
+                                            setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, status: 'SENT', updatedAt: new Date().toISOString() } : item));
+                                          }} style={{ background: 'none', border: 'none', color: '#10B981', cursor: 'pointer', marginRight: '8px' }}>Approve</button>
+                                          <button onClick={() => setNotifDeleteConfirmId(n.id)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}>Cancel</button>
+                                        </>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                              <span style={{ fontSize: '11px', color: '#94A3B8' }}>Page {notifPage} of {totalPages} ({filtered.length} total)</span>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button disabled={notifPage === 1} onClick={() => setNotifPage(p => Math.max(1, p - 1))} style={{ backgroundColor: 'rgba(30,41,59,0.4)', color: notifPage === 1 ? '#475569' : '#FFF', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: notifPage === 1 ? 'not-allowed' : 'pointer' }}>Prev</button>
+                                <button disabled={notifPage === totalPages} onClick={() => setNotifPage(p => Math.min(totalPages, p + 1))} style={{ backgroundColor: 'rgba(30,41,59,0.4)', color: notifPage === totalPages ? '#475569' : '#FFF', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: notifPage === totalPages ? 'not-allowed' : 'pointer' }}>Next</button>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+
+                      {notifDeleteConfirmId && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+                          <div style={{ backgroundColor: '#1E293B', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.4)', padding: '20px', width: '380px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>⚠️</div>
+                            <h4 style={{ margin: 0, color: '#F87171', fontSize: '15px' }}>Cancel Notification</h4>
+                            <p style={{ fontSize: '12px', color: '#94A3B8', margin: '10px 0 16px 0' }}>Are you sure you want to cancel notification for recipient <b>{notifications.find(n => n.id === notifDeleteConfirmId)?.recipient}</b>?</p>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                              <button onClick={() => setNotifDeleteConfirmId(null)} style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Close</button>
+                              <button onClick={() => { setNotifications(prev => prev.map(n => n.id === notifDeleteConfirmId ? { ...n, status: 'CANCELLED' } : n)); setNotifDeleteConfirmId(null); }} style={{ backgroundColor: '#EF4444', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Confirm Cancel</button>
                             </div>
                           </div>
                         </div>

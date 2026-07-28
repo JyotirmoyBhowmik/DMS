@@ -1,8 +1,8 @@
-import { CreateNotificationUseCase, Principal } from '../../../application/usecases/create-notification.usecase.js';
-import { GetNotificationUseCase } from '../../../application/usecases/get-notification.usecase.js';
-import { UpdateNotificationUseCase } from '../../../application/usecases/update-notification.usecase.js';
-import { ListNotificationsUseCase } from '../../../application/usecases/list-notifications.usecase.js';
-import { CreateNotificationDto, ListNotificationsQueryDto, TransitionNotificationStatusDto, UpdateNotificationDto } from '../../../application/dtos/notification.dto.js';
+import { CreateAuditLogUseCase, Principal } from '../../../application/usecases/create-audit-log.usecase.js';
+import { GetAuditLogUseCase } from '../../../application/usecases/get-audit-log.usecase.js';
+import { UpdateAuditLogUseCase } from '../../../application/usecases/update-audit-log.usecase.js';
+import { ListAuditLogsUseCase } from '../../../application/usecases/list-audit-logs.usecase.js';
+import { CreateAuditLogDto, ListAuditLogsQueryDto, UpdateAuditLogStatusDto } from '../../../application/dtos/audit_log.dto.js';
 
 export interface HttpRequest {
   headers: Record<string, string>;
@@ -18,12 +18,12 @@ export interface HttpResponse {
   body: any;
 }
 
-export class NotificationController {
+export class AuditLogController {
   constructor(
-    private readonly createUseCase: CreateNotificationUseCase,
-    private readonly getUseCase: GetNotificationUseCase,
-    private readonly updateUseCase: UpdateNotificationUseCase,
-    private readonly listUseCase: ListNotificationsUseCase
+    private readonly createUseCase: CreateAuditLogUseCase,
+    private readonly getUseCase: GetAuditLogUseCase,
+    private readonly updateUseCase: UpdateAuditLogUseCase,
+    private readonly listUseCase: ListAuditLogsUseCase
   ) {}
 
   public async handleCreate(req: HttpRequest): Promise<HttpResponse> {
@@ -42,7 +42,7 @@ export class NotificationController {
       }
 
       const principal = this.extractPrincipal(req);
-      const dto: CreateNotificationDto = req.body;
+      const dto: CreateAuditLogDto = req.body;
       const idempotencyKey = req.headers['x-idempotency-key'] || req.headers['X-Idempotency-Key'];
       if (idempotencyKey) {
         dto.idempotencyKey = idempotencyKey;
@@ -70,7 +70,7 @@ export class NotificationController {
             timestamp: new Date().toISOString(),
             status_code: 400,
             error_code: 'BAD_REQUEST',
-            message: 'Notification ID route parameter is required.'
+            message: 'AuditLog ID route parameter is required.'
           }
         };
       }
@@ -86,7 +86,7 @@ export class NotificationController {
     }
   }
 
-  public async handleUpdate(req: HttpRequest): Promise<HttpResponse> {
+  public async handleUpdateStatus(req: HttpRequest): Promise<HttpResponse> {
     try {
       const principal = this.extractPrincipal(req);
       const id = req.params?.id;
@@ -97,68 +97,13 @@ export class NotificationController {
             timestamp: new Date().toISOString(),
             status_code: 400,
             error_code: 'BAD_REQUEST',
-            message: 'Notification ID route parameter is required.'
+            message: 'AuditLog ID route parameter is required.'
           }
         };
       }
 
-      const dto: UpdateNotificationDto = req.body;
-      const result = await this.updateUseCase.updatePayload(principal, id, dto);
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: result
-      };
-    } catch (err: any) {
-      return this.mapErrorToResponse(err);
-    }
-  }
-
-  public async handleTransitionStatus(req: HttpRequest): Promise<HttpResponse> {
-    try {
-      const principal = this.extractPrincipal(req);
-      const id = req.params?.id;
-      if (!id) {
-        return {
-          statusCode: 400,
-          body: {
-            timestamp: new Date().toISOString(),
-            status_code: 400,
-            error_code: 'BAD_REQUEST',
-            message: 'Notification ID route parameter is required.'
-          }
-        };
-      }
-
-      const dto: TransitionNotificationStatusDto = req.body;
-      const result = await this.updateUseCase.transitionStatus(principal, id, dto);
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: result
-      };
-    } catch (err: any) {
-      return this.mapErrorToResponse(err);
-    }
-  }
-
-  public async handleApprove(req: HttpRequest): Promise<HttpResponse> {
-    try {
-      const principal = this.extractPrincipal(req);
-      const id = req.params?.id;
-      if (!id) {
-        return {
-          statusCode: 400,
-          body: {
-            timestamp: new Date().toISOString(),
-            status_code: 400,
-            error_code: 'BAD_REQUEST',
-            message: 'Notification ID route parameter is required.'
-          }
-        };
-      }
-
-      const result = await this.updateUseCase.approveNotification(principal, id);
+      const dto: UpdateAuditLogStatusDto = req.body;
+      const result = await this.updateUseCase.updateStatus(principal, id, dto);
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -180,16 +125,16 @@ export class NotificationController {
             timestamp: new Date().toISOString(),
             status_code: 400,
             error_code: 'BAD_REQUEST',
-            message: 'Notification ID route parameter is required.'
+            message: 'AuditLog ID route parameter is required.'
           }
         };
       }
 
-      const deleted = await this.updateUseCase.deleteNotification(principal, id);
+      const deleted = await this.updateUseCase.deleteAuditLog(principal, id);
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: { success: deleted, message: 'Notification deleted successfully' }
+        body: { success: deleted, message: 'AuditLog deleted successfully' }
       };
     } catch (err: any) {
       return this.mapErrorToResponse(err);
@@ -199,11 +144,11 @@ export class NotificationController {
   public async handleList(req: HttpRequest): Promise<HttpResponse> {
     try {
       const principal = this.extractPrincipal(req);
-      const query: ListNotificationsQueryDto = {
-        recipient: req.query?.recipient,
-        channel: req.query?.channel,
+      const query: ListAuditLogsQueryDto = {
+        actorId: req.query?.actorId,
+        action: req.query?.action,
+        entityType: req.query?.entityType,
         status: req.query?.status,
-        templateId: req.query?.templateId,
         page: req.query?.page ? parseInt(req.query.page, 10) : undefined,
         pageSize: req.query?.pageSize ? parseInt(req.query.pageSize, 10) : undefined
       };
@@ -225,7 +170,7 @@ export class NotificationController {
     const tenantId = req.headers['x-tenant-id'] || req.headers['X-Tenant-ID'] || '00000000-0000-0000-0000-000000000001';
     const userId = req.headers['x-user-id'] || req.headers['X-User-ID'] || 'user-default';
     const roles = (req.headers['x-user-roles'] || 'admin').split(',');
-    const permissions = (req.headers['x-user-permissions'] || 'notification:create,notification:read,notification:update,notification:delete,notification:approve').split(',');
+    const permissions = (req.headers['x-user-permissions'] || 'audit:create,audit:read,audit:update,audit:delete').split(',');
 
     return { userId, tenantId, roles, permissions };
   }

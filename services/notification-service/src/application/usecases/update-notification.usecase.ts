@@ -90,6 +90,63 @@ export class UpdateNotificationUseCase {
     return this.mapToResponse(notification);
   }
 
+  public async approveNotification(principal: Principal, id: string): Promise<NotificationResponseDto> {
+    if (!principal || !principal.tenantId) {
+      throw new Error('Unauthorized: Tenant context required.');
+    }
+    if (!principal.permissions.includes('notification:approve') && !principal.roles.includes('admin')) {
+      throw new Error('Forbidden: Insufficient permissions to approve notification.');
+    }
+
+    const notification = await this.repository.findById(id, principal.tenantId);
+    if (!notification) {
+      throw new Error(`Notification with ID '${id}' not found.`);
+    }
+
+    if (notification.status === 'QUEUED') {
+      notification.startProcessing();
+    }
+    notification.markAsSent();
+
+    await this.repository.save(notification);
+
+    await NotificationAuditService.logAction(
+      principal.tenantId,
+      'NOTIFICATION_APPROVED',
+      notification.id,
+      principal.userId,
+      { approvedBy: principal.userId }
+    );
+
+    return this.mapToResponse(notification);
+  }
+
+  public async deleteNotification(principal: Principal, id: string): Promise<boolean> {
+    if (!principal || !principal.tenantId) {
+      throw new Error('Unauthorized: Tenant context required.');
+    }
+    if (!principal.permissions.includes('notification:delete') && !principal.roles.includes('admin')) {
+      throw new Error('Forbidden: Insufficient permissions to delete notification.');
+    }
+
+    const existing = await this.repository.findById(id, principal.tenantId);
+    if (!existing) {
+      throw new Error(`Notification with ID '${id}' not found.`);
+    }
+
+    const deleted = await this.repository.delete(id, principal.tenantId);
+
+    await NotificationAuditService.logAction(
+      principal.tenantId,
+      'NOTIFICATION_DELETED',
+      id,
+      principal.userId,
+      { deleted: true }
+    );
+
+    return deleted;
+  }
+
   private mapToResponse(notification: NotificationAggregate): NotificationResponseDto {
     return {
       id: notification.id,
