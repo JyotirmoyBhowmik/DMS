@@ -12,6 +12,98 @@ paths:
         '202':
           description: Notification queued successfully
 
+  /api/v1/notifications:
+    post:
+      summary: Create Notification
+      operationId: createNotification
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationRequest'
+      responses:
+        '201':
+          description: Notification created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        '400':
+          description: Invalid input or domain validation failure
+        '409':
+          description: Conflict or idempotency failure
+    get:
+      summary: List Notifications with pagination and filtering
+      operationId: listNotifications
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: channel
+          schema:
+            type: string
+            enum: [EMAIL, SMS, PUSH, WHATSAPP]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [QUEUED, PROCESSING, SENT, FAILED, CANCELLED]
+      responses:
+        '200':
+          description: Paginated list of Notifications
+
+  /api/v1/notifications/{id}:
+    get:
+      summary: Get Notification by ID
+      operationId: getNotification
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification details
+        '404':
+          description: Notification not found
+    put:
+      summary: Update Notification payload
+      operationId: updateNotification
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNotificationRequest'
+      responses:
+        '200':
+          description: Notification updated successfully
+        '409':
+          description: Optimistic lock failure
+
   /api/v1/notification-templates:
     post:
       summary: Create NotificationTemplate
@@ -101,27 +193,86 @@ paths:
               $ref: '#/components/schemas/UpdateNotificationTemplateRequest'
       responses:
         '200':
-          description: NotificationTemplate updated
+          description: NotificationTemplate updated successfully
         '409':
-          description: Version conflict
-    delete:
-      summary: Delete NotificationTemplate
-      operationId: deleteNotificationTemplate
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: NotificationTemplate deleted successfully
-        '404':
-          description: NotificationTemplate not found
+          description: Optimistic lock failure
 
 components:
   schemas:
+    CreateNotificationRequest:
+      type: object
+      required:
+        - recipient
+        - channel
+      properties:
+        recipient:
+          type: string
+        channel:
+          type: string
+          enum: [EMAIL, SMS, PUSH, WHATSAPP]
+        templateId:
+          type: string
+          format: uuid
+        payload:
+          type: object
+
+    UpdateNotificationRequest:
+      type: object
+      required:
+        - version
+      properties:
+        payload:
+          type: object
+        version:
+          type: integer
+          minimum: 1
+
+    NotificationResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - recipient
+        - channel
+        - status
+        - payload
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        templateId:
+          type: string
+          format: uuid
+        recipient:
+          type: string
+        channel:
+          type: string
+          enum: [EMAIL, SMS, PUSH, WHATSAPP]
+        status:
+          type: string
+          enum: [QUEUED, PROCESSING, SENT, FAILED, CANCELLED]
+        payload:
+          type: object
+        errorMessage:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
     CreateNotificationTemplateRequest:
       type: object
       required:
@@ -139,13 +290,9 @@ components:
           enum: [EMAIL, SMS, PUSH, WHATSAPP]
         subject:
           type: string
-          nullable: true
         bodyTemplate:
           type: string
-        status:
-          type: string
-          enum: [ACTIVE, INACTIVE, ARCHIVED]
-          default: ACTIVE
+
     UpdateNotificationTemplateRequest:
       type: object
       required:
@@ -155,17 +302,25 @@ components:
           type: string
         subject:
           type: string
-          nullable: true
         bodyTemplate:
           type: string
-        status:
-          type: string
-          enum: [ACTIVE, INACTIVE, ARCHIVED]
         version:
           type: integer
           minimum: 1
+
     NotificationTemplateResponse:
       type: object
+      required:
+        - id
+        - tenantId
+        - code
+        - name
+        - channel
+        - bodyTemplate
+        - status
+        - version
+        - createdAt
+        - updatedAt
       properties:
         id:
           type: string
@@ -182,7 +337,6 @@ components:
           enum: [EMAIL, SMS, PUSH, WHATSAPP]
         subject:
           type: string
-          nullable: true
         bodyTemplate:
           type: string
         status:
@@ -192,5 +346,7 @@ components:
           type: integer
         createdAt:
           type: string
+          format: date-time
         updatedAt:
           type: string
+          format: date-time

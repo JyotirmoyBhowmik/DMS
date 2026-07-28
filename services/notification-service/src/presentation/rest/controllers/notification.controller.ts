@@ -1,185 +1,212 @@
-import { randomUUID } from 'node:crypto';
-import { Notification, NotificationTemplate } from '../../../domain/entities/index.js';
-import type { NotificationChannel, NotificationProps } from '../../../domain/entities/notification.js';
-import type { TemplateProps } from '../../../domain/entities/template.js';
-import { TemplateNotFoundError, ChannelUnavailableError } from '../../../domain/errors/notification.errors.js';
+import { CreateNotificationUseCase, Principal } from '../../../application/usecases/create-notification.usecase.js';
+import { GetNotificationUseCase } from '../../../application/usecases/get-notification.usecase.js';
+import { UpdateNotificationUseCase } from '../../../application/usecases/update-notification.usecase.js';
+import { ListNotificationsUseCase } from '../../../application/usecases/list-notifications.usecase.js';
+import { CreateNotificationDto, ListNotificationsQueryDto, TransitionNotificationStatusDto, UpdateNotificationDto } from '../../../application/dtos/notification.dto.js';
 
-// ── Channel Adapters ────────────────────────────────────────────
-interface ChannelAdapter {
-  readonly channel: NotificationChannel;
-  send(to: string, subject: string, body: string, data: Record<string, string>): Promise<{ success: boolean; externalId?: string; error?: string }>;
+export interface HttpRequest {
+  headers: Record<string, string>;
+  params?: Record<string, string>;
+  query?: Record<string, any>;
+  body?: any;
+  principal?: Principal;
 }
 
-class EmailAdapter implements ChannelAdapter {
-  readonly channel: NotificationChannel = 'email';
-  async send(to: string, subject: string, body: string): Promise<{ success: boolean; externalId?: string }> {
-    const externalId = `email-${randomUUID().slice(0, 8)}`;
-    process.stdout.write(`  📧 [EMAIL] To: ${to} | Subject: ${subject} | Body: ${body.slice(0, 50)}... | ID: ${externalId}\n`);
-    return { success: true, externalId };
-  }
+export interface HttpResponse {
+  statusCode: number;
+  headers?: Record<string, string>;
+  body: any;
 }
 
-class SmsAdapter implements ChannelAdapter {
-  readonly channel: NotificationChannel = 'sms';
-  async send(to: string, _subject: string, body: string): Promise<{ success: boolean; externalId?: string }> {
-    const externalId = `sms-${randomUUID().slice(0, 8)}`;
-    process.stdout.write(`  📱 [SMS] To: ${to} | Body: ${body.slice(0, 50)}... | ID: ${externalId}\n`);
-    return { success: true, externalId };
-  }
-}
-
-class PushAdapter implements ChannelAdapter {
-  readonly channel: NotificationChannel = 'push';
-  async send(to: string, subject: string, body: string): Promise<{ success: boolean; externalId?: string }> {
-    const externalId = `push-${randomUUID().slice(0, 8)}`;
-    process.stdout.write(`  🔔 [PUSH] To: ${to} | Title: ${subject} | Body: ${body.slice(0, 50)}... | ID: ${externalId}\n`);
-    return { success: true, externalId };
-  }
-}
-
-class InAppAdapter implements ChannelAdapter {
-  readonly channel: NotificationChannel = 'in_app';
-  async send(to: string, subject: string, body: string): Promise<{ success: boolean; externalId?: string }> {
-    const externalId = `inapp-${randomUUID().slice(0, 8)}`;
-    process.stdout.write(`  💬 [IN-APP] To: ${to} | Title: ${subject} | Body: ${body.slice(0, 50)}... | ID: ${externalId}\n`);
-    return { success: true, externalId };
-  }
-}
-
-// ── Repositories ────────────────────────────────────────────────
-class InMemoryNotificationRepository {
-  private store = new Map<string, NotificationProps>();
-
-  async save(notification: Notification): Promise<void> {
-    this.store.set(notification.id, notification.toJSON() as unknown as NotificationProps);
-  }
-
-  async findById(id: string): Promise<Notification | null> {
-    const data = this.store.get(id);
-    return data ? Notification.reconstitute(data) : null;
-  }
-
-  async findByRecipient(recipientId: string, limit = 20): Promise<Notification[]> {
-    return Array.from(this.store.values())
-      .filter((n) => n.recipientId === recipientId)
-      .slice(0, limit)
-      .map((n) => Notification.reconstitute(n));
-  }
-}
-
-class InMemoryTemplateRepository {
-  private store = new Map<string, TemplateProps>();
-
-  constructor() {
-    this.seed();
-  }
-
-  private seed(): void {
-    const templates: TemplateProps[] = [
-      {
-        id: 'tpl-order-confirmation', tenantId: '*', name: 'Order Confirmation', channel: 'email',
-        subject: 'Order {{orderId}} Confirmed', bodyTemplate: 'Dear {{customerName}}, your order {{orderId}} for {{amount}} has been confirmed. Expected delivery: {{deliveryDate}}.',
-        variables: ['orderId', 'customerName', 'amount', 'deliveryDate'], locale: 'en', version: '1', isActive: true,
-      },
-      {
-        id: 'tpl-visit-reminder', tenantId: '*', name: 'Visit Reminder', channel: 'push',
-        subject: 'Visit Reminder', bodyTemplate: 'You have a scheduled visit to {{outletName}} at {{time}} today.',
-        variables: ['outletName', 'time'], locale: 'en', version: '1', isActive: true,
-      },
-      {
-        id: 'tpl-payment-received', tenantId: '*', name: 'Payment Received', channel: 'sms',
-        subject: 'Payment Received', bodyTemplate: 'Payment of {{amount}} received from {{outletName}}. Ref: {{refNo}}.',
-        variables: ['amount', 'outletName', 'refNo'], locale: 'en', version: '1', isActive: true,
-      },
-      {
-        id: 'tpl-claim-update', tenantId: '*', name: 'Claim Status Update', channel: 'in_app',
-        subject: 'Claim {{claimId}} Updated', bodyTemplate: 'Your claim {{claimId}} status has been updated to {{status}}. Amount: {{amount}}.',
-        variables: ['claimId', 'status', 'amount'], locale: 'en', version: '1', isActive: true,
-      },
-    ];
-
-    for (const t of templates) {
-      this.store.set(t.id, t);
-    }
-  }
-
-  async findById(id: string): Promise<NotificationTemplate | null> {
-    const data = this.store.get(id);
-    return data ? NotificationTemplate.reconstitute(data) : null;
-  }
-
-  async save(template: NotificationTemplate): Promise<void> {
-    this.store.set(template.id, template.toJSON() as unknown as TemplateProps);
-  }
-
-  async findAll(): Promise<NotificationTemplate[]> {
-    return Array.from(this.store.values()).map((d) => NotificationTemplate.reconstitute(d));
-  }
-}
-
-// ── Controller ────────────────────────────────────────────────
 export class NotificationController {
-  private readonly notifRepo: InMemoryNotificationRepository;
-  private readonly templateRepo: InMemoryTemplateRepository;
-  private readonly adapters: Map<NotificationChannel, ChannelAdapter>;
+  constructor(
+    private readonly createUseCase: CreateNotificationUseCase,
+    private readonly getUseCase: GetNotificationUseCase,
+    private readonly updateUseCase: UpdateNotificationUseCase,
+    private readonly listUseCase: ListNotificationsUseCase
+  ) {}
 
-  constructor() {
-    this.notifRepo = new InMemoryNotificationRepository();
-    this.templateRepo = new InMemoryTemplateRepository();
-    this.adapters = new Map();
-    this.adapters.set('email', new EmailAdapter());
-    this.adapters.set('sms', new SmsAdapter());
-    this.adapters.set('push', new PushAdapter());
-    this.adapters.set('in_app', new InAppAdapter());
+  public async handleCreate(req: HttpRequest): Promise<HttpResponse> {
+    try {
+      const contentType = req.headers['content-type'] || req.headers['Content-Type'];
+      if (!contentType || !contentType.includes('application/json')) {
+        return {
+          statusCode: 415,
+          body: {
+            timestamp: new Date().toISOString(),
+            status_code: 415,
+            error_code: 'UNSUPPORTED_MEDIA_TYPE',
+            message: 'Content-Type must be application/json'
+          }
+        };
+      }
+
+      const principal = this.extractPrincipal(req);
+      const dto: CreateNotificationDto = req.body;
+      const idempotencyKey = req.headers['x-idempotency-key'] || req.headers['X-Idempotency-Key'];
+      if (idempotencyKey) {
+        dto.idempotencyKey = idempotencyKey;
+      }
+
+      const result = await this.createUseCase.execute(principal, dto);
+      return {
+        statusCode: 201,
+        headers: { 'Content-Type': 'application/json' },
+        body: result
+      };
+    } catch (err: any) {
+      return this.mapErrorToResponse(err);
+    }
   }
 
-  async handleSendNotification(body: {
-    tenantId: string; recipientId: string; templateId: string; channel: NotificationChannel;
-    data: Record<string, string>;
-  }): Promise<{ status: number; body: Record<string, unknown> }> {
-    const template = await this.templateRepo.findById(body.templateId);
-    if (!template) {
-      return { status: 404, body: { error: `Template '${body.templateId}' not found`, code: 'TEMPLATE_NOT_FOUND' } };
+  public async handleGetById(req: HttpRequest): Promise<HttpResponse> {
+    try {
+      const principal = this.extractPrincipal(req);
+      const id = req.params?.id;
+      if (!id) {
+        return {
+          statusCode: 400,
+          body: {
+            timestamp: new Date().toISOString(),
+            status_code: 400,
+            error_code: 'BAD_REQUEST',
+            message: 'Notification ID route parameter is required.'
+          }
+        };
+      }
+
+      const result = await this.getUseCase.execute(principal, id);
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: result
+      };
+    } catch (err: any) {
+      return this.mapErrorToResponse(err);
     }
-
-    const adapter = this.adapters.get(body.channel);
-    if (!adapter) {
-      return { status: 400, body: { error: `Channel '${body.channel}' unavailable`, code: 'CHANNEL_UNAVAILABLE' } };
-    }
-
-    const rendered = template.render(body.data);
-
-    const notification = Notification.create({
-      id: randomUUID(),
-      tenantId: body.tenantId,
-      recipientId: body.recipientId,
-      channel: body.channel,
-      templateId: body.templateId,
-      subject: rendered.subject,
-      body: rendered.body,
-      data: body.data,
-    });
-
-    const result = await adapter.send(body.recipientId, rendered.subject, rendered.body, body.data);
-
-    if (result.success) {
-      notification.markSent();
-    } else {
-      notification.markFailed(result.error ?? 'Unknown delivery failure');
-    }
-
-    await this.notifRepo.save(notification);
-    return { status: 200, body: notification.toJSON() };
   }
 
-  async handleGetNotification(id: string): Promise<{ status: number; body: Record<string, unknown> }> {
-    const notif = await this.notifRepo.findById(id);
-    if (!notif) return { status: 404, body: { error: 'Notification not found' } };
-    return { status: 200, body: notif.toJSON() };
+  public async handleUpdate(req: HttpRequest): Promise<HttpResponse> {
+    try {
+      const principal = this.extractPrincipal(req);
+      const id = req.params?.id;
+      if (!id) {
+        return {
+          statusCode: 400,
+          body: {
+            timestamp: new Date().toISOString(),
+            status_code: 400,
+            error_code: 'BAD_REQUEST',
+            message: 'Notification ID route parameter is required.'
+          }
+        };
+      }
+
+      const dto: UpdateNotificationDto = req.body;
+      const result = await this.updateUseCase.updatePayload(principal, id, dto);
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: result
+      };
+    } catch (err: any) {
+      return this.mapErrorToResponse(err);
+    }
   }
 
-  async handleListTemplates(): Promise<{ status: number; body: Record<string, unknown> }> {
-    const templates = await this.templateRepo.findAll();
-    return { status: 200, body: { items: templates.map((t) => t.toJSON()), count: templates.length } };
+  public async handleTransitionStatus(req: HttpRequest): Promise<HttpResponse> {
+    try {
+      const principal = this.extractPrincipal(req);
+      const id = req.params?.id;
+      if (!id) {
+        return {
+          statusCode: 400,
+          body: {
+            timestamp: new Date().toISOString(),
+            status_code: 400,
+            error_code: 'BAD_REQUEST',
+            message: 'Notification ID route parameter is required.'
+          }
+        };
+      }
+
+      const dto: TransitionNotificationStatusDto = req.body;
+      const result = await this.updateUseCase.transitionStatus(principal, id, dto);
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: result
+      };
+    } catch (err: any) {
+      return this.mapErrorToResponse(err);
+    }
+  }
+
+  public async handleList(req: HttpRequest): Promise<HttpResponse> {
+    try {
+      const principal = this.extractPrincipal(req);
+      const query: ListNotificationsQueryDto = {
+        recipient: req.query?.recipient,
+        channel: req.query?.channel,
+        status: req.query?.status,
+        templateId: req.query?.templateId,
+        page: req.query?.page ? parseInt(req.query.page, 10) : undefined,
+        pageSize: req.query?.pageSize ? parseInt(req.query.pageSize, 10) : undefined
+      };
+
+      const result = await this.listUseCase.execute(principal, query);
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: result
+      };
+    } catch (err: any) {
+      return this.mapErrorToResponse(err);
+    }
+  }
+
+  private extractPrincipal(req: HttpRequest): Principal {
+    if (req.principal) return req.principal;
+
+    const tenantId = req.headers['x-tenant-id'] || req.headers['X-Tenant-ID'] || '00000000-0000-0000-0000-000000000001';
+    const userId = req.headers['x-user-id'] || req.headers['X-User-ID'] || 'user-default';
+    const roles = (req.headers['x-user-roles'] || 'admin').split(',');
+    const permissions = (req.headers['x-user-permissions'] || 'notification:create,notification:read,notification:update').split(',');
+
+    return { userId, tenantId, roles, permissions };
+  }
+
+  private mapErrorToResponse(err: Error): HttpResponse {
+    const msg = err.message;
+    let statusCode = 500;
+    let errorCode = 'INTERNAL_SERVER_ERROR';
+
+    if (msg.includes('Unauthorized')) {
+      statusCode = 401;
+      errorCode = 'UNAUTHORIZED';
+    } else if (msg.includes('Forbidden')) {
+      statusCode = 403;
+      errorCode = 'FORBIDDEN';
+    } else if (msg.includes('not found')) {
+      statusCode = 404;
+      errorCode = 'NOT_FOUND';
+    } else if (msg.includes('Optimistic locking failure') || msg.includes('Duplicate request')) {
+      statusCode = 409;
+      errorCode = 'CONFLICT';
+    } else if (msg.includes('Invalid') || msg.includes('required') || msg.includes('must be')) {
+      statusCode = 400;
+      errorCode = 'BAD_REQUEST';
+    }
+
+    return {
+      statusCode,
+      headers: { 'Content-Type': 'application/json' },
+      body: {
+        timestamp: new Date().toISOString(),
+        status_code: statusCode,
+        error_code: errorCode,
+        message: msg
+      }
+    };
   }
 }

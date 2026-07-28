@@ -632,6 +632,24 @@ const App = () => {
   const [mfaOptimisticConflict, setMfaOptimisticConflict] = useState(false);
   const [mfaDeleteConfirmId, setMfaDeleteConfirmId] = useState<string | null>(null);
 
+  // NotificationTemplate Web Admin State (Tasks 1566 & 1567)
+  const [notificationTemplates, setNotificationTemplates] = useState([
+    { id: 'tpl-uuid-001', tenantId: '00000000-0000-0000-0000-000000000001', code: 'WELCOME_EMAIL', name: 'Welcome Email', channel: 'EMAIL', subject: 'Welcome to DMS!', bodyTemplate: 'Hello {{name}}, welcome to our platform.', status: 'ACTIVE', version: 1, createdAt: '2026-06-01' },
+    { id: 'tpl-uuid-002', tenantId: '00000000-0000-0000-0000-000000000001', code: 'OTP_SMS', name: 'OTP Verification SMS', channel: 'SMS', subject: '', bodyTemplate: 'Your verification code is {{otp}}.', status: 'ACTIVE', version: 1, createdAt: '2026-06-05' },
+    { id: 'tpl-uuid-003', tenantId: '00000000-0000-0000-0000-000000000001', code: 'DISCOUNT_PUSH', name: 'Seasonal Discount Push', channel: 'PUSH', subject: 'Special Offer!', bodyTemplate: 'Get {{discount}}% off today.', status: 'INACTIVE', version: 1, createdAt: '2026-06-10' },
+  ]);
+  const [notifTemplateSearchQuery, setNotifTemplateSearchQuery] = useState('');
+  const [notifTemplateChannelFilter, setNotifTemplateChannelFilter] = useState('ALL');
+  const [notifTemplateStatusFilter, setNotifTemplateStatusFilter] = useState('ALL');
+  const [notifTemplateSortField, setNotifTemplateSortField] = useState<'code' | 'name' | 'channel'>('code');
+  const [notifTemplatePage, setNotifTemplatePage] = useState(1);
+  const notifTemplatePageSize = 5;
+  const [notifTemplateLoading, setNotifTemplateLoading] = useState(false);
+  const [notifTemplateError, setNotifTemplateError] = useState<string | null>(null);
+  const [notifTemplateFormErrors, setNotifTemplateFormErrors] = useState<Record<string, string>>({});
+  const [notifTemplateOptimisticConflict, setNotifTemplateOptimisticConflict] = useState(false);
+  const [notifTemplateDeleteConfirmId, setNotifTemplateDeleteConfirmId] = useState<string | null>(null);
+
   // Simulated Payment Management state for Web Admin (Tasks 1311 & 1312)
   const [payments, setPayments] = useState([
     { id: 'pay-uuid-001', paymentReference: 'PAY-2026-001', distributorId: 'dist-uuid-201', invoiceId: 'inv-uuid-001', amountCents: 250000, paymentMethod: 'WIRE_TRANSFER', currency: 'USD', status: 'COMPLETED', version: 1, createdAt: '2026-06-15' },
@@ -12141,7 +12159,8 @@ const App = () => {
                   { id: 'roles', label: 'Roles' },
                   { id: 'tenants', label: 'Tenants' },
                   { id: 'permissions', label: 'Permissions' },
-                  { id: 'mfa', label: 'MFA Devices' }
+                  { id: 'mfa', label: 'MFA Devices' },
+                  { id: 'notification-templates', label: 'Notification Templates' }
                 ].map(sub => (
                   <button
                     key={sub.id}
@@ -12545,6 +12564,163 @@ const App = () => {
                       )}
                     </div>
                   )}
+
+                  {(identitySubTab as string) === 'notification-templates' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {/* Search, Filter, Sort Controls */}
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <input
+                          type="text"
+                          placeholder="Search Code, Name..."
+                          value={notifTemplateSearchQuery}
+                          onChange={e => { setNotifTemplateSearchQuery(e.target.value); setNotifTemplatePage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', width: '220px' }}
+                        />
+                        <select
+                          value={notifTemplateChannelFilter}
+                          onChange={e => { setNotifTemplateChannelFilter(e.target.value); setNotifTemplatePage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="ALL">All Channels</option>
+                          <option value="EMAIL">EMAIL</option>
+                          <option value="SMS">SMS</option>
+                          <option value="PUSH">PUSH</option>
+                          <option value="WHATSAPP">WHATSAPP</option>
+                        </select>
+                        <select
+                          value={notifTemplateStatusFilter}
+                          onChange={e => { setNotifTemplateStatusFilter(e.target.value); setNotifTemplatePage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="ALL">All Statuses</option>
+                          <option value="ACTIVE">ACTIVE</option>
+                          <option value="INACTIVE">INACTIVE</option>
+                          <option value="ARCHIVED">ARCHIVED</option>
+                        </select>
+                        <select
+                          value={notifTemplateSortField}
+                          onChange={e => setNotifTemplateSortField(e.target.value as any)}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="code">Sort by Code</option>
+                          <option value="name">Sort by Name</option>
+                          <option value="channel">Sort by Channel</option>
+                        </select>
+                      </div>
+
+                      {/* Error Banner */}
+                      {notifTemplateError && (
+                        <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#F87171', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>⚠️ {notifTemplateError}</span>
+                          <button onClick={() => setNotifTemplateError(null)} style={{ backgroundColor: '#EF4444', color: '#FFF', border: 'none', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Retry</button>
+                        </div>
+                      )}
+
+                      {/* Data Table / Pagination */}
+                      {notifTemplateLoading ? (
+                        <div style={{ padding: '30px', textAlign: 'center', color: '#94A3B8' }}>⏳ Loading notification templates from server...</div>
+                      ) : (() => {
+                        const filtered = notificationTemplates.filter(t => {
+                          const matchesChannel = notifTemplateChannelFilter === 'ALL' || t.channel === notifTemplateChannelFilter;
+                          const matchesStatus = notifTemplateStatusFilter === 'ALL' || t.status === notifTemplateStatusFilter;
+                          const q = notifTemplateSearchQuery.toLowerCase();
+                          const matchesSearch = !q || t.code.toLowerCase().includes(q) || t.name.toLowerCase().includes(q);
+                          return matchesChannel && matchesStatus && matchesSearch;
+                        }).sort((a, b) => (a[notifTemplateSortField] || '').toString().localeCompare((b[notifTemplateSortField] || '').toString()));
+
+                        const totalPages = Math.ceil(filtered.length / notifTemplatePageSize) || 1;
+                        const paginated = filtered.slice((notifTemplatePage - 1) * notifTemplatePageSize, notifTemplatePage * notifTemplatePageSize);
+
+                        if (filtered.length === 0) {
+                          return <div style={{ padding: '30px', textAlign: 'center', color: '#94A3B8', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '8px' }}>🔍 No notification templates match current criteria.</div>;
+                        }
+
+                        return (
+                          <>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                              <thead>
+                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#94A3B8' }}>
+                                  <th style={{ padding: '10px 8px' }}>Template Code</th>
+                                  <th style={{ padding: '10px 8px' }}>Template Name</th>
+                                  <th style={{ padding: '10px 8px' }}>Channel</th>
+                                  <th style={{ padding: '10px 8px' }}>Subject</th>
+                                  <th style={{ padding: '10px 8px' }}>Status</th>
+                                  <th style={{ padding: '10px 8px', textAlign: 'right' }}>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {paginated.map(t => (
+                                  <tr key={t.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <td style={{ padding: '10px 8px', fontWeight: 600, color: '#60A5FA', fontFamily: 'monospace' }}>{t.code}</td>
+                                    <td style={{ padding: '10px 8px', fontWeight: 600 }}>{t.name}</td>
+                                    <td style={{ padding: '10px 8px' }}>
+                                      <span style={{
+                                        backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                                        color: '#60A5FA',
+                                        padding: '2px 8px',
+                                        borderRadius: '4px',
+                                        fontSize: '11px',
+                                        fontWeight: 700
+                                      }}>{t.channel}</span>
+                                    </td>
+                                    <td style={{ padding: '10px 8px', opacity: 0.8, fontSize: '12px' }}>{t.subject || '—'}</td>
+                                    <td style={{ padding: '10px 8px' }}>
+                                      <span style={{
+                                        backgroundColor: t.status === 'ACTIVE' ? 'rgba(16, 185, 129, 0.15)' : t.status === 'INACTIVE' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(148, 163, 184, 0.15)',
+                                        color: t.status === 'ACTIVE' ? '#10B981' : t.status === 'INACTIVE' ? '#F59E0B' : '#94A3B8',
+                                        padding: '2px 8px',
+                                        borderRadius: '4px',
+                                        fontSize: '11px',
+                                        fontWeight: 700
+                                      }}>{t.status}</span>
+                                    </td>
+                                    <td style={{ padding: '10px 8px', textAlign: 'right' }}>
+                                      {currentUserRole === 'admin' ? (
+                                        <>
+                                          <button onClick={() => {
+                                            setIdentityEditId(t.id);
+                                            setIdentityFormData(t);
+                                            setIdentityFormOpen(true);
+                                          }} style={{ background: 'none', border: 'none', color: '#3B82F6', cursor: 'pointer', marginRight: '8px' }}>Edit</button>
+                                          <button onClick={() => setNotifTemplateDeleteConfirmId(t.id)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}>Delete</button>
+                                        </>
+                                      ) : (
+                                        <span style={{ fontSize: '11px', color: '#64748B' }}>Read-only</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+
+                            {/* Pagination */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                              <span style={{ fontSize: '11px', color: '#94A3B8' }}>Page {notifTemplatePage} of {totalPages} ({filtered.length} total)</span>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button disabled={notifTemplatePage === 1} onClick={() => setNotifTemplatePage(p => Math.max(1, p - 1))} style={{ backgroundColor: 'rgba(30,41,59,0.4)', color: notifTemplatePage === 1 ? '#475569' : '#FFF', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: notifTemplatePage === 1 ? 'not-allowed' : 'pointer' }}>Prev</button>
+                                <button disabled={notifTemplatePage === totalPages} onClick={() => setNotifTemplatePage(p => Math.min(totalPages, p + 1))} style={{ backgroundColor: 'rgba(30,41,59,0.4)', color: notifTemplatePage === totalPages ? '#475569' : '#FFF', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: notifTemplatePage === totalPages ? 'not-allowed' : 'pointer' }}>Next</button>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+
+                      {/* Delete Notification Template Confirmation Modal */}
+                      {notifTemplateDeleteConfirmId && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+                          <div style={{ backgroundColor: '#1E293B', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.4)', padding: '20px', width: '380px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>⚠️</div>
+                            <h4 style={{ margin: 0, color: '#F87171', fontSize: '15px' }}>Confirm Template Deletion</h4>
+                            <p style={{ fontSize: '12px', color: '#94A3B8', margin: '10px 0 16px 0' }}>Are you sure you want to delete notification template <b>{notificationTemplates.find(t => t.id === notifTemplateDeleteConfirmId)?.code}</b>?</p>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                              <button onClick={() => setNotifTemplateDeleteConfirmId(null)} style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
+                              <button onClick={() => { setNotificationTemplates(prev => prev.filter(t => t.id !== notifTemplateDeleteConfirmId)); setNotifTemplateDeleteConfirmId(null); }} style={{ backgroundColor: '#EF4444', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Confirm Delete</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Form Editor panel */}
@@ -12728,18 +12904,90 @@ const App = () => {
                       </>
                     )}
 
+                    {(identitySubTab as string) === 'notification-templates' && (
+                      <>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '11px', opacity: 0.6 }}>Template Code</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. WELCOME_EMAIL"
+                            value={identityFormData.code || ''}
+                            onChange={e => setIdentityFormData({ ...identityFormData, code: e.target.value })}
+                            style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px', color: '#FFF' }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '11px', opacity: 0.6 }}>Template Name</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Welcome Email Template"
+                            value={identityFormData.name || ''}
+                            onChange={e => setIdentityFormData({ ...identityFormData, name: e.target.value })}
+                            style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px', color: '#FFF' }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '11px', opacity: 0.6 }}>Channel</label>
+                          <select
+                            value={identityFormData.channel || 'EMAIL'}
+                            onChange={e => setIdentityFormData({ ...identityFormData, channel: e.target.value })}
+                            style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px', color: '#FFF' }}
+                          >
+                            <option value="EMAIL">EMAIL</option>
+                            <option value="SMS">SMS</option>
+                            <option value="PUSH">PUSH</option>
+                            <option value="WHATSAPP">WHATSAPP</option>
+                          </select>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '11px', opacity: 0.6 }}>Subject (Email/Push)</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Welcome to DMS!"
+                            value={identityFormData.subject || ''}
+                            onChange={e => setIdentityFormData({ ...identityFormData, subject: e.target.value })}
+                            style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px', color: '#FFF' }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '11px', opacity: 0.6 }}>Body Template</label>
+                          <textarea
+                            rows={3}
+                            placeholder="e.g. Hello {{name}}, welcome!"
+                            value={identityFormData.bodyTemplate || ''}
+                            onChange={e => setIdentityFormData({ ...identityFormData, bodyTemplate: e.target.value })}
+                            style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px', color: '#FFF', fontFamily: 'monospace' }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '11px', opacity: 0.6 }}>Status</label>
+                          <select
+                            value={identityFormData.status || 'ACTIVE'}
+                            onChange={e => setIdentityFormData({ ...identityFormData, status: e.target.value })}
+                            style={{ backgroundColor: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px', color: '#FFF' }}
+                          >
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="INACTIVE">INACTIVE</option>
+                            <option value="ARCHIVED">ARCHIVED</option>
+                          </select>
+                        </div>
+                      </>
+                    )}
+
                     {/* Action buttons for Form */}
                     <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
                       <button
                         onClick={() => {
-                          const list = identitySubTab === 'users' ? users :
-                                       identitySubTab === 'roles' ? roles :
-                                       identitySubTab === 'tenants' ? tenants :
-                                       identitySubTab === 'permissions' ? permissions : mfaDevices;
-                          const setList = identitySubTab === 'users' ? setUsers :
-                                          identitySubTab === 'roles' ? setRoles :
-                                          identitySubTab === 'tenants' ? setTenants :
-                                          identitySubTab === 'permissions' ? setPermissions : setMfaDevices;
+                          const list = (identitySubTab as string) === 'users' ? users :
+                                       (identitySubTab as string) === 'roles' ? roles :
+                                       (identitySubTab as string) === 'tenants' ? tenants :
+                                       (identitySubTab as string) === 'permissions' ? permissions :
+                                       (identitySubTab as string) === 'notification-templates' ? notificationTemplates : mfaDevices;
+                          const setList = (identitySubTab as string) === 'users' ? setUsers :
+                                          (identitySubTab as string) === 'roles' ? setRoles :
+                                          (identitySubTab as string) === 'tenants' ? setTenants :
+                                          (identitySubTab as string) === 'permissions' ? setPermissions :
+                                          (identitySubTab as string) === 'notification-templates' ? setNotificationTemplates : setMfaDevices;
 
                           if (identityEditId) {
                             // Update item
