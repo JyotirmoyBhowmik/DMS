@@ -515,3 +515,61 @@ components:
           type: string
         updatedAt:
           type: string
+
+    CreateMFADeviceRequest:
+      type: object
+      required:
+        - userId
+        - type
+        - secretEncrypted
+      properties:
+        userId:
+          type: string
+        type:
+          type: string
+          enum: [TOTP, SMS, EMAIL, SECURITY_KEY]
+        secretEncrypted:
+          type: string
+        isActive:
+          type: boolean
+          default: true
+    UpdateMFADeviceRequest:
+      type: object
+      required:
+        - version
+      properties:
+        secretEncrypted:
+          type: string
+        isActive:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+    MFADeviceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        type:
+          type: string
+          enum: [TOTP, SMS, EMAIL, SECURITY_KEY]
+        secretEncrypted:
+          type: string
+        isActive:
+          type: boolean
+        lastUsedAt:
+          type: string
+          nullable: true
+        version:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+

@@ -608,6 +608,30 @@ const App = () => {
   const [permOptimisticConflict, setPermOptimisticConflict] = useState(false);
   const [permDeleteConfirmId, setPermDeleteConfirmId] = useState<string | null>(null);
 
+  // Tenant Web Admin State (Tasks 1523 & 1524)
+  const [tenantSearchQuery, setTenantSearchQuery] = useState('');
+  const [tenantStatusFilter, setTenantStatusFilter] = useState('ALL');
+  const [tenantSortField, setTenantSortField] = useState<'name' | 'id' | 'status'>('name');
+  const [tenantPage, setTenantPage] = useState(1);
+  const tenantPageSize = 5;
+  const [tenantLoading, setTenantLoading] = useState(false);
+  const [tenantError, setTenantError] = useState<string | null>(null);
+  const [tenantFormErrors, setTenantFormErrors] = useState<Record<string, string>>({});
+  const [tenantOptimisticConflict, setTenantOptimisticConflict] = useState(false);
+  const [tenantDeleteConfirmId, setTenantDeleteConfirmId] = useState<string | null>(null);
+
+  // MFADevice Web Admin State (Tasks 1544 & 1545)
+  const [mfaSearchQuery, setMfaSearchQuery] = useState('');
+  const [mfaTypeFilter, setMfaTypeFilter] = useState('ALL');
+  const [mfaSortField, setMfaSortField] = useState<'userId' | 'type' | 'lastUsedAt'>('userId');
+  const [mfaPage, setMfaPage] = useState(1);
+  const mfaPageSize = 5;
+  const [mfaLoading, setMfaLoading] = useState(false);
+  const [mfaError, setMfaError] = useState<string | null>(null);
+  const [mfaFormErrors, setMfaFormErrors] = useState<Record<string, string>>({});
+  const [mfaOptimisticConflict, setMfaOptimisticConflict] = useState(false);
+  const [mfaDeleteConfirmId, setMfaDeleteConfirmId] = useState<string | null>(null);
+
   // Simulated Payment Management state for Web Admin (Tasks 1311 & 1312)
   const [payments, setPayments] = useState([
     { id: 'pay-uuid-001', paymentReference: 'PAY-2026-001', distributorId: 'dist-uuid-201', invoiceId: 'inv-uuid-001', amountCents: 250000, paymentMethod: 'WIRE_TRANSFER', currency: 'USD', status: 'COMPLETED', version: 1, createdAt: '2026-06-15' },
@@ -12225,42 +12249,134 @@ const App = () => {
                   )}
 
                   {identitySubTab === 'tenants' && (
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                      <thead>
-                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                          <th style={{ padding: '12px 8px', opacity: 0.5 }}>Name</th>
-                          <th style={{ padding: '12px 8px', opacity: 0.5 }}>ID</th>
-                          <th style={{ padding: '12px 8px', opacity: 0.5 }}>Status</th>
-                          <th style={{ padding: '12px 8px', opacity: 0.5 }}>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {tenants.map(t => (
-                          <tr key={t.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                            <td style={{ padding: '12px 8px', fontWeight: 600 }}>{t.name}</td>
-                            <td style={{ padding: '12px 8px', fontFamily: 'monospace', fontSize: '11px', opacity: 0.8 }}>{t.id}</td>
-                            <td style={{ padding: '12px 8px' }}>
-                              <span style={{
-                                backgroundColor: t.status === 'ACTIVE' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                                color: t.status === 'ACTIVE' ? '#10B981' : '#EF4444',
-                                padding: '2px 8px',
-                                borderRadius: '4px',
-                                fontSize: '11px',
-                                fontWeight: 700
-                              }}>{t.status}</span>
-                            </td>
-                            <td style={{ padding: '12px 8px' }}>
-                              <button onClick={() => {
-                                setIdentityEditId(t.id);
-                                setIdentityFormData(t);
-                                setIdentityFormOpen(true);
-                              }} style={{ background: 'none', border: 'none', color: '#3B82F6', cursor: 'pointer', marginRight: '8px' }}>Edit</button>
-                              <button onClick={() => setTenants(tenants.filter(x => x.id !== t.id))} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}>Delete</button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {/* Search, Filter, Sort Controls */}
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <input
+                          type="text"
+                          placeholder="Search tenant name, ID..."
+                          value={tenantSearchQuery}
+                          onChange={e => { setTenantSearchQuery(e.target.value); setTenantPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', width: '220px' }}
+                        />
+                        <select
+                          value={tenantStatusFilter}
+                          onChange={e => { setTenantStatusFilter(e.target.value); setTenantPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="ALL">All Statuses</option>
+                          <option value="ACTIVE">ACTIVE</option>
+                          <option value="SUSPENDED">SUSPENDED</option>
+                        </select>
+                        <select
+                          value={tenantSortField}
+                          onChange={e => setTenantSortField(e.target.value as any)}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="name">Sort by Name</option>
+                          <option value="id">Sort by ID</option>
+                          <option value="status">Sort by Status</option>
+                        </select>
+                      </div>
+
+                      {/* Error Banner */}
+                      {tenantError && (
+                        <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#F87171', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>⚠️ {tenantError}</span>
+                          <button onClick={() => setTenantError(null)} style={{ backgroundColor: '#EF4444', color: '#FFF', border: 'none', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Retry</button>
+                        </div>
+                      )}
+
+                      {/* Data Table / Pagination */}
+                      {tenantLoading ? (
+                        <div style={{ padding: '30px', textAlign: 'center', color: '#94A3B8' }}>⏳ Loading tenants from server...</div>
+                      ) : (() => {
+                        const filtered = tenants.filter(t => {
+                          const matchesStatus = tenantStatusFilter === 'ALL' || t.status === tenantStatusFilter;
+                          const q = tenantSearchQuery.toLowerCase();
+                          const matchesSearch = !q || t.name.toLowerCase().includes(q) || t.id.toLowerCase().includes(q);
+                          return matchesStatus && matchesSearch;
+                        }).sort((a, b) => (a[tenantSortField] || '').localeCompare(b[tenantSortField] || ''));
+
+                        const totalPages = Math.ceil(filtered.length / tenantPageSize) || 1;
+                        const paginated = filtered.slice((tenantPage - 1) * tenantPageSize, tenantPage * tenantPageSize);
+
+                        if (filtered.length === 0) {
+                          return <div style={{ padding: '30px', textAlign: 'center', color: '#94A3B8', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '8px' }}>🔍 No tenants match current criteria.</div>;
+                        }
+
+                        return (
+                          <>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                              <thead>
+                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#94A3B8' }}>
+                                  <th style={{ padding: '10px 8px' }}>Tenant Name</th>
+                                  <th style={{ padding: '10px 8px' }}>Tenant ID</th>
+                                  <th style={{ padding: '10px 8px' }}>Status</th>
+                                  <th style={{ padding: '10px 8px', textAlign: 'right' }}>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {paginated.map(t => (
+                                  <tr key={t.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <td style={{ padding: '10px 8px', fontWeight: 600, color: '#60A5FA' }}>{t.name}</td>
+                                    <td style={{ padding: '10px 8px', fontFamily: 'monospace', fontSize: '11px', opacity: 0.8 }}>{t.id}</td>
+                                    <td style={{ padding: '10px 8px' }}>
+                                      <span style={{
+                                        backgroundColor: t.status === 'ACTIVE' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                        color: t.status === 'ACTIVE' ? '#10B981' : '#EF4444',
+                                        padding: '2px 8px',
+                                        borderRadius: '4px',
+                                        fontSize: '11px',
+                                        fontWeight: 700
+                                      }}>{t.status}</span>
+                                    </td>
+                                    <td style={{ padding: '10px 8px', textAlign: 'right' }}>
+                                      {currentUserRole === 'admin' ? (
+                                        <>
+                                          <button onClick={() => {
+                                            setIdentityEditId(t.id);
+                                            setIdentityFormData(t);
+                                            setIdentityFormOpen(true);
+                                          }} style={{ background: 'none', border: 'none', color: '#3B82F6', cursor: 'pointer', marginRight: '8px' }}>Edit</button>
+                                          <button onClick={() => setTenantDeleteConfirmId(t.id)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}>Delete</button>
+                                        </>
+                                      ) : (
+                                        <span style={{ fontSize: '11px', color: '#64748B' }}>Read-only</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+
+                            {/* Pagination */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                              <span style={{ fontSize: '11px', color: '#94A3B8' }}>Page {tenantPage} of {totalPages} ({filtered.length} total)</span>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button disabled={tenantPage === 1} onClick={() => setTenantPage(p => Math.max(1, p - 1))} style={{ backgroundColor: 'rgba(30,41,59,0.4)', color: tenantPage === 1 ? '#475569' : '#FFF', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: tenantPage === 1 ? 'not-allowed' : 'pointer' }}>Prev</button>
+                                <button disabled={tenantPage === totalPages} onClick={() => setTenantPage(p => Math.min(totalPages, p + 1))} style={{ backgroundColor: 'rgba(30,41,59,0.4)', color: tenantPage === totalPages ? '#475569' : '#FFF', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: tenantPage === totalPages ? 'not-allowed' : 'pointer' }}>Next</button>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+
+                      {/* Delete Tenant Confirmation Modal */}
+                      {tenantDeleteConfirmId && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+                          <div style={{ backgroundColor: '#1E293B', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.4)', padding: '20px', width: '380px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>⚠️</div>
+                            <h4 style={{ margin: 0, color: '#F87171', fontSize: '15px' }}>Confirm Tenant Termination</h4>
+                            <p style={{ fontSize: '12px', color: '#94A3B8', margin: '10px 0 16px 0' }}>Are you sure you want to delete tenant <b>{tenants.find(t => t.id === tenantDeleteConfirmId)?.name}</b>?</p>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                              <button onClick={() => setTenantDeleteConfirmId(null)} style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
+                              <button onClick={() => { setTenants(prev => prev.filter(t => t.id !== tenantDeleteConfirmId)); setTenantDeleteConfirmId(null); }} style={{ backgroundColor: '#EF4444', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Confirm Terminate</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {identitySubTab === 'permissions' && (
@@ -12296,44 +12412,138 @@ const App = () => {
                   )}
 
                   {identitySubTab === 'mfa' && (
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                      <thead>
-                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                          <th style={{ padding: '12px 8px', opacity: 0.5 }}>User ID / Email</th>
-                          <th style={{ padding: '12px 8px', opacity: 0.5 }}>Type</th>
-                          <th style={{ padding: '12px 8px', opacity: 0.5 }}>Status</th>
-                          <th style={{ padding: '12px 8px', opacity: 0.5 }}>Last Used</th>
-                          <th style={{ padding: '12px 8px', opacity: 0.5 }}>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {mfaDevices.map(m => (
-                          <tr key={m.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                            <td style={{ padding: '12px 8px', fontWeight: 600 }}>{m.userId}</td>
-                            <td style={{ padding: '12px 8px' }}>{m.type}</td>
-                            <td style={{ padding: '12px 8px' }}>
-                              <span style={{
-                                backgroundColor: m.isActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                                color: m.isActive ? '#10B981' : '#EF4444',
-                                padding: '2px 8px',
-                                borderRadius: '4px',
-                                fontSize: '11px',
-                                fontWeight: 700
-                              }}>{m.isActive ? 'Active' : 'Inactive'}</span>
-                            </td>
-                            <td style={{ padding: '12px 8px', opacity: 0.8 }}>{m.lastUsedAt || 'Never'}</td>
-                            <td style={{ padding: '12px 8px' }}>
-                              <button onClick={() => {
-                                setIdentityEditId(m.id);
-                                setIdentityFormData(m);
-                                setIdentityFormOpen(true);
-                              }} style={{ background: 'none', border: 'none', color: '#3B82F6', cursor: 'pointer', marginRight: '8px' }}>Edit</button>
-                              <button onClick={() => setMfaDevices(mfaDevices.filter(x => x.id !== m.id))} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}>Delete</button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {/* Search, Filter, Sort Controls */}
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <input
+                          type="text"
+                          placeholder="Search User ID / Email..."
+                          value={mfaSearchQuery}
+                          onChange={e => { setMfaSearchQuery(e.target.value); setMfaPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', width: '220px' }}
+                        />
+                        <select
+                          value={mfaTypeFilter}
+                          onChange={e => { setMfaTypeFilter(e.target.value); setMfaPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="ALL">All Types</option>
+                          <option value="TOTP">TOTP</option>
+                          <option value="SMS">SMS</option>
+                          <option value="EMAIL">EMAIL</option>
+                          <option value="SECURITY_KEY">SECURITY_KEY</option>
+                        </select>
+                        <select
+                          value={mfaSortField}
+                          onChange={e => setMfaSortField(e.target.value as any)}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="userId">Sort by User ID</option>
+                          <option value="type">Sort by Type</option>
+                          <option value="lastUsedAt">Sort by Last Used</option>
+                        </select>
+                      </div>
+
+                      {/* Error Banner */}
+                      {mfaError && (
+                        <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#F87171', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>⚠️ {mfaError}</span>
+                          <button onClick={() => setMfaError(null)} style={{ backgroundColor: '#EF4444', color: '#FFF', border: 'none', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Retry</button>
+                        </div>
+                      )}
+
+                      {/* Data Table / Pagination */}
+                      {mfaLoading ? (
+                        <div style={{ padding: '30px', textAlign: 'center', color: '#94A3B8' }}>⏳ Loading MFA devices from server...</div>
+                      ) : (() => {
+                        const filtered = mfaDevices.filter(m => {
+                          const matchesType = mfaTypeFilter === 'ALL' || m.type === mfaTypeFilter;
+                          const q = mfaSearchQuery.toLowerCase();
+                          const matchesSearch = !q || m.userId.toLowerCase().includes(q);
+                          return matchesType && matchesSearch;
+                        }).sort((a, b) => (a[mfaSortField] || '').toString().localeCompare((b[mfaSortField] || '').toString()));
+
+                        const totalPages = Math.ceil(filtered.length / mfaPageSize) || 1;
+                        const paginated = filtered.slice((mfaPage - 1) * mfaPageSize, mfaPage * mfaPageSize);
+
+                        if (filtered.length === 0) {
+                          return <div style={{ padding: '30px', textAlign: 'center', color: '#94A3B8', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '8px' }}>🔍 No MFA devices match current criteria.</div>;
+                        }
+
+                        return (
+                          <>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                              <thead>
+                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#94A3B8' }}>
+                                  <th style={{ padding: '10px 8px' }}>User ID / Email</th>
+                                  <th style={{ padding: '10px 8px' }}>Type</th>
+                                  <th style={{ padding: '10px 8px' }}>Status</th>
+                                  <th style={{ padding: '10px 8px' }}>Last Used</th>
+                                  <th style={{ padding: '10px 8px', textAlign: 'right' }}>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {paginated.map(m => (
+                                  <tr key={m.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <td style={{ padding: '10px 8px', fontWeight: 600, color: '#60A5FA' }}>{m.userId}</td>
+                                    <td style={{ padding: '10px 8px' }}>{m.type}</td>
+                                    <td style={{ padding: '10px 8px' }}>
+                                      <span style={{
+                                        backgroundColor: m.isActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                        color: m.isActive ? '#10B981' : '#EF4444',
+                                        padding: '2px 8px',
+                                        borderRadius: '4px',
+                                        fontSize: '11px',
+                                        fontWeight: 700
+                                      }}>{m.isActive ? 'Active' : 'Inactive'}</span>
+                                    </td>
+                                    <td style={{ padding: '10px 8px', opacity: 0.8 }}>{m.lastUsedAt || 'Never'}</td>
+                                    <td style={{ padding: '10px 8px', textAlign: 'right' }}>
+                                      {currentUserRole === 'admin' ? (
+                                        <>
+                                          <button onClick={() => {
+                                            setIdentityEditId(m.id);
+                                            setIdentityFormData(m);
+                                            setIdentityFormOpen(true);
+                                          }} style={{ background: 'none', border: 'none', color: '#3B82F6', cursor: 'pointer', marginRight: '8px' }}>Edit</button>
+                                          <button onClick={() => setMfaDeleteConfirmId(m.id)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}>Delete</button>
+                                        </>
+                                      ) : (
+                                        <span style={{ fontSize: '11px', color: '#64748B' }}>Read-only</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+
+                            {/* Pagination */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                              <span style={{ fontSize: '11px', color: '#94A3B8' }}>Page {mfaPage} of {totalPages} ({filtered.length} total)</span>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button disabled={mfaPage === 1} onClick={() => setMfaPage(p => Math.max(1, p - 1))} style={{ backgroundColor: 'rgba(30,41,59,0.4)', color: mfaPage === 1 ? '#475569' : '#FFF', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: mfaPage === 1 ? 'not-allowed' : 'pointer' }}>Prev</button>
+                                <button disabled={mfaPage === totalPages} onClick={() => setMfaPage(p => Math.min(totalPages, p + 1))} style={{ backgroundColor: 'rgba(30,41,59,0.4)', color: mfaPage === totalPages ? '#475569' : '#FFF', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: mfaPage === totalPages ? 'not-allowed' : 'pointer' }}>Next</button>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+
+                      {/* Delete MFA Device Confirmation Modal */}
+                      {mfaDeleteConfirmId && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+                          <div style={{ backgroundColor: '#1E293B', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.4)', padding: '20px', width: '380px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>⚠️</div>
+                            <h4 style={{ margin: 0, color: '#F87171', fontSize: '15px' }}>Confirm MFA Device Revocation</h4>
+                            <p style={{ fontSize: '12px', color: '#94A3B8', margin: '10px 0 16px 0' }}>Are you sure you want to revoke MFA device for <b>{mfaDevices.find(m => m.id === mfaDeleteConfirmId)?.userId}</b>?</p>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                              <button onClick={() => setMfaDeleteConfirmId(null)} style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
+                              <button onClick={() => { setMfaDevices(prev => prev.filter(m => m.id !== mfaDeleteConfirmId)); setMfaDeleteConfirmId(null); }} style={{ backgroundColor: '#EF4444', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Confirm Revoke</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 

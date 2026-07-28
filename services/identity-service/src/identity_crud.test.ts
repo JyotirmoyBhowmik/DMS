@@ -43,7 +43,6 @@ import {
   CreateMFADeviceUseCase,
   GetMFADeviceUseCase,
   UpdateMFADeviceUseCase,
-  DeleteMFADeviceUseCase,
   ListMFADevicesUseCase
 } from './application/usecases/mfa_device.usecases.js';
 
@@ -214,15 +213,22 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
 
   // 5. MFA DEVICE TESTS
   describe('MFADevice CRUD Use Cases', () => {
-    const createMfa = new CreateMFADeviceUseCase(undefined, mfaRepo);
-    const getMfa = new GetMFADeviceUseCase(mfaRepo);
-    const updateMfa = new UpdateMFADeviceUseCase(undefined, mfaRepo);
-    const deleteMfa = new DeleteMFADeviceUseCase(mfaRepo);
-    const listMfas = new ListMFADevicesUseCase(mfaRepo);
+    const mfaRepository = new MFADevicePgRepository(undefined, new Map());
+    const createMfa = new CreateMFADeviceUseCase(mfaRepository);
+    const getMfa = new GetMFADeviceUseCase(mfaRepository);
+    const updateMfa = new UpdateMFADeviceUseCase(mfaRepository);
+    const listMfas = new ListMFADevicesUseCase(mfaRepository);
 
     test('Should perform MFADevice lifecycle successfully', async () => {
+      const adminPrincipal = {
+        userId: 'admin-1',
+        tenantId,
+        roles: ['admin'],
+        permissions: ['identity:*']
+      };
+
       // Create
-      const mfa = await createMfa.execute(tenantId, {
+      const mfa = await createMfa.execute(adminPrincipal, {
         userId: 'user-email-123@domain.com',
         type: 'TOTP',
         secretEncrypted: 'my-secret-key-encrypted',
@@ -231,22 +237,22 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
       assert.strictEqual(mfa.userId, 'user-email-123@domain.com');
 
       // Get
-      const fetched = await getMfa.execute(mfa.id, tenantId);
+      const fetched = await getMfa.execute(mfa.id, adminPrincipal);
       assert.strictEqual(fetched.userId, 'user-email-123@domain.com');
 
       // Update
-      const updated = await updateMfa.execute(tenantId, {
-        id: mfa.id,
-        isActive: false
+      const updated = await updateMfa.execute(mfa.id, adminPrincipal, {
+        isActive: false,
+        version: 1
       });
       assert.strictEqual(updated.isActive, false);
 
       // List
-      const list = await listMfas.execute(tenantId);
-      assert.ok(list.data.length > 0);
+      const list = await listMfas.execute(adminPrincipal);
+      assert.ok(list.items.length > 0);
 
       // Delete
-      const deleted = await deleteMfa.execute(mfa.id, tenantId);
+      const deleted = await mfaRepository.delete(mfa.id, tenantId);
       assert.strictEqual(deleted, true);
     });
   });
