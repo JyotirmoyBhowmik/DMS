@@ -674,6 +674,18 @@ const App = () => {
   const [auditLogPage, setAuditLogPage] = useState(1);
   const [auditLogDeleteConfirmId, setAuditLogDeleteConfirmId] = useState<string | null>(null);
 
+  // Report Web Admin State (Tasks 1652 & 1653)
+  const [reports, setReports] = useState([
+    { id: 'report-uuid-001', tenantId: '00000000-0000-0000-0000-000000000001', name: 'Q2 Sales Summary', type: 'SALES', status: 'COMPLETED', downloadUrl: '/downloads/q2_sales.pdf', version: 1, createdAt: '2026-07-28T10:00:00Z' },
+    { id: 'report-uuid-002', tenantId: '00000000-0000-0000-0000-000000000001', name: 'Inventory Valuation', type: 'INVENTORY', status: 'GENERATING', downloadUrl: null, version: 1, createdAt: '2026-07-28T09:30:00Z' },
+    { id: 'report-uuid-003', tenantId: '00000000-0000-0000-0000-000000000001', name: 'Annual Audit Ledger', type: 'AUDIT', status: 'DRAFT', downloadUrl: null, version: 1, createdAt: '2026-07-28T08:00:00Z' }
+  ]);
+  const [reportSearchQuery, setReportSearchQuery] = useState('');
+  const [reportTypeFilter, setReportTypeFilter] = useState('ALL');
+  const [reportStatusFilter, setReportStatusFilter] = useState('ALL');
+  const [reportPage, setReportPage] = useState(1);
+  const [reportDeleteConfirmId, setReportDeleteConfirmId] = useState<string | null>(null);
+
   // Simulated Payment Management state for Web Admin (Tasks 1311 & 1312)
   const [payments, setPayments] = useState([
     { id: 'pay-uuid-001', paymentReference: 'PAY-2026-001', distributorId: 'dist-uuid-201', invoiceId: 'inv-uuid-001', amountCents: 250000, paymentMethod: 'WIRE_TRANSFER', currency: 'USD', status: 'COMPLETED', version: 1, createdAt: '2026-06-15' },
@@ -12991,6 +13003,131 @@ const App = () => {
                             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
                               <button onClick={() => setAuditLogDeleteConfirmId(null)} style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
                               <button onClick={() => { setAuditLogs(prev => prev.filter(a => a.id !== auditLogDeleteConfirmId)); setAuditLogDeleteConfirmId(null); }} style={{ backgroundColor: '#EF4444', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Confirm Delete</button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {(identitySubTab as string) === 'reports' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <input
+                          type="text"
+                          placeholder="Search Report Name..."
+                          value={reportSearchQuery}
+                          onChange={e => { setReportSearchQuery(e.target.value); setReportPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', width: '220px' }}
+                        />
+                        <select
+                          value={reportTypeFilter}
+                          onChange={e => { setReportTypeFilter(e.target.value); setReportPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="ALL">All Types</option>
+                          <option value="SALES">SALES</option>
+                          <option value="INVENTORY">INVENTORY</option>
+                          <option value="FINANCIAL">FINANCIAL</option>
+                          <option value="AUDIT">AUDIT</option>
+                          <option value="CUSTOM">CUSTOM</option>
+                        </select>
+                        <select
+                          value={reportStatusFilter}
+                          onChange={e => { setReportStatusFilter(e.target.value); setReportPage(1); }}
+                          style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#FFF', padding: '6px 12px', borderRadius: '6px', fontSize: '12px' }}
+                        >
+                          <option value="ALL">All Statuses</option>
+                          <option value="DRAFT">DRAFT</option>
+                          <option value="GENERATING">GENERATING</option>
+                          <option value="COMPLETED">COMPLETED</option>
+                          <option value="FAILED">FAILED</option>
+                        </select>
+                      </div>
+
+                      {(() => {
+                        let filtered = reports.filter(r => {
+                          const matchesQuery = !reportSearchQuery || r.name.toLowerCase().includes(reportSearchQuery.toLowerCase());
+                          const matchesType = reportTypeFilter === 'ALL' || r.type === reportTypeFilter;
+                          const matchesStatus = reportStatusFilter === 'ALL' || r.status === reportStatusFilter;
+                          return matchesQuery && matchesType && matchesStatus;
+                        });
+
+                        const totalPages = Math.max(1, Math.ceil(filtered.length / 5));
+                        const page = Math.min(reportPage, totalPages);
+                        const paginated = filtered.slice((page - 1) * 5, page * 5);
+
+                        return (
+                          <>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: '#FFF' }}>
+                              <thead>
+                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: 'left', opacity: 0.7 }}>
+                                  <th style={{ padding: '10px 8px' }}>Report Name</th>
+                                  <th style={{ padding: '10px 8px' }}>Type</th>
+                                  <th style={{ padding: '10px 8px' }}>Status</th>
+                                  <th style={{ padding: '10px 8px' }}>Version</th>
+                                  <th style={{ padding: '10px 8px' }}>Created</th>
+                                  <th style={{ padding: '10px 8px', textAlign: 'right' }}>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {paginated.map(r => (
+                                  <tr key={r.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <td style={{ padding: '10px 8px', fontWeight: 600, color: '#60A5FA' }}>{r.name}</td>
+                                    <td style={{ padding: '10px 8px', fontWeight: 600 }}>{r.type}</td>
+                                    <td style={{ padding: '10px 8px' }}>
+                                      <span style={{
+                                        backgroundColor: r.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.15)' :
+                                                         r.status === 'GENERATING' ? 'rgba(245, 158, 11, 0.15)' :
+                                                         r.status === 'DRAFT' ? 'rgba(148, 163, 184, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                        color: r.status === 'COMPLETED' ? '#10B981' :
+                                               r.status === 'GENERATING' ? '#F59E0B' :
+                                               r.status === 'DRAFT' ? '#94A3B8' : '#EF4444',
+                                        padding: '2px 8px',
+                                        borderRadius: '4px',
+                                        fontSize: '11px',
+                                        fontWeight: 700
+                                      }}>{r.status}</span>
+                                    </td>
+                                    <td style={{ padding: '10px 8px', opacity: 0.8 }}>v{r.version}</td>
+                                    <td style={{ padding: '10px 8px', opacity: 0.6, fontSize: '11px' }}>{r.createdAt.split('T')[0]}</td>
+                                    <td style={{ padding: '10px 8px', textAlign: 'right' }}>
+                                      {currentUserRole === 'admin' && (
+                                        <>
+                                          {r.status === 'DRAFT' && (
+                                            <button onClick={() => {
+                                              setReports(prev => prev.map(item => item.id === r.id ? { ...item, status: 'GENERATING', version: item.version + 1 } : item));
+                                            }} style={{ background: 'none', border: 'none', color: '#10B981', cursor: 'pointer', marginRight: '8px' }}>Approve</button>
+                                          )}
+                                          <button onClick={() => setReportDeleteConfirmId(r.id)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}>Delete</button>
+                                        </>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                              <span style={{ fontSize: '11px', color: '#94A3B8' }}>Page {reportPage} of {totalPages} ({filtered.length} total)</span>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button disabled={reportPage === 1} onClick={() => setReportPage(p => Math.max(1, p - 1))} style={{ backgroundColor: 'rgba(30,41,59,0.4)', color: reportPage === 1 ? '#475569' : '#FFF', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: reportPage === 1 ? 'not-allowed' : 'pointer' }}>Prev</button>
+                                <button disabled={reportPage === totalPages} onClick={() => setReportPage(p => Math.min(totalPages, p + 1))} style={{ backgroundColor: 'rgba(30,41,59,0.4)', color: reportPage === totalPages ? '#475569' : '#FFF', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: reportPage === totalPages ? 'not-allowed' : 'pointer' }}>Next</button>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+
+                      {reportDeleteConfirmId && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+                          <div style={{ backgroundColor: '#1E293B', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.4)', padding: '20px', width: '380px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>⚠️</div>
+                            <h4 style={{ margin: 0, color: '#F87171', fontSize: '15px' }}>Delete Report</h4>
+                            <p style={{ fontSize: '12px', color: '#94A3B8', margin: '10px 0 16px 0' }}>Are you sure you want to delete report <b>{reports.find(r => r.id === reportDeleteConfirmId)?.name}</b>?</p>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                              <button onClick={() => setReportDeleteConfirmId(null)} style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
+                              <button onClick={() => { setReports(prev => prev.filter(r => r.id !== reportDeleteConfirmId)); setReportDeleteConfirmId(null); }} style={{ backgroundColor: '#EF4444', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Confirm Delete</button>
                             </div>
                           </div>
                         </div>
