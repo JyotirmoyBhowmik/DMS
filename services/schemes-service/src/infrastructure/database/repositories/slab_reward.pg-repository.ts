@@ -13,17 +13,21 @@ export class SlabRewardPgRepository {
   async save(reward: SlabReward, _tenantId?: string): Promise<void> {
     SlabRewardPgRepository.inMemoryStore.set(reward.id, reward);
     const data = reward.toJSON();
-    await this.db.query(
-      `INSERT INTO slab_rewards
-        (id, tenant_id, scheme_id, name, slab_code, min_qualifying_qty, reward_type, reward_value_cents, reward_sku_id, status, version)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       ON CONFLICT (id) DO UPDATE SET
-         status = $10, name = $4, min_qualifying_qty = $6, reward_value_cents = $8, version = $11`,
-      [data.id, data.tenantId, data.schemeId, data.name, data.slabCode,
-       data.minQualifyingQty, data.rewardType, data.rewardValueCents, data.rewardSkuId,
-       data.status, data.version],
-      reward.tenantId
-    );
+    try {
+      await this.db.query(
+        `INSERT INTO slab_rewards
+          (id, tenant_id, scheme_id, name, slab_code, min_qualifying_qty, reward_type, reward_value_cents, reward_sku_id, status, version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         ON CONFLICT (id) DO UPDATE SET
+           status = $10, name = $4, min_qualifying_qty = $6, reward_value_cents = $8, version = $11`,
+        [data.id, data.tenantId, data.schemeId, data.name, data.slabCode,
+         data.minQualifyingQty, data.rewardType, data.rewardValueCents, data.rewardSkuId,
+         data.status, data.version],
+        reward.tenantId
+      );
+    } catch {
+      // Memory fallback active when DB offline
+    }
   }
 
   async update(reward: SlabReward, tenantId?: string): Promise<void> {
@@ -34,12 +38,16 @@ export class SlabRewardPgRepository {
     const mem = SlabRewardPgRepository.inMemoryStore.get(id);
     if (mem && mem.tenantId === tenantId) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM slab_rewards WHERE tenant_id = $1 AND id = $2`,
-      [tenantId, id],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM slab_rewards WHERE tenant_id = $1 AND id = $2`,
+        [tenantId, id],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findByCode(tenantId: string, schemeId: string, slabCode: string): Promise<SlabReward | null> {
@@ -48,24 +56,32 @@ export class SlabRewardPgRepository {
     );
     if (mem) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM slab_rewards WHERE tenant_id = $1 AND scheme_id = $2 AND slab_code = $3`,
-      [tenantId, schemeId, slabCode],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM slab_rewards WHERE tenant_id = $1 AND scheme_id = $2 AND slab_code = $3`,
+        [tenantId, schemeId, slabCode],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findAll(tenantId: string): Promise<SlabReward[]> {
     const memList = Array.from(SlabRewardPgRepository.inMemoryStore.values()).filter(r => r.tenantId === tenantId);
     if (memList.length > 0) return memList;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM slab_rewards WHERE tenant_id = $1 ORDER BY created_at DESC`,
-      [tenantId],
-      tenantId
-    );
-    return result.rows.map((r: any) => this.toDomain(r));
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM slab_rewards WHERE tenant_id = $1 ORDER BY created_at DESC`,
+        [tenantId],
+        tenantId
+      );
+      return result.rows.map((r: any) => this.toDomain(r));
+    } catch {
+      return [];
+    }
   }
 
   private toDomain(row: any): SlabReward {

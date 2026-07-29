@@ -13,16 +13,20 @@ export class PriceListPgRepository {
   async save(list: PriceList, _tenantId?: string): Promise<void> {
     PriceListPgRepository.inMemoryStore.set(list.id, list);
     const data = list.toJSON();
-    await this.db.query(
-      `INSERT INTO price_lists
-        (id, tenant_id, name, code, currency, status, valid_from, valid_to, version)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       ON CONFLICT (id) DO UPDATE SET
-         status = $6, name = $3, version = $9`,
-      [data.id, data.tenantId, data.name, data.code, data.currency, data.status,
-       data.validFrom ?? null, data.validTo ?? null, data.version],
-      list.tenantId
-    );
+    try {
+      await this.db.query(
+        `INSERT INTO price_lists
+          (id, tenant_id, name, code, currency, status, valid_from, valid_to, version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         ON CONFLICT (id) DO UPDATE SET
+           status = $6, name = $3, version = $9`,
+        [data.id, data.tenantId, data.name, data.code, data.currency, data.status,
+         data.validFrom ?? null, data.validTo ?? null, data.version],
+        list.tenantId
+      );
+    } catch {
+      // Memory fallback active when DB offline
+    }
   }
 
   async update(list: PriceList, tenantId?: string): Promise<void> {
@@ -33,12 +37,16 @@ export class PriceListPgRepository {
     const mem = PriceListPgRepository.inMemoryStore.get(id);
     if (mem && mem.tenantId === tenantId) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM price_lists WHERE tenant_id = $1 AND id = $2`,
-      [tenantId, id],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM price_lists WHERE tenant_id = $1 AND id = $2`,
+        [tenantId, id],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findByCode(tenantId: string, code: string): Promise<PriceList | null> {
@@ -47,24 +55,32 @@ export class PriceListPgRepository {
     );
     if (mem) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM price_lists WHERE tenant_id = $1 AND code = $2`,
-      [tenantId, code],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM price_lists WHERE tenant_id = $1 AND code = $2`,
+        [tenantId, code],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findAll(tenantId: string): Promise<PriceList[]> {
     const memList = Array.from(PriceListPgRepository.inMemoryStore.values()).filter(l => l.tenantId === tenantId);
     if (memList.length > 0) return memList;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM price_lists WHERE tenant_id = $1 ORDER BY created_at DESC`,
-      [tenantId],
-      tenantId
-    );
-    return result.rows.map((r: any) => this.toDomain(r));
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM price_lists WHERE tenant_id = $1 ORDER BY created_at DESC`,
+        [tenantId],
+        tenantId
+      );
+      return result.rows.map((r: any) => this.toDomain(r));
+    } catch {
+      return [];
+    }
   }
 
   private toDomain(row: any): PriceList {

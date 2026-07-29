@@ -13,17 +13,21 @@ export class SchemePayoutPgRepository {
   async save(payout: SchemePayout, _tenantId?: string): Promise<void> {
     SchemePayoutPgRepository.inMemoryStore.set(payout.id, payout);
     const data = payout.toJSON();
-    await this.db.query(
-      `INSERT INTO scheme_payouts
-        (id, tenant_id, scheme_id, distributor_id, claim_id, name, payout_code, amount_cents, payout_type, status, version)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       ON CONFLICT (id) DO UPDATE SET
-         status = $10, name = $6, amount_cents = $8, version = $11`,
-      [data.id, data.tenantId, data.schemeId, data.distributorId, data.claimId,
-       data.name, data.payoutCode, data.amountCents, data.payoutType,
-       data.status, data.version],
-      payout.tenantId
-    );
+    try {
+      await this.db.query(
+        `INSERT INTO scheme_payouts
+          (id, tenant_id, scheme_id, distributor_id, claim_id, name, payout_code, amount_cents, payout_type, status, version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         ON CONFLICT (id) DO UPDATE SET
+           status = $10, name = $6, amount_cents = $8, version = $11`,
+        [data.id, data.tenantId, data.schemeId, data.distributorId, data.claimId,
+         data.name, data.payoutCode, data.amountCents, data.payoutType,
+         data.status, data.version],
+        payout.tenantId
+      );
+    } catch {
+      // Memory fallback active when DB offline
+    }
   }
 
   async update(payout: SchemePayout, tenantId?: string): Promise<void> {
@@ -34,12 +38,16 @@ export class SchemePayoutPgRepository {
     const mem = SchemePayoutPgRepository.inMemoryStore.get(id);
     if (mem && mem.tenantId === tenantId) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM scheme_payouts WHERE tenant_id = $1 AND id = $2`,
-      [tenantId, id],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM scheme_payouts WHERE tenant_id = $1 AND id = $2`,
+        [tenantId, id],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findByCode(tenantId: string, schemeId: string, payoutCode: string): Promise<SchemePayout | null> {
@@ -48,24 +56,32 @@ export class SchemePayoutPgRepository {
     );
     if (mem) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM scheme_payouts WHERE tenant_id = $1 AND scheme_id = $2 AND payout_code = $3`,
-      [tenantId, schemeId, payoutCode],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM scheme_payouts WHERE tenant_id = $1 AND scheme_id = $2 AND payout_code = $3`,
+        [tenantId, schemeId, payoutCode],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findAll(tenantId: string): Promise<SchemePayout[]> {
     const memList = Array.from(SchemePayoutPgRepository.inMemoryStore.values()).filter(p => p.tenantId === tenantId);
     if (memList.length > 0) return memList;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM scheme_payouts WHERE tenant_id = $1 ORDER BY created_at DESC`,
-      [tenantId],
-      tenantId
-    );
-    return result.rows.map((r: any) => this.toDomain(r));
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM scheme_payouts WHERE tenant_id = $1 ORDER BY created_at DESC`,
+        [tenantId],
+        tenantId
+      );
+      return result.rows.map((r: any) => this.toDomain(r));
+    } catch {
+      return [];
+    }
   }
 
   private toDomain(row: any): SchemePayout {

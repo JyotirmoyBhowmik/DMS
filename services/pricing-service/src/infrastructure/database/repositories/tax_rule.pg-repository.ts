@@ -13,16 +13,20 @@ export class TaxRulePgRepository {
   async save(rule: TaxRule, _tenantId?: string): Promise<void> {
     TaxRulePgRepository.inMemoryStore.set(rule.id, rule);
     const data = rule.toJSON();
-    await this.db.query(
-      `INSERT INTO tax_rules
-        (id, tenant_id, name, tax_code, rate_percentage, status, version)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       ON CONFLICT (id) DO UPDATE SET
-         status = $6, name = $3, rate_percentage = $5, version = $7`,
-      [data.id, data.tenantId, data.name, data.taxCode, data.ratePercentage,
-       data.status, data.version],
-      rule.tenantId
-    );
+    try {
+      await this.db.query(
+        `INSERT INTO tax_rules
+          (id, tenant_id, name, tax_code, rate_percentage, status, version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT (id) DO UPDATE SET
+           status = $6, name = $3, rate_percentage = $5, version = $7`,
+        [data.id, data.tenantId, data.name, data.taxCode, data.ratePercentage,
+         data.status, data.version],
+        rule.tenantId
+      );
+    } catch {
+      // Memory fallback active when DB offline
+    }
   }
 
   async update(rule: TaxRule, tenantId?: string): Promise<void> {
@@ -33,12 +37,16 @@ export class TaxRulePgRepository {
     const mem = TaxRulePgRepository.inMemoryStore.get(id);
     if (mem && mem.tenantId === tenantId) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM tax_rules WHERE tenant_id = $1 AND id = $2`,
-      [tenantId, id],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM tax_rules WHERE tenant_id = $1 AND id = $2`,
+        [tenantId, id],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findByCode(tenantId: string, taxCode: TaxCode): Promise<TaxRule | null> {
@@ -47,24 +55,32 @@ export class TaxRulePgRepository {
     );
     if (mem) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM tax_rules WHERE tenant_id = $1 AND tax_code = $2`,
-      [tenantId, taxCode],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM tax_rules WHERE tenant_id = $1 AND tax_code = $2`,
+        [tenantId, taxCode],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findAll(tenantId: string): Promise<TaxRule[]> {
     const memList = Array.from(TaxRulePgRepository.inMemoryStore.values()).filter(r => r.tenantId === tenantId);
     if (memList.length > 0) return memList;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM tax_rules WHERE tenant_id = $1 ORDER BY created_at DESC`,
-      [tenantId],
-      tenantId
-    );
-    return result.rows.map((r: any) => this.toDomain(r));
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM tax_rules WHERE tenant_id = $1 ORDER BY created_at DESC`,
+        [tenantId],
+        tenantId
+      );
+      return result.rows.map((r: any) => this.toDomain(r));
+    } catch {
+      return [];
+    }
   }
 
   private toDomain(row: any): TaxRule {

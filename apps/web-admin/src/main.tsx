@@ -11,6 +11,38 @@ const generateUUID = () => {
   });
 };
 
+// Central API HTTP Client for Production Backend Integration
+const API_BASE_URL = (import.meta as any).env?.VITE_API_GATEWAY_URL || 'http://localhost:3000';
+
+async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'X-Tenant-ID': '00000000-0000-0000-0000-000000000001',
+    'X-User-ID': 'user-admin-1',
+    'X-User-Roles': 'admin',
+    'X-User-Permissions': 'identity:permission:read,identity:permission:create,identity:permission:update,identity:permission:delete,identity:role:read,identity:user:read,identity:tenant:read,audit:read,file:read,report:read,forecasting:read,recommendation:read,config:read',
+    ...(options.headers as Record<string, string> || {})
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: response.statusText }));
+      throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (err: any) {
+    // In local development / offline fallback, log warning and let caller handle fallback gracefully
+    console.warn(`[apiFetch] Network call failed for ${endpoint}:`, err.message);
+    throw err;
+  }
+}
+
 const App = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'telemetry' | 'dms' | 'sfa' | 'ai' | 'audit' | 'identity'>('overview');
   const [tenant, setTenant] = useState('Global Distribution Corp');
