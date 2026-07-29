@@ -51,6 +51,35 @@ export class UpdateConfigEntryUseCase {
     return this.mapToResponse(entry);
   }
 
+  public async approveEntry(principal: Principal, id: string, expectedVersion: number): Promise<ConfigEntryResponseDto> {
+    if (!principal || !principal.tenantId) {
+      throw new Error('Unauthorized: Tenant context required.');
+    }
+    if (!principal.permissions.includes('config:approve') && !principal.roles.includes('admin')) {
+      throw new Error('Forbidden: Insufficient permissions to approve config entry.');
+    }
+
+    const entry = await this.repository.findById(id, principal.tenantId);
+    if (!entry) {
+      throw new Error(`ConfigEntry with ID '${id}' not found.`);
+    }
+
+    const oldStatus = entry.status;
+    entry.approve(expectedVersion);
+    await this.repository.save(entry);
+
+    await this.auditService.recordMutation({
+      tenantId: principal.tenantId,
+      actorId: principal.userId,
+      action: 'CONFIG_ENTRY_APPROVED',
+      entityId: entry.id,
+      oldValue: { status: oldStatus },
+      newValue: { status: entry.status, version: entry.version }
+    });
+
+    return this.mapToResponse(entry);
+  }
+
   public async deleteEntry(principal: Principal, id: string): Promise<boolean> {
     if (!principal || !principal.tenantId) {
       throw new Error('Unauthorized: Tenant context required.');

@@ -1,29 +1,17 @@
-import { CreateConfigEntryUseCase, Principal } from '../../../application/usecases/create-config-entry.usecase.js';
-import { GetConfigEntryUseCase } from '../../../application/usecases/get-config-entry.usecase.js';
-import { UpdateConfigEntryUseCase } from '../../../application/usecases/update-config-entry.usecase.js';
-import { ListConfigEntriesUseCase } from '../../../application/usecases/list-config-entries.usecase.js';
-import { CreateConfigEntryDto, ListConfigEntriesQueryDto, UpdateConfigEntryDto } from '../../../application/dtos/config_entry.dto.js';
+import { CreateFeatureFlagUseCase } from '../../../application/usecases/create-feature-flag.usecase.js';
+import { GetFeatureFlagUseCase } from '../../../application/usecases/get-feature-flag.usecase.js';
+import { UpdateFeatureFlagUseCase } from '../../../application/usecases/update-feature-flag.usecase.js';
+import { ListFeatureFlagsUseCase } from '../../../application/usecases/list-feature-flags.usecase.js';
+import { CreateFeatureFlagDto, ListFeatureFlagsQueryDto, UpdateFeatureFlagDto } from '../../../application/dtos/feature_flag.dto.js';
+import { Principal } from '../../../application/usecases/create-config-entry.usecase.js';
+import { HttpRequest, HttpResponse } from './config_entry.controller.js';
 
-export interface HttpRequest {
-  headers: Record<string, string>;
-  params?: Record<string, string>;
-  query?: Record<string, any>;
-  body?: any;
-  principal?: Principal;
-}
-
-export interface HttpResponse {
-  statusCode: number;
-  headers?: Record<string, string>;
-  body: any;
-}
-
-export class ConfigEntryController {
+export class FeatureFlagController {
   constructor(
-    private readonly createUseCase: CreateConfigEntryUseCase,
-    private readonly getUseCase: GetConfigEntryUseCase,
-    private readonly updateUseCase: UpdateConfigEntryUseCase,
-    private readonly listUseCase: ListConfigEntriesUseCase
+    private readonly createUseCase: CreateFeatureFlagUseCase,
+    private readonly getUseCase: GetFeatureFlagUseCase,
+    private readonly updateUseCase: UpdateFeatureFlagUseCase,
+    private readonly listUseCase: ListFeatureFlagsUseCase
   ) {}
 
   public async handleCreate(req: HttpRequest): Promise<HttpResponse> {
@@ -42,7 +30,7 @@ export class ConfigEntryController {
       }
 
       const principal = this.extractPrincipal(req);
-      const dto: CreateConfigEntryDto = req.body;
+      const dto: CreateFeatureFlagDto = req.body;
       const idempotencyKey = req.headers['x-idempotency-key'] || req.headers['X-Idempotency-Key'];
       if (idempotencyKey) {
         dto.idempotencyKey = idempotencyKey;
@@ -70,7 +58,7 @@ export class ConfigEntryController {
             timestamp: new Date().toISOString(),
             status_code: 400,
             error_code: 'BAD_REQUEST',
-            message: 'ConfigEntry ID route parameter is required.'
+            message: 'FeatureFlag ID route parameter is required.'
           }
         };
       }
@@ -97,7 +85,7 @@ export class ConfigEntryController {
             timestamp: new Date().toISOString(),
             status_code: 400,
             error_code: 'BAD_REQUEST',
-            message: 'ConfigEntry key route parameter is required.'
+            message: 'FeatureFlag key route parameter is required.'
           }
         };
       }
@@ -124,41 +112,13 @@ export class ConfigEntryController {
             timestamp: new Date().toISOString(),
             status_code: 400,
             error_code: 'BAD_REQUEST',
-            message: 'ConfigEntry ID route parameter is required.'
+            message: 'FeatureFlag ID route parameter is required.'
           }
         };
       }
 
-      const dto: UpdateConfigEntryDto = req.body;
+      const dto: UpdateFeatureFlagDto = req.body;
       const result = await this.updateUseCase.execute(principal, id, dto);
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: result
-      };
-    } catch (err: any) {
-      return this.mapErrorToResponse(err);
-    }
-  }
-
-  public async handleApprove(req: HttpRequest): Promise<HttpResponse> {
-    try {
-      const principal = this.extractPrincipal(req);
-      const id = req.params?.id;
-      if (!id) {
-        return {
-          statusCode: 400,
-          body: {
-            timestamp: new Date().toISOString(),
-            status_code: 400,
-            error_code: 'BAD_REQUEST',
-            message: 'ConfigEntry ID route parameter is required.'
-          }
-        };
-      }
-
-      const expectedVersion = req.body?.expectedVersion ?? 1;
-      const result = await this.updateUseCase.approveEntry(principal, id, expectedVersion);
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -180,16 +140,16 @@ export class ConfigEntryController {
             timestamp: new Date().toISOString(),
             status_code: 400,
             error_code: 'BAD_REQUEST',
-            message: 'ConfigEntry ID route parameter is required.'
+            message: 'FeatureFlag ID route parameter is required.'
           }
         };
       }
 
-      const deleted = await this.updateUseCase.deleteEntry(principal, id);
+      const deleted = await this.updateUseCase.deleteFlag(principal, id);
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: { success: deleted, message: 'ConfigEntry deleted successfully' }
+        body: { success: deleted, message: 'FeatureFlag deleted successfully' }
       };
     } catch (err: any) {
       return this.mapErrorToResponse(err);
@@ -199,10 +159,11 @@ export class ConfigEntryController {
   public async handleList(req: HttpRequest): Promise<HttpResponse> {
     try {
       const principal = this.extractPrincipal(req);
-      const query: ListConfigEntriesQueryDto = {
-        configKey: req.query?.configKey,
-        dataType: req.query?.dataType,
+      const query: ListFeatureFlagsQueryDto = {
+        flagKey: req.query?.flagKey,
+        strategy: req.query?.strategy,
         status: req.query?.status,
+        enabled: req.query?.enabled !== undefined ? req.query.enabled === 'true' : undefined,
         page: req.query?.page ? parseInt(req.query.page, 10) : undefined,
         pageSize: req.query?.pageSize ? parseInt(req.query.pageSize, 10) : undefined
       };
@@ -224,7 +185,7 @@ export class ConfigEntryController {
     const tenantId = req.headers['x-tenant-id'] || req.headers['X-Tenant-ID'] || '00000000-0000-0000-0000-000000000001';
     const userId = req.headers['x-user-id'] || req.headers['X-User-ID'] || 'user-default';
     const roles = (req.headers['x-user-roles'] || 'admin').split(',');
-    const permissions = (req.headers['x-user-permissions'] || 'config:create,config:read,config:update,config:delete').split(',');
+    const permissions = (req.headers['x-user-permissions'] || 'flag:create,flag:read,flag:update,flag:delete').split(',');
 
     return { userId, tenantId, roles, permissions };
   }
@@ -246,7 +207,7 @@ export class ConfigEntryController {
     } else if (msg.includes('Optimistic locking failure') || msg.includes('Duplicate request') || msg.includes('already exists')) {
       statusCode = 409;
       errorCode = 'CONFLICT';
-    } else if (msg.includes('Invalid') || msg.includes('required') || msg.includes('not a valid')) {
+    } else if (msg.includes('Invalid') || msg.includes('required') || msg.includes('must be')) {
       statusCode = 400;
       errorCode = 'BAD_REQUEST';
     }

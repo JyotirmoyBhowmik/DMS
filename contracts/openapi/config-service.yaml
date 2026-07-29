@@ -113,21 +113,129 @@ paths:
         '200':
           description: ConfigEntry deleted successfully
 
-  /api/v1/config-entries/key/{key}:
-    get:
-      summary: Get Config Entry details by Key
-      operationId: getConfigEntryByKey
+  /api/v1/config-entries/{id}/approve:
+    post:
+      summary: Approve Config Entry
+      operationId: approveConfigEntry
       parameters:
         - in: path
-          name: key
+          name: id
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         '200':
-          description: ConfigEntry details
+          description: ConfigEntry approved successfully
+
+  /api/v1/feature-flags:
+    post:
+      summary: Create Feature Flag
+      operationId: createFeatureFlag
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFeatureFlagRequest'
+      responses:
+        '201':
+          description: FeatureFlag created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureFlagResponse'
+        '400':
+          description: Invalid input or domain validation failure
+        '409':
+          description: Idempotency or duplicate key conflict
+    get:
+      summary: List Feature Flags with pagination and filters
+      operationId: listFeatureFlags
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: flagKey
+          schema:
+            type: string
+        - in: query
+          name: strategy
+          schema:
+            type: string
+            enum: [BOOLEAN, PERCENTAGE, GRADUAL]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE, ARCHIVED]
+      responses:
+        '200':
+          description: Paginated list of FeatureFlags
+
+  /api/v1/feature-flags/{id}:
+    get:
+      summary: Get Feature Flag details by ID
+      operationId: getFeatureFlag
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: FeatureFlag details
         '404':
-          description: ConfigEntry not found
+          description: FeatureFlag not found
+    put:
+      summary: Update Feature Flag strategy, state or rollout
+      operationId: updateFeatureFlag
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFeatureFlagRequest'
+      responses:
+        '200':
+          description: FeatureFlag updated successfully
+        '409':
+          description: Optimistic locking conflict
+    delete:
+      summary: Delete Feature Flag by ID
+      operationId: deleteFeatureFlag
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: FeatureFlag deleted successfully
 
 components:
   schemas:
@@ -196,6 +304,92 @@ components:
           enum: [ACTIVE, INACTIVE, DEPRECATED]
         isEncrypted:
           type: boolean
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateFeatureFlagRequest:
+      type: object
+      required:
+        - flagKey
+      properties:
+        flagKey:
+          type: string
+        description:
+          type: string
+        strategy:
+          type: string
+          enum: [BOOLEAN, PERCENTAGE, GRADUAL]
+        enabled:
+          type: boolean
+        rolloutPercentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, ARCHIVED]
+
+    UpdateFeatureFlagRequest:
+      type: object
+      required:
+        - expectedVersion
+      properties:
+        enabled:
+          type: boolean
+        strategy:
+          type: string
+          enum: [BOOLEAN, PERCENTAGE, GRADUAL]
+        rolloutPercentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, ARCHIVED]
+        expectedVersion:
+          type: integer
+          minimum: 1
+
+    FeatureFlagResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - flagKey
+        - strategy
+        - enabled
+        - rolloutPercentage
+        - status
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        flagKey:
+          type: string
+        description:
+          type: string
+        strategy:
+          type: string
+          enum: [BOOLEAN, PERCENTAGE, GRADUAL]
+        enabled:
+          type: boolean
+        rolloutPercentage:
+          type: integer
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, ARCHIVED]
         version:
           type: integer
         createdAt:

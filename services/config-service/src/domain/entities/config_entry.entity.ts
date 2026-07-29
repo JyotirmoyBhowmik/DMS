@@ -135,6 +135,16 @@ export class ConfigEntryAggregate {
     this.props.updatedAt = new Date();
   }
 
+  public approve(expectedVersion: number): void {
+    this.assertVersion(expectedVersion);
+    if (this.props.status === 'DEPRECATED') {
+      throw new ConfigEntryDomainError('Cannot approve a DEPRECATED ConfigEntry.');
+    }
+    this.props.status = 'ACTIVE';
+    this.props.version += 1;
+    this.props.updatedAt = new Date();
+  }
+
   public deprecate(expectedVersion: number): void {
     this.assertVersion(expectedVersion);
     this.props.status = 'DEPRECATED';
