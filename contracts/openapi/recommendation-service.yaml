@@ -2,12 +2,225 @@ openapi: 3.0.3
 info:
   title: Recommendation Service API
   version: 1.0.0
-  description: Order recommendations and Next Best Action (NBA) service API.
+  description: Multi-tenant Recommendation Engine Service for generating personalized cross-sell, up-sell, and inventory replenishment recommendations.
 paths:
-  /recommendations/suggest:
+  /api/v1/recommendations:
     post:
-      summary: Suggest product stock order recommendations and NBA actions
-      operationId: getRecommendations
+      summary: Create Recommendation
+      operationId: createRecommendation
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRecommendationRequest'
+      responses:
+        '201':
+          description: Recommendation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResponse'
+        '400':
+          description: Invalid input or domain validation failure
+        '409':
+          description: Idempotency or duplicate title conflict
+    get:
+      summary: List Recommendations with pagination and filters
+      operationId: listRecommendations
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: title
+          schema:
+            type: string
+        - in: query
+          name: targetType
+          schema:
+            type: string
+            enum: [OUTLET, PRODUCT, DISTRIBUTOR]
+        - in: query
+          name: targetId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: recommendationType
+          schema:
+            type: string
+            enum: [CROSS_SELL, UP_SELL, INVENTORY_REPLENISHMENT, PRICE_OPTIMIZATION]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, ACTIVE, APPLIED, DISMISSED, EXPIRED]
       responses:
         '200':
-          description: NBA and product suggestions returned
+          description: Paginated list of Recommendations
+
+  /api/v1/recommendations/{id}:
+    get:
+      summary: Get Recommendation details by ID
+      operationId: getRecommendation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Recommendation details
+        '404':
+          description: Recommendation not found
+    put:
+      summary: Update Recommendation status
+      operationId: updateRecommendation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRecommendationRequest'
+      responses:
+        '200':
+          description: Recommendation updated successfully
+        '409':
+          description: Optimistic locking conflict
+    delete:
+      summary: Delete Recommendation by ID
+      operationId: deleteRecommendation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Recommendation deleted successfully
+
+  /api/v1/recommendations/{id}/approve:
+    post:
+      summary: Approve Recommendation
+      operationId: approveRecommendation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Recommendation approved successfully
+
+components:
+  schemas:
+    CreateRecommendationRequest:
+      type: object
+      required:
+        - title
+        - targetId
+      properties:
+        title:
+          type: string
+        targetType:
+          type: string
+          enum: [OUTLET, PRODUCT, DISTRIBUTOR]
+        targetId:
+          type: string
+          format: uuid
+        recommendationType:
+          type: string
+          enum: [CROSS_SELL, UP_SELL, INVENTORY_REPLENISHMENT, PRICE_OPTIMIZATION]
+        score:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        payload:
+          type: object
+
+    UpdateRecommendationRequest:
+      type: object
+      required:
+        - expectedVersion
+      properties:
+        action:
+          type: string
+          enum: [activate, apply, dismiss, expire]
+        expectedVersion:
+          type: integer
+          minimum: 1
+
+    RecommendationResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - title
+        - targetType
+        - targetId
+        - recommendationType
+        - score
+        - status
+        - payload
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        targetType:
+          type: string
+          enum: [OUTLET, PRODUCT, DISTRIBUTOR]
+        targetId:
+          type: string
+          format: uuid
+        recommendationType:
+          type: string
+          enum: [CROSS_SELL, UP_SELL, INVENTORY_REPLENISHMENT, PRICE_OPTIMIZATION]
+        score:
+          type: number
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, APPLIED, DISMISSED, EXPIRED]
+        payload:
+          type: object
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
