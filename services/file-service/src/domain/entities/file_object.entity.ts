@@ -98,6 +98,14 @@ export class FileObjectAggregate {
     this.props.updatedAt = new Date();
   }
 
+  public approve(): void {
+    if (this.props.status === 'PENDING') {
+      this.props.status = 'UPLOADED';
+      this.props.version += 1;
+      this.props.updatedAt = new Date();
+    }
+  }
+
   public archive(expectedVersion: number): void {
     this.assertVersion(expectedVersion);
     if (this.props.status !== 'UPLOADED') {

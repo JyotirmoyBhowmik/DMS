@@ -53,6 +53,36 @@ export class UpdateFileObjectUseCase {
     return this.mapToResponse(fileObject);
   }
 
+  public async approveFileObject(principal: Principal, id: string): Promise<FileObjectResponseDto> {
+    if (!principal || !principal.tenantId) {
+      throw new Error('Unauthorized: Tenant context required.');
+    }
+    if (!principal.permissions.includes('file:approve') && !principal.roles.includes('admin')) {
+      throw new Error('Forbidden: Insufficient permissions to approve file object.');
+    }
+
+    const fileObject = await this.repository.findById(id, principal.tenantId);
+    if (!fileObject) {
+      throw new Error(`FileObject with ID '${id}' not found.`);
+    }
+
+    const oldStatus = fileObject.status;
+    fileObject.approve();
+
+    await this.repository.save(fileObject);
+
+    await this.auditService.recordMutation({
+      tenantId: principal.tenantId,
+      actorId: principal.userId,
+      action: 'FILE_OBJECT_APPROVED',
+      entityId: fileObject.id,
+      oldValue: { status: oldStatus },
+      newValue: { status: fileObject.status }
+    });
+
+    return this.mapToResponse(fileObject);
+  }
+
   public async deleteFileObject(principal: Principal, id: string): Promise<boolean> {
     if (!principal || !principal.tenantId) {
       throw new Error('Unauthorized: Tenant context required.');

@@ -114,6 +114,33 @@ export class FileObjectController {
     }
   }
 
+  public async handleApprove(req: HttpRequest): Promise<HttpResponse> {
+    try {
+      const principal = this.extractPrincipal(req);
+      const id = req.params?.id;
+      if (!id) {
+        return {
+          statusCode: 400,
+          body: {
+            timestamp: new Date().toISOString(),
+            status_code: 400,
+            error_code: 'BAD_REQUEST',
+            message: 'FileObject ID route parameter is required.'
+          }
+        };
+      }
+
+      const result = await this.updateUseCase.approveFileObject(principal, id);
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: result
+      };
+    } catch (err: any) {
+      return this.mapErrorToResponse(err);
+    }
+  }
+
   public async handleDelete(req: HttpRequest): Promise<HttpResponse> {
     try {
       const principal = this.extractPrincipal(req);
@@ -169,7 +196,7 @@ export class FileObjectController {
     const tenantId = req.headers['x-tenant-id'] || req.headers['X-Tenant-ID'] || '00000000-0000-0000-0000-000000000001';
     const userId = req.headers['x-user-id'] || req.headers['X-User-ID'] || 'user-default';
     const roles = (req.headers['x-user-roles'] || 'admin').split(',');
-    const permissions = (req.headers['x-user-permissions'] || 'file:create,file:read,file:update,file:delete').split(',');
+    const permissions = (req.headers['x-user-permissions'] || 'file:create,file:read,file:update,file:delete,file:approve').split(',');
 
     return { userId, tenantId, roles, permissions };
   }

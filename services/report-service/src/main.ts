@@ -1,33 +1,41 @@
+import { ReportPgRepository } from './infrastructure/database/repositories/report.pg-repository.js';
+import { CreateReportUseCase } from './application/usecases/create-report.usecase.js';
+import { GetReportUseCase } from './application/usecases/get-report.usecase.js';
+import { UpdateReportUseCase } from './application/usecases/update-report.usecase.js';
+import { ListReportsUseCase } from './application/usecases/list-reports.usecase.js';
 import { ReportController } from './presentation/rest/controllers/report.controller.js';
 
-const controller = new ReportController();
+const repo = new ReportPgRepository();
+const createUseCase = new CreateReportUseCase(repo);
+const getUseCase = new GetReportUseCase(repo);
+const updateUseCase = new UpdateReportUseCase(repo);
+const listUseCase = new ListReportsUseCase(repo);
+
+const controller = new ReportController(createUseCase, getUseCase, updateUseCase, listUseCase);
 
 async function bootstrap(): Promise<void> {
   process.stdout.write('\n=== REPORT-SERVICE BOOTSTRAP ===\n');
 
-  // Generate a sales summary report in CSV format
-  const salesReport = await controller.handleGenerateReport({
-    tenantId: 'tenant-uuid-1111', name: 'March Sales Summary',
-    type: 'sales_summary', parameters: { period: 'monthly', month: 3, year: 2024 },
-    format: 'csv', requestedBy: 'admin-uuid-5555',
-  });
-  process.stdout.write(`\n📊 Sales Report (status=${salesReport.status}):\n${JSON.stringify(salesReport.body, null, 2)}\n`);
+  const req = {
+    headers: {
+      'content-type': 'application/json',
+      'x-tenant-id': '00000000-0000-0000-0000-000000000001',
+      'x-user-id': 'admin-1',
+      'x-user-roles': 'admin',
+      'x-user-permissions': 'report:create,report:read,report:update,report:delete'
+    },
+    body: {
+      name: 'Q2 Sales & Distribution Summary',
+      type: 'SALES',
+      parameters: { startDate: '2026-04-01', endDate: '2026-06-30' }
+    }
+  };
 
-  // Download the report
-  const reportId = (salesReport.body as Record<string, unknown>).id as string;
-  const download = await controller.handleDownloadReport(reportId);
-  process.stdout.write(`\n📥 Download Preview:\n${(download.body as Record<string, unknown>).preview}\n`);
+  const createRes = await controller.handleCreate(req);
+  process.stdout.write(`\n📊 Create Report Result (status=${createRes.statusCode}):\n${JSON.stringify(createRes.body, null, 2)}\n`);
 
-  // Generate a visit compliance report
-  const visitReport = await controller.handleGenerateReport({
-    tenantId: 'tenant-uuid-1111', name: 'Visit Compliance Weekly',
-    type: 'visit_compliance', parameters: { week: 12 }, format: 'json', requestedBy: 'admin-uuid-5555',
-  });
-  process.stdout.write(`\n📋 Visit Report (status=${visitReport.status})\n`);
-
-  // Dashboard widgets
-  const widgets = controller.handleGetDashboardWidgets('tenant-uuid-1111');
-  process.stdout.write(`\n🖥️ Dashboard Widgets: ${(widgets.body as Record<string, unknown>).count}\n`);
+  const listRes = await controller.handleList({ headers: req.headers, query: { page: 1, pageSize: 10 } });
+  process.stdout.write(`\n📋 Reports List (count=${listRes.body.total}):\n${JSON.stringify(listRes.body, null, 2)}\n`);
 
   process.stdout.write('\n=== REPORT-SERVICE BOOTSTRAP COMPLETE ===\n');
 }

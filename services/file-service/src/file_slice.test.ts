@@ -17,7 +17,7 @@ describe('FileObject Vertical Slice - Comprehensive QA & Security Test Suite', (
     userId: 'user-admin-1',
     tenantId,
     roles: ['admin'],
-    permissions: ['file:create', 'file:read', 'file:update', 'file:delete']
+    permissions: ['file:create', 'file:read', 'file:update', 'file:delete', 'file:approve']
   };
 
   const restrictedPrincipal: Principal = {
@@ -50,7 +50,7 @@ describe('FileObject Vertical Slice - Comprehensive QA & Security Test Suite', (
     consumer = new FileObjectEventConsumer();
   });
 
-  describe('1. Domain Entity Invariants & State Machine (Tasks 1612, 1619)', () => {
+  describe('1. Domain Entity Invariants & State Machine (Tasks 1612, 1619, 1624)', () => {
     test('should create valid FileObjectAggregate in PENDING status', () => {
       const file = FileObjectAggregate.create({
         id: randomUUID(),
@@ -93,7 +93,7 @@ describe('FileObject Vertical Slice - Comprehensive QA & Security Test Suite', (
       }, /FileObject sizeBytes must be non-negative/);
     });
 
-    test('should execute legal state transitions: PENDING -> UPLOADED -> ARCHIVED -> DELETED', () => {
+    test('should execute legal state transitions: PENDING -> UPLOADED -> ARCHIVED -> DELETED and approve()', () => {
       const file = FileObjectAggregate.create({
         id: randomUUID(),
         tenantId,
@@ -104,7 +104,7 @@ describe('FileObject Vertical Slice - Comprehensive QA & Security Test Suite', (
         checksum: 'checksum-xyz'
       });
 
-      file.markUploaded(1);
+      file.approve();
       assert.equal(file.status, 'UPLOADED');
       assert.equal(file.version, 2);
 
@@ -135,7 +135,7 @@ describe('FileObject Vertical Slice - Comprehensive QA & Security Test Suite', (
     });
   });
 
-  describe('2. Application Use Cases, Validation, Audit & RBAC (Tasks 1614–1618)', () => {
+  describe('2. Application Use Cases, Validation, Audit & RBAC (Tasks 1614–1618, 1624, 1625)', () => {
     test('CreateFileObjectUseCase should sanitize filename, record audit log and enforce RBAC', async () => {
       const res = await createUseCase.execute(principal, {
         filename: '../../dangerous<name>.pdf',
@@ -180,6 +180,20 @@ describe('FileObject Vertical Slice - Comprehensive QA & Security Test Suite', (
       }, /Forbidden: Insufficient permissions to create file object/);
     });
 
+    test('should reject approval for restricted user', async () => {
+      const created = await createUseCase.execute(principal, {
+        filename: 'review.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 100,
+        storagePath: '/path',
+        checksum: 'chk'
+      });
+
+      await assert.rejects(async () => {
+        await updateUseCase.approveFileObject(restrictedPrincipal, created.id);
+      }, /Forbidden: Insufficient permissions to approve file object/);
+    });
+
     test('GetFileObjectUseCase and ListFileObjectsUseCase should work for authorized user', async () => {
       const created = await createUseCase.execute(principal, {
         filename: 'statement.csv',
@@ -216,7 +230,7 @@ describe('FileObject Vertical Slice - Comprehensive QA & Security Test Suite', (
     });
   });
 
-  describe('3. Postgres Repository Integration & RLS Isolation (Task 1613)', () => {
+  describe('3. Postgres Repository Integration & RLS Isolation (Task 1613 & 1628)', () => {
     test('should isolate file objects between tenants (RLS simulation)', async () => {
       const storeA = new Map<string, FileObjectAggregate>();
       const storeB = new Map<string, FileObjectAggregate>();
@@ -244,7 +258,7 @@ describe('FileObject Vertical Slice - Comprehensive QA & Security Test Suite', (
     });
   });
 
-  describe('4. REST Controller & Event Consumer Tests (Tasks 1620, 1621)', () => {
+  describe('4. REST Controller & Event Consumer Tests (Tasks 1620, 1621 & 1629)', () => {
     test('FileObjectController handleCreate should return 201 and reject non-JSON Content-Type with 415', async () => {
       const validReq = {
         headers: { 'content-type': 'application/json' },
@@ -269,6 +283,24 @@ describe('FileObject Vertical Slice - Comprehensive QA & Security Test Suite', (
 
       const errRes = await controller.handleCreate(invalidReq);
       assert.equal(errRes.statusCode, 415);
+    });
+
+    test('FileObjectController handleApprove should succeed for authorized principal', async () => {
+      const created = await createUseCase.execute(principal, {
+        filename: 'doc-to-approve.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 500,
+        storagePath: '/s3/doc.pdf',
+        checksum: 'chk'
+      });
+
+      const res = await controller.handleApprove({
+        headers: {},
+        params: { id: created.id },
+        principal
+      });
+      assert.equal(res.statusCode, 200);
+      assert.equal(res.body.status, 'UPLOADED');
     });
 
     test('FileObjectEventConsumer should process domain events, deduplicate, and route to DLQ', async () => {
