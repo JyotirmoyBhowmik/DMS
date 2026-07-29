@@ -58,6 +58,35 @@ export class UpdateFeatureFlagUseCase {
     return this.mapToResponse(flag);
   }
 
+  public async approveFlag(principal: Principal, id: string, expectedVersion: number): Promise<FeatureFlagResponseDto> {
+    if (!principal || !principal.tenantId) {
+      throw new Error('Unauthorized: Tenant context required.');
+    }
+    if (!principal.permissions.includes('flag:approve') && !principal.roles.includes('admin')) {
+      throw new Error('Forbidden: Insufficient permissions to approve feature flag.');
+    }
+
+    const flag = await this.repository.findById(id, principal.tenantId);
+    if (!flag) {
+      throw new Error(`FeatureFlag with ID '${id}' not found.`);
+    }
+
+    const oldStatus = flag.status;
+    flag.approve(expectedVersion);
+    await this.repository.save(flag);
+
+    await this.auditService.recordMutation({
+      tenantId: principal.tenantId,
+      actorId: principal.userId,
+      action: 'FEATURE_FLAG_APPROVED',
+      entityId: flag.id,
+      oldValue: { status: oldStatus },
+      newValue: { status: flag.status, version: flag.version }
+    });
+
+    return this.mapToResponse(flag);
+  }
+
   public async deleteFlag(principal: Principal, id: string): Promise<boolean> {
     if (!principal || !principal.tenantId) {
       throw new Error('Unauthorized: Tenant context required.');

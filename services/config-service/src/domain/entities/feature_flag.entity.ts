@@ -135,6 +135,16 @@ export class FeatureFlagAggregate {
     this.props.updatedAt = new Date();
   }
 
+  public approve(expectedVersion: number): void {
+    this.assertVersion(expectedVersion);
+    if (this.props.status === 'ARCHIVED') {
+      throw new FeatureFlagDomainError('Cannot approve an ARCHIVED FeatureFlag.');
+    }
+    this.props.status = 'ACTIVE';
+    this.props.version += 1;
+    this.props.updatedAt = new Date();
+  }
+
   public deactivate(expectedVersion: number): void {
     this.assertVersion(expectedVersion);
     if (this.props.status === 'ARCHIVED') {

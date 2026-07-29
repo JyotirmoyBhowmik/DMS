@@ -2,12 +2,201 @@ openapi: 3.0.3
 info:
   title: Forecasting Service API
   version: 1.0.0
-  description: Demand signal forecasting models inference API.
+  description: Multi-tenant Demand Forecasting Service for managing predictive models and inventory projections.
 paths:
-  /forecasts/evaluate:
+  /api/v1/forecast-models:
     post:
-      summary: Calculate SKU demand forecast with point/confidence metrics
-      operationId: getForecast
+      summary: Create Forecast Model
+      operationId: createForecastModel
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateForecastModelRequest'
+      responses:
+        '201':
+          description: ForecastModel created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForecastModelResponse'
+        '400':
+          description: Invalid input or domain validation failure
+        '409':
+          description: Idempotency or duplicate model name conflict
+    get:
+      summary: List Forecast Models with pagination and filters
+      operationId: listForecastModels
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: modelName
+          schema:
+            type: string
+        - in: query
+          name: algorithm
+          schema:
+            type: string
+            enum: [ARIMA, PROPHET, EXPONENTIAL_SMOOTHING, NEURAL_NETWORK]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, TRAINING, ACTIVE, RETIRED]
       responses:
         '200':
-          description: SKU forecast generated successfully
+          description: Paginated list of ForecastModels
+
+  /api/v1/forecast-models/{id}:
+    get:
+      summary: Get Forecast Model details by ID
+      operationId: getForecastModel
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: ForecastModel details
+        '404':
+          description: ForecastModel not found
+    put:
+      summary: Update Forecast Model status or metrics
+      operationId: updateForecastModel
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateForecastModelRequest'
+      responses:
+        '200':
+          description: ForecastModel updated successfully
+        '409':
+          description: Optimistic locking conflict
+    delete:
+      summary: Delete Forecast Model by ID
+      operationId: deleteForecastModel
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: ForecastModel deleted successfully
+
+  /api/v1/forecast-models/{id}/approve:
+    post:
+      summary: Approve Forecast Model
+      operationId: approveForecastModel
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: ForecastModel approved successfully
+
+components:
+  schemas:
+    CreateForecastModelRequest:
+      type: object
+      required:
+        - modelName
+      properties:
+        modelName:
+          type: string
+        algorithm:
+          type: string
+          enum: [ARIMA, PROPHET, EXPONENTIAL_SMOOTHING, NEURAL_NETWORK]
+        hyperparameters:
+          type: object
+
+    UpdateForecastModelRequest:
+      type: object
+      required:
+        - expectedVersion
+      properties:
+        action:
+          type: string
+          enum: [train, activate, retire]
+        accuracyMape:
+          type: number
+        accuracyRmse:
+          type: number
+        expectedVersion:
+          type: integer
+          minimum: 1
+
+    ForecastModelResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - modelName
+        - algorithm
+        - status
+        - hyperparameters
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        modelName:
+          type: string
+        algorithm:
+          type: string
+          enum: [ARIMA, PROPHET, EXPONENTIAL_SMOOTHING, NEURAL_NETWORK]
+        status:
+          type: string
+          enum: [DRAFT, TRAINING, ACTIVE, RETIRED]
+        accuracyMape:
+          type: number
+        accuracyRmse:
+          type: number
+        hyperparameters:
+          type: object
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
