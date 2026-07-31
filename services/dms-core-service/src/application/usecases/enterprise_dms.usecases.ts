@@ -457,11 +457,11 @@ export class EnterpriseDmsUseCases {
     createdBy: string;
   }): Promise<StockLedgerEntry> {
     const entry = StockLedgerEntry.create(input);
+    EnterpriseDmsUseCases.ledgerEntries.push(entry);
     try {
       await this.stockLedgerRepo.append(entry);
     } catch (err: any) {
       this.logger.warn('Ledger persistence failed, using in-memory fallback', { error: err.message });
-      EnterpriseDmsUseCases.ledgerEntries.push(entry);
     }
     return entry;
   }
