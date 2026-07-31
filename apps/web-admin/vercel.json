@@ -2,7 +2,7 @@
   "version": 2,
   "name": "dms-web-admin",
   "alias": ["dms.jyotirmoyb.com"],
-  "buildCommand": "cd ../.. && npm install -g pnpm@8.15.4 && pnpm install && pnpm --filter @dms/web-admin run build",
+  "buildCommand": "cd ../.. && npm install -g pnpm@8.15.4 && pnpm install && pnpm --filter @dms/pkg-ui-shared run build && pnpm --filter @dms/web-admin run build",
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
