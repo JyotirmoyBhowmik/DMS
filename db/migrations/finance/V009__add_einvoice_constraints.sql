@@ -45,7 +45,7 @@ ALTER TABLE finance_einvoices ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS tenant_isolation_finance_einvoices ON finance_einvoices;
 CREATE POLICY tenant_isolation_finance_einvoices ON finance_einvoices
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true)::uuid);
 
 /*
 -- Reversible Down Migration

@@ -10,7 +10,7 @@ ALTER TABLE order_approvals ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS tenant_isolation_order_approvals ON order_approvals;
 
 CREATE POLICY tenant_isolation_order_approvals ON order_approvals
-  USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
-  WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::uuid);
+  USING (tenant_id::text = current_setting('app.tenant_id', true)::uuid)
+  WITH CHECK (tenant_id::text = current_setting('app.tenant_id', true)::uuid);
 
 COMMIT;

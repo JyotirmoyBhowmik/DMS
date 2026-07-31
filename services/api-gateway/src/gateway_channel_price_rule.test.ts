@@ -16,7 +16,7 @@ describe('Gateway & ChannelPriceRule REST Integration Tests', () => {
 
     const createRes = await controller.handleCreate(
       {
-        priceListId: 'pl-gw-chan-100',
+        priceListId: '00000000-0000-0000-0000-000000000100',
         channelCode: 'GT',
         multiplier: 1.02,
         priceAdjustmentCents: 100,

@@ -18,8 +18,8 @@ describe('Gateway & Claim REST Integration Tests', () => {
       {
         name: 'Distributor Volume Claim 2026',
         claimCode: 'CLAIM-VOL-2026',
-        distributorId: 'dist-vol-id',
-        schemeId: 'scheme-vol-id',
+        distributorId: '00000000-0000-0000-0000-000000000010',
+        schemeId: '00000000-0000-0000-0000-000000000020',
         claimAmountCents: 850000,
       },
       headers

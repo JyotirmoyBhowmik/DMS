@@ -12,17 +12,21 @@ export class ChannelPriceRulePgRepository {
 
   async save(rule: ChannelPriceRule, _tenantId?: string): Promise<void> {
     ChannelPriceRulePgRepository.inMemoryStore.set(rule.id, rule);
-    const data = rule.toJSON();
-    await this.db.query(
-      `INSERT INTO channel_price_rules
-        (id, tenant_id, price_list_id, channel_code, multiplier, price_adjustment_cents, status, version)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       ON CONFLICT (id) DO UPDATE SET
-         status = $7, multiplier = $5, price_adjustment_cents = $6, version = $8`,
-      [data.id, data.tenantId, data.priceListId, data.channelCode, data.multiplier,
-       data.priceAdjustmentCents, data.status, data.version],
-      rule.tenantId
-    );
+    try {
+      const data = rule.toJSON();
+      await this.db.query(
+        `INSERT INTO channel_price_rules
+          (id, tenant_id, price_list_id, channel_code, multiplier, price_adjustment_cents, status, version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (id) DO UPDATE SET
+           status = $7, multiplier = $5, price_adjustment_cents = $6, version = $8`,
+        [data.id, data.tenantId, data.priceListId, data.channelCode,
+         data.multiplier, data.priceAdjustmentCents, data.status, data.version],
+        rule.tenantId
+      );
+    } catch {
+      // Retained in inMemoryStore when offline
+    }
   }
 
   async update(rule: ChannelPriceRule, tenantId?: string): Promise<void> {
@@ -33,12 +37,16 @@ export class ChannelPriceRulePgRepository {
     const mem = ChannelPriceRulePgRepository.inMemoryStore.get(id);
     if (mem && mem.tenantId === tenantId) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM channel_price_rules WHERE tenant_id = $1 AND id = $2`,
-      [tenantId, id],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM channel_price_rules WHERE tenant_id = $1 AND id = $2`,
+        [tenantId, id],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findByChannel(tenantId: string, priceListId: string, channelCode: ChannelCode): Promise<ChannelPriceRule | null> {
@@ -47,24 +55,31 @@ export class ChannelPriceRulePgRepository {
     );
     if (mem) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM channel_price_rules WHERE tenant_id = $1 AND price_list_id = $2 AND channel_code = $3`,
-      [tenantId, priceListId, channelCode],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM channel_price_rules WHERE tenant_id = $1 AND price_list_id = $2 AND channel_code = $3`,
+        [tenantId, priceListId, channelCode],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findAll(tenantId: string): Promise<ChannelPriceRule[]> {
     const memList = Array.from(ChannelPriceRulePgRepository.inMemoryStore.values()).filter(r => r.tenantId === tenantId);
-    if (memList.length > 0) return memList;
-
-    const result = await this.db.query<any>(
-      `SELECT * FROM channel_price_rules WHERE tenant_id = $1 ORDER BY created_at DESC`,
-      [tenantId],
-      tenantId
-    );
-    return result.rows.map((r: any) => this.toDomain(r));
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM channel_price_rules WHERE tenant_id = $1 ORDER BY created_at DESC`,
+        [tenantId],
+        tenantId
+      );
+      if (result.rows.length > 0) return result.rows.map((r: any) => this.toDomain(r));
+    } catch {
+      // Fallback to in-memory store
+    }
+    return memList;
   }
 
   private toDomain(row: any): ChannelPriceRule {

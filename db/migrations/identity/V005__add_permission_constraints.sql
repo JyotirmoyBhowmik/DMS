@@ -42,7 +42,7 @@ ALTER TABLE identity_permissions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS tenant_isolation_identity_permissions ON identity_permissions;
 CREATE POLICY tenant_isolation_identity_permissions ON identity_permissions
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true)::uuid);
 
 /*
 -- Reversible Down Migration

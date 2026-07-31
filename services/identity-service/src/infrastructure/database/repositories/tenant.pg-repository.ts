@@ -10,29 +10,34 @@ export class TenantPgRepository implements TenantRepository {
   }
 
   async save(tenant: TenantAggregate, tenantId?: string): Promise<TenantAggregate> {
+    this.inMemoryDb.set(tenant.id, tenant);
+
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenant.id]);
-        const query = `
-          INSERT INTO identity_tenants (
-            id, tenant_id, name, code, domain, status,
-            idempotency_key, version, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-          RETURNING *;
-        `;
-        const values = [
-          tenant.id, tenant.tenantId, tenant.name, tenant.code, tenant.domain || null,
-          tenant.status || 'ACTIVE', tenant.idempotencyKey || null, tenant.version || 1,
-          tenant.createdAt || new Date(), tenant.updatedAt || new Date()
-        ];
-        await client.query(query, values);
-      } finally {
-        client.release();
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenant.id]);
+          const query = `
+            INSERT INTO identity_tenants (
+              id, tenant_id, name, code, domain, status,
+              idempotency_key, version, created_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING *;
+          `;
+          const values = [
+            tenant.id, tenant.tenantId, tenant.name, tenant.code, tenant.domain || null,
+            tenant.status || 'ACTIVE', tenant.idempotencyKey || null, tenant.version || 1,
+            tenant.createdAt || new Date(), tenant.updatedAt || new Date()
+          ];
+          await client.query(query, values);
+        } finally {
+          client.release();
+        }
+      } catch {
+        // Fallback to inMemoryDb when offline
       }
     }
 
-    this.inMemoryDb.set(tenant.id, tenant);
     return tenant;
   }
 

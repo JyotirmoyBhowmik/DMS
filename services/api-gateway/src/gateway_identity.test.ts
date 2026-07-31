@@ -56,7 +56,7 @@ describe('Gateway Identity CRUD Integration Tests', () => {
       },
       body: {
         email: 'gateway-user@test.com',
-        passwordHash: '$2b$10$e8pYh8hJz.Q0.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1',
+        password: 'SecureP@ss123!',
         firstName: 'Gateway',
         lastName: 'User'
       }

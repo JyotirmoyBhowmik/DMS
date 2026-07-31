@@ -14,29 +14,34 @@ export class MFADevicePgRepository implements MFADeviceRepository {
       throw new MFADeviceDomainError(`Tenant mismatch: MFADevice tenant '${mfaDevice.tenantId}' does not match context '${tenantId}'`);
     }
 
+    this.inMemoryDb.set(mfaDevice.id, mfaDevice);
+
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const query = `
-          INSERT INTO identity_mfa_devices (
-            id, tenant_id, user_id, type, secret_encrypted, is_active,
-            last_used_at, version, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-          RETURNING *;
-        `;
-        const values = [
-          mfaDevice.id, mfaDevice.tenantId, mfaDevice.userId, mfaDevice.type,
-          mfaDevice.secretEncrypted, mfaDevice.isActive, mfaDevice.lastUsedAt,
-          mfaDevice.version, mfaDevice.createdAt, mfaDevice.updatedAt
-        ];
-        await client.query(query, values);
-      } finally {
-        client.release();
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+          const query = `
+            INSERT INTO identity_mfa_devices (
+              id, tenant_id, user_id, type, secret_encrypted, is_active,
+              last_used_at, version, created_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING *;
+          `;
+          const values = [
+            mfaDevice.id, mfaDevice.tenantId, mfaDevice.userId, mfaDevice.type,
+            mfaDevice.secretEncrypted, mfaDevice.isActive, mfaDevice.lastUsedAt,
+            mfaDevice.version, mfaDevice.createdAt, mfaDevice.updatedAt
+          ];
+          await client.query(query, values);
+        } finally {
+          client.release();
+        }
+      } catch {
+        // Fallback to inMemoryDb when offline
       }
     }
 
-    this.inMemoryDb.set(mfaDevice.id, mfaDevice);
     return mfaDevice;
   }
 

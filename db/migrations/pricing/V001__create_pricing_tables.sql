@@ -131,19 +131,19 @@ ALTER TABLE pricing_audit_trail ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS Policies
 CREATE POLICY tenant_isolation_pricing_pl ON pricing_price_lists
-  USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
-  WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::uuid);
+  USING (tenant_id::text = current_setting('app.tenant_id', true)::uuid)
+  WITH CHECK (tenant_id::text = current_setting('app.tenant_id', true)::uuid);
 
 CREATE POLICY tenant_isolation_pricing_pla ON pricing_price_list_assignments
-  USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
-  WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::uuid);
+  USING (tenant_id::text = current_setting('app.tenant_id', true)::uuid)
+  WITH CHECK (tenant_id::text = current_setting('app.tenant_id', true)::uuid);
 
 CREATE POLICY tenant_isolation_pricing_ple ON pricing_price_list_entries
   USING (
-    price_list_id IN (SELECT id FROM pricing_price_lists WHERE tenant_id = current_setting('app.tenant_id', true)::uuid)
+    price_list_id IN (SELECT id FROM pricing_price_lists WHERE tenant_id::text = current_setting('app.tenant_id', true)::uuid)
   )
   WITH CHECK (
-    price_list_id IN (SELECT id FROM pricing_price_lists WHERE tenant_id = current_setting('app.tenant_id', true)::uuid)
+    price_list_id IN (SELECT id FROM pricing_price_lists WHERE tenant_id::text = current_setting('app.tenant_id', true)::uuid)
   );
 
 CREATE POLICY tenant_isolation_pricing_plet ON pricing_price_list_entry_tiers
@@ -151,28 +151,28 @@ CREATE POLICY tenant_isolation_pricing_plet ON pricing_price_list_entry_tiers
     entry_id IN (
       SELECT ple.id FROM pricing_price_list_entries ple
       JOIN pricing_price_lists pl ON ple.price_list_id = pl.id
-      WHERE pl.tenant_id = current_setting('app.tenant_id', true)::uuid
+      WHERE pl.tenant_id::text = current_setting('app.tenant_id', true)::uuid
     )
   )
   WITH CHECK (
     entry_id IN (
       SELECT ple.id FROM pricing_price_list_entries ple
       JOIN pricing_price_lists pl ON ple.price_list_id = pl.id
-      WHERE pl.tenant_id = current_setting('app.tenant_id', true)::uuid
+      WHERE pl.tenant_id::text = current_setting('app.tenant_id', true)::uuid
     )
   );
 
 CREATE POLICY tenant_isolation_pricing_outbox ON pricing_outbox
-  USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
-  WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::uuid);
+  USING (tenant_id::text = current_setting('app.tenant_id', true)::uuid)
+  WITH CHECK (tenant_id::text = current_setting('app.tenant_id', true)::uuid);
 
 CREATE POLICY tenant_isolation_pricing_pe ON pricing_processed_events
-  USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
-  WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::uuid);
+  USING (tenant_id::text = current_setting('app.tenant_id', true)::uuid)
+  WITH CHECK (tenant_id::text = current_setting('app.tenant_id', true)::uuid);
 
 CREATE POLICY tenant_isolation_pricing_audit ON pricing_audit_trail
-  USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
-  WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::uuid);
+  USING (tenant_id::text = current_setting('app.tenant_id', true)::uuid)
+  WITH CHECK (tenant_id::text = current_setting('app.tenant_id', true)::uuid);
 
 -- Trigger: auto-update updated_at on modification
 CREATE OR REPLACE FUNCTION trg_pricing_set_updated_at()

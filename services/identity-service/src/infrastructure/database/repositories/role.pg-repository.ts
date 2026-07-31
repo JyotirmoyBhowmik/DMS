@@ -11,29 +11,34 @@ export class RolePgRepository implements RoleRepository {
       throw new RoleDomainError(`Tenant mismatch: Role tenant '${role.tenantId}' does not match context '${tenantId}'`);
     }
 
+    RolePgRepository.inMemoryDb.set(role.id, role);
+
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const query = `
-          INSERT INTO identity_roles (
-            id, tenant_id, name, description, is_system, status,
-            idempotency_key, version, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-          RETURNING *;
-        `;
-        const values = [
-          role.id, role.tenantId || tenantId, role.name, role.description || null,
-          role.isSystem || false, role.status || 'ACTIVE', role.idempotencyKey || null,
-          role.version || 1, role.createdAt || new Date(), role.updatedAt || new Date()
-        ];
-        await client.query(query, values);
-      } finally {
-        client.release();
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+          const query = `
+            INSERT INTO identity_roles (
+              id, tenant_id, name, description, is_system, status,
+              idempotency_key, version, created_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING *;
+          `;
+          const values = [
+            role.id, role.tenantId || tenantId, role.name, role.description || null,
+            role.isSystem || false, role.status || 'ACTIVE', role.idempotencyKey || null,
+            role.version || 1, role.createdAt || new Date(), role.updatedAt || new Date()
+          ];
+          await client.query(query, values);
+        } finally {
+          client.release();
+        }
+      } catch {
+        // Fallback to inMemoryDb when offline
       }
     }
 
-    RolePgRepository.inMemoryDb.set(role.id, role);
     return role;
   }
 

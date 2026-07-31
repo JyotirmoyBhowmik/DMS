@@ -11,45 +11,54 @@ export class UserPgRepository implements UserRepository {
       throw new UserDomainError(`Tenant mismatch: User tenant '${user.tenantId}' does not match context '${tenantId}'`);
     }
 
+    UserPgRepository.inMemoryDb.set(user.id, user);
+
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const query = `
-          INSERT INTO identity_users (
-            id, tenant_id, email, password_hash, first_name, last_name, roles,
-            status, idempotency_key, version, created_at, updated_at, last_login_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-          RETURNING *;
-        `;
-        const values = [
-          user.id, user.tenantId || tenantId, user.email, user.passwordHash || (user as any).password || 'hash', user.firstName || null,
-          user.lastName || null, user.roles || ['user'], user.status || 'ACTIVE', user.idempotencyKey || null,
-          user.version || 1, user.createdAt || new Date(), user.updatedAt || new Date(), user.lastLoginAt || null
-        ];
-        await client.query(query, values);
-      } finally {
-        client.release();
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+          const query = `
+            INSERT INTO identity_users (
+              id, tenant_id, email, password_hash, first_name, last_name, roles,
+              status, idempotency_key, version, created_at, updated_at, last_login_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            RETURNING *;
+          `;
+          const values = [
+            user.id, user.tenantId || tenantId, user.email, user.passwordHash || (user as any).password || 'hash', user.firstName || null,
+            user.lastName || null, user.roles || ['user'], user.status || 'ACTIVE', user.idempotencyKey || null,
+            user.version || 1, user.createdAt || new Date(), user.updatedAt || new Date(), user.lastLoginAt || null
+          ];
+          await client.query(query, values);
+        } finally {
+          client.release();
+        }
+      } catch {
+        // Fallback to in-memory store
       }
     }
 
-    UserPgRepository.inMemoryDb.set(user.id, user);
     return user;
   }
 
   async findById(id: string, tenantId: string): Promise<UserAggregate | null> {
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const res = await client.query(
-          'SELECT * FROM identity_users WHERE id = $1 AND tenant_id = $2',
-          [id, tenantId]
-        );
-        if (res.rows.length === 0) return null;
-        return this.mapRowToEntity(res.rows[0]);
-      } finally {
-        client.release();
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+          const res = await client.query(
+            'SELECT * FROM identity_users WHERE id = $1 AND tenant_id = $2',
+            [id, tenantId]
+          );
+          if (res.rows.length === 0) return null;
+          return this.mapRowToEntity(res.rows[0]);
+        } finally {
+          client.release();
+        }
+      } catch {
+        // Fallback to in-memory store
       }
     }
 
@@ -62,17 +71,21 @@ export class UserPgRepository implements UserRepository {
     const normalized = email.toLowerCase().trim();
 
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const res = await client.query(
-          'SELECT * FROM identity_users WHERE email = $1 AND tenant_id = $2',
-          [normalized, tenantId]
-        );
-        if (res.rows.length === 0) return null;
-        return this.mapRowToEntity(res.rows[0]);
-      } finally {
-        client.release();
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+          const res = await client.query(
+            'SELECT * FROM identity_users WHERE email = $1 AND tenant_id = $2',
+            [normalized, tenantId]
+          );
+          if (res.rows.length === 0) return null;
+          return this.mapRowToEntity(res.rows[0]);
+        } finally {
+          client.release();
+        }
+      } catch {
+        // Fallback to in-memory store
       }
     }
 

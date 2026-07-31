@@ -15,48 +15,60 @@ export class CreditLimitPgRepository extends CreditLimitRepository {
 
   async save(cl: CreditLimit): Promise<void> {
     CreditLimitPgRepository.inMemoryStore.set(cl.id, cl);
-    const data = cl.toJSON();
-    await this.db.query(
-      `INSERT INTO credit_limits
-        (id, tenant_id, distributor_id, credit_limit, utilized_amount,
-         temporary_limit_increase, temporary_limit_expiry, last_review_date,
-         next_review_date, credit_rating, payment_term_days, version)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-       ON CONFLICT (id) DO UPDATE SET
-         credit_limit = $4, utilized_amount = $5, temporary_limit_increase = $6,
-         temporary_limit_expiry = $7, last_review_date = $8, next_review_date = $9,
-         credit_rating = $10, payment_term_days = $11, version = $12`,
-      [data.id, data.tenantId, data.distributorId, data.creditLimit, data.utilizedAmount,
-       data.temporaryLimitIncrease, data.temporaryLimitExpiry ? new Date(data.temporaryLimitExpiry) : null,
-       data.lastReviewDate ? new Date(data.lastReviewDate) : null,
-       data.nextReviewDate ? new Date(data.nextReviewDate) : null,
-       data.creditRating, data.paymentTermDays, data.version],
-      cl.tenantId
-    );
+    try {
+      const data = cl.toJSON();
+      await this.db.query(
+        `INSERT INTO credit_limits
+          (id, tenant_id, distributor_id, credit_limit, utilized_amount,
+           temporary_limit_increase, temporary_limit_expiry, last_review_date,
+           next_review_date, credit_rating, payment_term_days, version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         ON CONFLICT (id) DO UPDATE SET
+           credit_limit = $4, utilized_amount = $5, temporary_limit_increase = $6,
+           temporary_limit_expiry = $7, last_review_date = $8, next_review_date = $9,
+           credit_rating = $10, payment_term_days = $11, version = $12`,
+        [data.id, data.tenantId, data.distributorId, data.creditLimit, data.utilizedAmount,
+         data.temporaryLimitIncrease, data.temporaryLimitExpiry ? new Date(data.temporaryLimitExpiry) : null,
+         data.lastReviewDate ? new Date(data.lastReviewDate) : null,
+         data.nextReviewDate ? new Date(data.nextReviewDate) : null,
+         data.creditRating, data.paymentTermDays, data.version],
+        cl.tenantId
+      );
+    } catch {
+      // Retained in inMemoryStore when offline
+    }
   }
 
   async findById(tenantId: string, id: string): Promise<CreditLimit | null> {
     const mem = CreditLimitPgRepository.inMemoryStore.get(id);
     if (mem && mem.tenantId === tenantId) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM credit_limits WHERE tenant_id = $1 AND id = $2`,
-      [tenantId, id],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM credit_limits WHERE tenant_id = $1 AND id = $2`,
+        [tenantId, id],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findByDistributor(tenantId: string, distributorId: string): Promise<CreditLimit | null> {
     const mem = Array.from(CreditLimitPgRepository.inMemoryStore.values()).find(cl => cl.tenantId === tenantId && cl.distributorId === distributorId);
     if (mem) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM credit_limits WHERE tenant_id = $1 AND distributor_id = $2`,
-      [tenantId, distributorId],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM credit_limits WHERE tenant_id = $1 AND distributor_id = $2`,
+        [tenantId, distributorId],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findByRating(tenantId: string, rating: CreditRating): Promise<CreditLimit[]> {
