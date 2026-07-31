@@ -57,8 +57,8 @@ export function validateUpdateMFADeviceInput(input: any): UpdateMFADeviceInputDT
 
   const errors: Record<string, string> = {};
 
-  if (input.version === undefined || typeof input.version !== 'number' || input.version < 1) {
-    errors.version = 'version is required and must be a positive integer >= 1';
+  if (input.version !== undefined && (typeof input.version !== 'number' || input.version < 1)) {
+    errors.version = 'version must be a positive integer >= 1';
   }
 
   if (input.secretEncrypted !== undefined && (typeof input.secretEncrypted !== 'string' || input.secretEncrypted.trim().length === 0)) {

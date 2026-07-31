@@ -128,7 +128,7 @@ export class UserController {
     try {
       const principal = this.extractPrincipalFromHeaders(headers);
       const result = await this.listUseCase.execute(principal, queryOrBody || {});
-      return { statusCode: 200, body: result.items.map(i => i.toJSON(true)) };
+      return { statusCode: 200, body: { data: result.items.map(i => i.toJSON(true)) } };
     } catch (err: any) {
       return { statusCode: 400, body: { error: err.message } };
     }

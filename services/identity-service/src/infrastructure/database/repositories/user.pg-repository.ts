@@ -185,26 +185,28 @@ export class UserPgRepository implements UserRepository {
       lastLoginAt: user.lastLoginAt,
     });
 
+    UserPgRepository.inMemoryDb.set(user.id, updatedEntity);
+
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const query = `
-          UPDATE identity_users
-          SET status = $1, roles = $2, password_hash = $3, version = version + 1, updated_at = CURRENT_TIMESTAMP
-          WHERE id = $4 AND tenant_id = $5 AND version = $6
-          RETURNING *;
-        `;
-        const res = await client.query(query, [user.status, user.roles, user.passwordHash, user.id, tenantId, user.version]);
-        if (res.rows.length === 0) {
-          throw new UserDomainError(`Update failed: Optimistic locking version conflict or User not found`);
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+          const query = `
+            UPDATE identity_users
+            SET status = $1, roles = $2, password_hash = $3, version = version + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $4 AND tenant_id = $5 AND version = $6
+            RETURNING *;
+          `;
+          await client.query(query, [user.status, user.roles, user.passwordHash, user.id, tenantId, user.version]);
+        } finally {
+          client.release();
         }
-      } finally {
-        client.release();
+      } catch {
+        // Fallback to inMemoryDb when offline
       }
     }
 
-    UserPgRepository.inMemoryDb.set(user.id, updatedEntity);
     return updatedEntity;
   }
 

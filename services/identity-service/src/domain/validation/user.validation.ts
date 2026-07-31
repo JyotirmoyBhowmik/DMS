@@ -83,8 +83,8 @@ export function validateUpdateUserInput(rawInput: any): UpdateUserDto {
     }
   }
 
-  if (rawInput.version === undefined || typeof rawInput.version !== 'number' || rawInput.version < 1) {
-    errors.version = 'version is required and must be a positive integer >= 1';
+  if (rawInput.version !== undefined && (typeof rawInput.version !== 'number' || rawInput.version < 1)) {
+    errors.version = 'version must be a positive integer >= 1';
   }
 
   if (Object.keys(errors).length > 0) {

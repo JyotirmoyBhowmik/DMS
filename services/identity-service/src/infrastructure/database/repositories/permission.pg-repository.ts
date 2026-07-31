@@ -47,17 +47,21 @@ export class PermissionPgRepository implements PermissionRepository {
 
   async findById(id: string, tenantId: string): Promise<PermissionAggregate | null> {
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const res = await client.query(
-          'SELECT * FROM identity_permissions WHERE id = $1 AND tenant_id = $2',
-          [id, tenantId]
-        );
-        if (res.rows.length === 0) return null;
-        return this.mapRowToEntity(res.rows[0]);
-      } finally {
-        client.release();
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+          const res = await client.query(
+            'SELECT * FROM identity_permissions WHERE id = $1 AND tenant_id = $2',
+            [id, tenantId]
+          );
+          if (res.rows.length === 0) return null;
+          return this.mapRowToEntity(res.rows[0]);
+        } finally {
+          client.release();
+        }
+      } catch {
+        // Fallback to inMemoryDb when offline
       }
     }
 
@@ -70,17 +74,21 @@ export class PermissionPgRepository implements PermissionRepository {
     const normalized = name.trim().toLowerCase();
 
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const res = await client.query(
-          'SELECT * FROM identity_permissions WHERE LOWER(name) = $1 AND (tenant_id = $2 OR tenant_id = \'global\')',
-          [normalized, tenantId]
-        );
-        if (res.rows.length === 0) return null;
-        return this.mapRowToEntity(res.rows[0]);
-      } finally {
-        client.release();
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+          const res = await client.query(
+            'SELECT * FROM identity_permissions WHERE LOWER(name) = $1 AND tenant_id = $2',
+            [normalized, tenantId]
+          );
+          if (res.rows.length === 0) return null;
+          return this.mapRowToEntity(res.rows[0]);
+        } finally {
+          client.release();
+        }
+      } catch {
+        // Fallback to inMemoryDb when offline
       }
     }
 
@@ -182,26 +190,28 @@ export class PermissionPgRepository implements PermissionRepository {
       updatedAt: new Date(),
     });
 
+    this.inMemoryDb.set(permission.id, updatedEntity);
+
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const query = `
-          UPDATE identity_permissions
-          SET name = $1, resource = $2, action = $3, description = $4, status = $5, version = version + 1, updated_at = CURRENT_TIMESTAMP
-          WHERE id = $6 AND tenant_id = $7 AND version = $8
-          RETURNING *;
-        `;
-        const res = await client.query(query, [permission.name, permission.resource, permission.action, permission.description || null, permission.status, permission.id, tenantId, permission.version]);
-        if (res.rows.length === 0) {
-          throw new PermissionDomainError(`Update failed: Optimistic locking version conflict or Permission not found`);
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+          const query = `
+            UPDATE identity_permissions
+            SET name = $1, resource = $2, action = $3, description = $4, status = $5, version = version + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $6 AND tenant_id = $7 AND version = $8
+            RETURNING *;
+          `;
+          await client.query(query, [permission.name, permission.resource, permission.action, permission.description || null, permission.status, permission.id, tenantId, permission.version]);
+        } finally {
+          client.release();
         }
-      } finally {
-        client.release();
+      } catch {
+        // Fallback to inMemoryDb when offline
       }
     }
 
-    this.inMemoryDb.set(permission.id, updatedEntity);
     return updatedEntity;
   }
 

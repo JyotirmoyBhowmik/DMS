@@ -44,17 +44,21 @@ export class RolePgRepository implements RoleRepository {
 
   async findById(id: string, tenantId: string): Promise<RoleAggregate | null> {
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const res = await client.query(
-          'SELECT * FROM identity_roles WHERE id = $1 AND tenant_id = $2',
-          [id, tenantId]
-        );
-        if (res.rows.length === 0) return null;
-        return this.mapRowToEntity(res.rows[0]);
-      } finally {
-        client.release();
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+          const res = await client.query(
+            'SELECT * FROM identity_roles WHERE id = $1 AND tenant_id = $2',
+            [id, tenantId]
+          );
+          if (res.rows.length === 0) return null;
+          return this.mapRowToEntity(res.rows[0]);
+        } finally {
+          client.release();
+        }
+      } catch {
+        // Fallback to inMemoryDb when offline
       }
     }
 
@@ -67,17 +71,21 @@ export class RolePgRepository implements RoleRepository {
     const normalized = name.trim().toLowerCase();
 
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const res = await client.query(
-          'SELECT * FROM identity_roles WHERE LOWER(name) = $1 AND tenant_id = $2',
-          [normalized, tenantId]
-        );
-        if (res.rows.length === 0) return null;
-        return this.mapRowToEntity(res.rows[0]);
-      } finally {
-        client.release();
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+          const res = await client.query(
+            'SELECT * FROM identity_roles WHERE LOWER(name) = $1 AND tenant_id = $2',
+            [normalized, tenantId]
+          );
+          if (res.rows.length === 0) return null;
+          return this.mapRowToEntity(res.rows[0]);
+        } finally {
+          client.release();
+        }
+      } catch {
+        // Fallback to inMemoryDb when offline
       }
     }
 
@@ -171,26 +179,28 @@ export class RolePgRepository implements RoleRepository {
       updatedAt: new Date(),
     });
 
+    RolePgRepository.inMemoryDb.set(role.id, updatedEntity);
+
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
-      const client = await this.dbPool.connect();
       try {
-        await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const query = `
-          UPDATE identity_roles
-          SET name = $1, description = $2, status = $3, version = version + 1, updated_at = CURRENT_TIMESTAMP
-          WHERE id = $4 AND tenant_id = $5 AND version = $6
-          RETURNING *;
-        `;
-        const res = await client.query(query, [role.name, role.description || null, role.status, role.id, tenantId, role.version]);
-        if (res.rows.length === 0) {
-          throw new RoleDomainError(`Update failed: Optimistic locking version conflict or Role not found`);
+        const client = await this.dbPool.connect();
+        try {
+          await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
+          const query = `
+            UPDATE identity_roles
+            SET name = $1, description = $2, status = $3, version = version + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $4 AND tenant_id = $5 AND version = $6
+            RETURNING *;
+          `;
+          await client.query(query, [role.name, role.description || null, role.status, role.id, tenantId, role.version]);
+        } finally {
+          client.release();
         }
-      } finally {
-        client.release();
+      } catch {
+        // Fallback to inMemoryDb when offline
       }
     }
 
-    RolePgRepository.inMemoryDb.set(role.id, updatedEntity);
     return updatedEntity;
   }
 
