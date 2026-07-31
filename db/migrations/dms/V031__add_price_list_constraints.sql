@@ -15,7 +15,15 @@ CREATE TABLE IF NOT EXISTS price_lists (
   CONSTRAINT uq_price_lists_code UNIQUE (tenant_id, code)
 );
 
--- Indexes for performance and common filters
+ALTER TABLE IF EXISTS price_lists
+  ADD COLUMN IF NOT EXISTS code VARCHAR(255),
+  ADD COLUMN IF NOT EXISTS status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+  ADD COLUMN IF NOT EXISTS currency VARCHAR(10) NOT NULL DEFAULT 'INR',
+  ADD COLUMN IF NOT EXISTS valid_from TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS valid_to TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS version INT NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 CREATE INDEX IF NOT EXISTS idx_price_lists_tenant_status ON price_lists (tenant_id, status);
 CREATE INDEX IF NOT EXISTS idx_price_lists_tenant_code ON price_lists (tenant_id, code);
 
@@ -25,4 +33,4 @@ ALTER TABLE price_lists ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS price_lists_tenant_isolation_policy ON price_lists;
 CREATE POLICY price_lists_tenant_isolation_policy ON price_lists
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

@@ -32,4 +32,4 @@ ALTER TABLE scheme_promotions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS scheme_promotions_tenant_isolation_policy ON scheme_promotions;
 CREATE POLICY scheme_promotions_tenant_isolation_policy ON scheme_promotions
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

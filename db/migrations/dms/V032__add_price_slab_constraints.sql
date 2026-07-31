@@ -35,4 +35,4 @@ ALTER TABLE price_slabs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS price_slabs_tenant_isolation_policy ON price_slabs;
 CREATE POLICY price_slabs_tenant_isolation_policy ON price_slabs
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

@@ -33,4 +33,4 @@ ALTER TABLE replacements ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS replacements_tenant_isolation_policy ON replacements;
 CREATE POLICY replacements_tenant_isolation_policy ON replacements
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

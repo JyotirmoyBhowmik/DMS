@@ -32,4 +32,4 @@ ALTER TABLE goods_receipts ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS goods_receipts_tenant_isolation_policy ON goods_receipts;
 CREATE POLICY goods_receipts_tenant_isolation_policy ON goods_receipts
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

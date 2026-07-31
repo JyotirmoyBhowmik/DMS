@@ -34,4 +34,4 @@ ALTER TABLE returns ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS returns_tenant_isolation_policy ON returns;
 CREATE POLICY returns_tenant_isolation_policy ON returns
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

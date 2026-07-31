@@ -32,4 +32,4 @@ ALTER TABLE claims ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS claims_tenant_isolation_policy ON claims;
 CREATE POLICY claims_tenant_isolation_policy ON claims
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

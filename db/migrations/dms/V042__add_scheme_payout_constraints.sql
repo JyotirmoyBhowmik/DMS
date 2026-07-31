@@ -33,4 +33,4 @@ ALTER TABLE scheme_payouts ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS scheme_payouts_tenant_isolation_policy ON scheme_payouts;
 CREATE POLICY scheme_payouts_tenant_isolation_policy ON scheme_payouts
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

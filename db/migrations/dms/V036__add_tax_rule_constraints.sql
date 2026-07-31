@@ -29,4 +29,4 @@ ALTER TABLE tax_rules ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS tax_rules_tenant_isolation_policy ON tax_rules;
 CREATE POLICY tax_rules_tenant_isolation_policy ON tax_rules
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

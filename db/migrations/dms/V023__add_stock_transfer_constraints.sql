@@ -27,4 +27,4 @@ ALTER TABLE stock_transfers ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS stock_transfers_tenant_isolation_policy ON stock_transfers;
 CREATE POLICY stock_transfers_tenant_isolation_policy ON stock_transfers
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

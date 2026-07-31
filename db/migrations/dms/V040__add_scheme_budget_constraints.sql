@@ -31,4 +31,4 @@ ALTER TABLE scheme_budgets ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS scheme_budgets_tenant_isolation_policy ON scheme_budgets;
 CREATE POLICY scheme_budgets_tenant_isolation_policy ON scheme_budgets
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

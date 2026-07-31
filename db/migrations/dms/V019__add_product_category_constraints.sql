@@ -1,6 +1,7 @@
 -- Migration V019: Add ProductCategory constraints, indexes, RLS policies, and optimistic locking version column
 
 ALTER TABLE IF EXISTS product_categories
+  ADD COLUMN IF NOT EXISTS code VARCHAR(100),
   ADD COLUMN IF NOT EXISTS parent_category_id VARCHAR(255),
   ADD COLUMN IF NOT EXISTS description TEXT,
   ADD COLUMN IF NOT EXISTS status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
@@ -23,4 +24,4 @@ ALTER TABLE product_categories ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS product_categories_tenant_isolation_policy ON product_categories;
 CREATE POLICY product_categories_tenant_isolation_policy ON product_categories
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

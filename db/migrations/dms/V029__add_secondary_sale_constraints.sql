@@ -39,4 +39,4 @@ ALTER TABLE secondary_sales ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS secondary_sales_tenant_isolation_policy ON secondary_sales;
 CREATE POLICY secondary_sales_tenant_isolation_policy ON secondary_sales
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

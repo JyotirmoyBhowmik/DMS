@@ -33,4 +33,4 @@ ALTER TABLE slab_rewards ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS slab_rewards_tenant_isolation_policy ON slab_rewards;
 CREATE POLICY slab_rewards_tenant_isolation_policy ON slab_rewards
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

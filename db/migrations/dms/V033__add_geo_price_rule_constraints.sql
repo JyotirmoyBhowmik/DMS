@@ -30,4 +30,4 @@ ALTER TABLE geo_price_rules ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS geo_price_rules_tenant_isolation_policy ON geo_price_rules;
 CREATE POLICY geo_price_rules_tenant_isolation_policy ON geo_price_rules
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

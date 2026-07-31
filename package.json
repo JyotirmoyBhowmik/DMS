@@ -12,7 +12,11 @@
     "test": "turbo run test --concurrency=1",
     "typecheck": "turbo run typecheck",
     "codegen": "turbo run codegen",
-    "deploy:cli": "node scripts/deploy-setup.mjs"
+    "deploy:cli": "node scripts/deploy-setup.mjs",
+    "db:migrate": "node scripts/migrate-db.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.21.0"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",

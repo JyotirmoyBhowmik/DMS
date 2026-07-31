@@ -31,4 +31,4 @@ ALTER TABLE purchase_orders ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS purchase_orders_tenant_isolation_policy ON purchase_orders;
 CREATE POLICY purchase_orders_tenant_isolation_policy ON purchase_orders
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

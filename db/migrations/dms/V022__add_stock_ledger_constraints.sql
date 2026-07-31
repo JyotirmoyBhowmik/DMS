@@ -22,4 +22,4 @@ ALTER TABLE stock_ledger ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS stock_ledger_tenant_isolation_policy ON stock_ledger;
 CREATE POLICY stock_ledger_tenant_isolation_policy ON stock_ledger
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));

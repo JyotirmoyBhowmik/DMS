@@ -1,6 +1,17 @@
 -- Migration V021: Add Inventory constraints, indexes, RLS policies, and optimistic locking version column
 
-ALTER TABLE IF EXISTS inventory
+CREATE TABLE IF NOT EXISTS inventory_records (
+  id              UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id       UUID          NOT NULL,
+  product_id      UUID          NOT NULL,
+  warehouse_id    VARCHAR(100)  NOT NULL,
+  stock           INTEGER       NOT NULL DEFAULT 0 CHECK (stock >= 0),
+  version         INTEGER       NOT NULL DEFAULT 1,
+  created_at      TIMESTAMPTZ   NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ   NOT NULL DEFAULT now()
+);
+
+ALTER TABLE IF EXISTS inventory_records
   ADD COLUMN IF NOT EXISTS warehouse_id VARCHAR(255) NOT NULL DEFAULT 'wh-main',
   ADD COLUMN IF NOT EXISTS sku_id VARCHAR(255) NOT NULL DEFAULT 'sku-default',
   ADD COLUMN IF NOT EXISTS quantity_available INT NOT NULL DEFAULT 0,
@@ -11,20 +22,14 @@ ALTER TABLE IF EXISTS inventory
   ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
--- Unique (warehouse_id, sku_id) constraint per tenant
-ALTER TABLE IF EXISTS inventory
-  DROP CONSTRAINT IF EXISTS uq_inventory_tenant_warehouse_sku;
-ALTER TABLE IF EXISTS inventory
-  ADD CONSTRAINT uq_inventory_tenant_warehouse_sku UNIQUE (tenant_id, warehouse_id, sku_id);
-
 -- Indexes for performance and common filters
-CREATE INDEX IF NOT EXISTS idx_inventory_tenant_status ON inventory (tenant_id, status);
-CREATE INDEX IF NOT EXISTS idx_inventory_warehouse ON inventory (tenant_id, warehouse_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_tenant_status ON inventory_records (tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_inventory_warehouse ON inventory_records (tenant_id, warehouse_id);
 
 -- Row-Level Security Policy
-ALTER TABLE inventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE inventory_records ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS inventory_tenant_isolation_policy ON inventory;
-CREATE POLICY inventory_tenant_isolation_policy ON inventory
+DROP POLICY IF EXISTS inventory_tenant_isolation_policy ON inventory_records;
+CREATE POLICY inventory_tenant_isolation_policy ON inventory_records
   FOR ALL
-  USING (tenant_id = current_setting('app.current_tenant_id', true));
+  USING (tenant_id::text = current_setting('app.current_tenant_id', true));
