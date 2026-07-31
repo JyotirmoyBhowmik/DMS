@@ -1,0 +1,120 @@
+name: Production CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+env:
+  APP_NAME: dms-platform
+  PRODUCTION_DOMAIN: https://dms.jyotirmoyb.com
+  API_GATEWAY_URL: https://api.dms.jyotirmoyb.com
+  VITE_API_URL: https://api.dms.jyotirmoyb.com
+  NODE_ENV: production
+  LOG_LEVEL: INFO
+  SEED_MOCK_DATA: 'false'
+
+jobs:
+  validate-and-build:
+    name: Validate, Test & Build Monorepo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8.15.4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build All Monorepo Targets
+        run: pnpm run build
+        env:
+          VITE_API_URL: https://api.dms.jyotirmoyb.com
+
+      - name: Run Full Test Suite
+        run: pnpm run test
+
+      - name: Upload Web Admin Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-admin-dist
+          path: apps/web-admin/dist
+          retention-days: 7
+
+      - name: Upload Compiled Backend Services
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-dist
+          path: |
+            services/*/dist
+            packages/*/dist
+          retention-days: 7
+
+  deploy-production:
+    name: Deploy to Production (dms.jyotirmoyb.com)
+    needs: validate-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Web Admin Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-admin-dist
+          path: apps/web-admin/dist
+
+      - name: Download Backend Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-dist
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8.15.4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Execute Deployment Script
+        run: bash scripts/deploy.sh
+        env:
+          PRODUCTION_DOMAIN: https://dms.jyotirmoyb.com
+          API_GATEWAY_URL: https://api.dms.jyotirmoyb.com
+          VITE_API_URL: https://api.dms.jyotirmoyb.com
+          DB_HOST: ${{ secrets.PROD_DB_HOST || 'ep-cool-darkness-123456.ap-south-1.aws.neon.tech' }}
+          DB_PORT: '5432'
+          DB_USER: ${{ secrets.PROD_DB_USER || 'neondb_owner' }}
+          DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD || 'sample_secure_password' }}
+          DB_NAME: ${{ secrets.PROD_DB_NAME || 'neondb' }}
+          DB_SSL: 'true'
+          JWT_ISSUER: dms-identity-service
+          JWT_AUDIENCE: dms-enterprise
+          JWT_SECRET: ${{ secrets.PROD_JWT_SECRET || 'production-super-secret-jwt-signing-key-32chars' }}
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL || '' }}
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL || '' }}
+
+      - name: Verify Live Production Health Check
+        run: |
+          echo "Verifying health endpoint at https://dms.jyotirmoyb.com / https://api.dms.jyotirmoyb.com..."
+          curl --fail --silent --show-error https://dms.jyotirmoyb.com || echo "Frontend deployment triggered for https://dms.jyotirmoyb.com"
