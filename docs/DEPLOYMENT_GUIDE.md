@@ -262,42 +262,58 @@ You should see 30+ tables including `distributors`, `retail_outlets`, `products_
 
 ---
 
-## 4. Backend — Render.com Free Web Services
+## 4. Backend — 100% Free Zero-Credit-Card Hosting
 
-### 4.1 Push Your Code to GitHub First
+If Render requests a credit card verification on your account, use **Option 1 (Vercel)** or **Option 2 (Koyeb)** — both offer **100% FREE hosting with ZERO credit card required**.
 
-Before deploying, ensure your latest code is on GitHub:
+---
 
-```powershell
-cd C:\Users\TEST\DMS
+### Option 1: Vercel Backend Project (100% Free, ZERO Credit Card Required — RECOMMENDED)
 
-git add -A
-git commit -m "chore: production ready release v1.0.0"
-git push origin main
-```
+Since your Vercel account (`dms-web-admin-nine.vercel.app`) is already active without any credit card, you can deploy the backend API Gateway to Vercel as a second project:
 
-### 4.2 Create a Render Account
+1. Open **[Vercel Dashboard](https://vercel.com/dashboard)**.
+2. Click **Add New...** → **Project**.
+3. Select your repository **`JyotirmoyBhowmik/DMS`**.
+4. Configure Project Settings:
+   - **Project Name**: `dms-api-gateway`
+   - **Framework Preset**: `Node.js` (or `Other`)
+   - **Root Directory**: `services/api-gateway` (click *Edit* and choose `services/api-gateway`)
+   - **Build Command**: `cd ../.. && npm install -g pnpm@8.15.4 && pnpm install && pnpm --filter @dms/api-gateway run build`
+   - **Output Directory**: `dist`
+5. Expand **Environment Variables** and add your Neon PostgreSQL DB secrets:
+   - `DB_HOST`: `ep-falling-cloud-azy5iaz6-pooler.c-3.ap-southeast-1.aws.neon.tech`
+   - `DB_PORT`: `5432`
+   - `DB_USER`: `neondb_owner`
+   - `DB_PASSWORD`: `npg_2HQSygvRT5qZ`
+   - `DB_NAME`: `neondb`
+   - `DB_SSL`: `true`
+   - `JWT_SECRET`: `production-super-secret-jwt-signing-key-32chars`
+6. Click **Deploy**. Vercel will build and deploy your API Gateway instantly with full HTTPS!
+7. **Custom Domain Setup**: Go to **Project Settings → Domains** → add **`api.dms.jyotirmoyb.com`**.
 
-1. Open **https://render.com**
-2. Click **"Get Started for Free"**
-3. Click **"GitHub"** to sign up with your GitHub account
-4. Authorize Render to access your repositories
-5. You will land on the Render Dashboard
+---
 
-### 4.3 Deploy the API Gateway Service
+### Option 2: Koyeb.com Free Web Service (100% Free, ZERO Credit Card Required)
 
-The API Gateway is the single entry point for all mobile and web traffic. Deploy it first.
+[Koyeb](https://koyeb.com) is a modern cloud hosting platform offering free-tier Web Services with **zero credit card requirement**:
 
-1. On the Render Dashboard, click **"New +"** → **"Web Service"**
-2. Click **"Connect a repository"** and select **`JyotirmoyBhowmik/DMS`**
-3. Fill in the configuration:
+1. Open **[Koyeb.com](https://koyeb.com)** and sign up with GitHub.
+2. On the Koyeb dashboard, click **Create App** → select **GitHub**.
+3. Select repository **`JyotirmoyBhowmik/DMS`**.
+4. Configure Service Settings:
+   - **Service Name**: `dms-api-gateway`
+   - **Build Command**: `npm install -g pnpm@8.15.4 && pnpm install && pnpm build`
+   - **Run Command**: `node services/api-gateway/dist/index.js`
+   - **Port**: `10000`
+5. Add Environment Variables (`DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_SSL=true`).
+6. Click **Deploy**.
 
-| Setting | Value |
-|---|---|
-| **Name** | `dms-api-gateway` |
-| **Region** | Singapore (or closest to your users) |
-| **Branch** | `main` |
-| **Root Directory** | *(leave blank — root of repo)* |
+---
+
+### Option 3: Render.com Web Service
+
+If you wish to use Render, navigate to **New + → Web Service** in the Render Dashboard, connect `JyotirmoyBhowmik/DMS`, and set build command `npm install -g pnpm@8.15.4 && pnpm install && pnpm build` and start command `node services/api-gateway/dist/index.js`.
 | **Runtime** | `Node` |
 | **Build Command** | `npm install -g pnpm@8.15.4 && pnpm install && pnpm build` |
 | **Start Command** | `node services/api-gateway/dist/index.js` |

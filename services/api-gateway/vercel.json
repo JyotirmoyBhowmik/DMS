@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "name": "dms-api-gateway",
+  "alias": ["api.dms.jyotirmoyb.com"],
+  "buildCommand": "cd ../.. && npm install -g pnpm@8.15.4 && pnpm install && pnpm --filter @dms/api-gateway run build",
+  "outputDirectory": "dist",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "dist/index.js"
+    }
+  ]
+}
