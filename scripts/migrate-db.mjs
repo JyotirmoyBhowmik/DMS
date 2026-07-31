@@ -4,14 +4,13 @@ import pg from 'pg';
 
 const { Client } = pg;
 
-// Use CONNECTION_STRING env var or default to the user's Neon DB
+// Connection string setup
 const connectionString = process.env.DATABASE_URL || 
   process.env.CONNECTION_STRING || 
   "postgresql://neondb_owner:npg_2HQSygvRT5qZ@ep-falling-cloud-azy5iaz6-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require";
 
 console.log('========================================================================');
-console.log('⚡ DMS Automated Database Migration Runner');
-console.log(`Connecting to PostgreSQL Database...`);
+console.log('⚡ DMS Multi-Service Database Migration Runner');
 console.log(`Target Host: ${connectionString.split('@')[1]?.split('/')[0] || 'Neon DB'}`);
 console.log('========================================================================\n');
 
@@ -20,65 +19,113 @@ const client = new Client({
   ssl: { rejectUnauthorized: false }
 });
 
-async function runMigrations() {
+// Order of execution for service migration folders
+const folderOrder = [
+  'system',
+  'identity',
+  'dms',
+  'sfa',
+  'pricing',
+  'schemes',
+  'claims',
+  'finance',
+  'audit',
+  'config',
+  'file',
+  'forecasting',
+  'notification',
+  'recommendation',
+  'report'
+];
+
+async function runAllMigrations() {
   try {
     await client.connect();
     console.log('✓ Successfully connected to PostgreSQL Database!\n');
 
-    // Create flyway / schema tracking table if not exists
+    // Create tracking table
     await client.query(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
-        version VARCHAR(50) PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
+        version VARCHAR(255) PRIMARY KEY,
+        folder VARCHAR(100),
+        name VARCHAR(255),
         applied_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+      ALTER TABLE schema_migrations ADD COLUMN IF NOT EXISTS folder VARCHAR(100);
+      ALTER TABLE schema_migrations ADD COLUMN IF NOT EXISTS name VARCHAR(255);
     `);
 
-    const migrationsDir = path.resolve('db/migrations/dms');
-    const files = fs.readdirSync(migrationsDir)
-      .filter(f => f.startsWith('V') && f.endsWith('.sql'))
-      .sort((a, b) => {
-        const numA = parseInt(a.split('__')[0].substring(1), 10);
-        const numB = parseInt(b.split('__')[0].substring(1), 10);
-        return numA - numB;
-      });
+    const baseDir = path.resolve('db/migrations');
+    let totalApplied = 0;
+    let totalSkipped = 0;
+    let totalFiles = 0;
 
-    console.log(`Found ${files.length} SQL migration files in ${migrationsDir}.\n`);
+    // Get all directories in db/migrations
+    const existingFolders = fs.readdirSync(baseDir).filter(f => {
+      return fs.statSync(path.join(baseDir, f)).isDirectory();
+    });
 
-    let appliedCount = 0;
-    let skippedCount = 0;
+    // Merge predefined order with any remaining folders
+    const orderedFolders = [
+      ...folderOrder.filter(f => existingFolders.includes(f)),
+      ...existingFolders.filter(f => !folderOrder.includes(f))
+    ];
 
-    for (const file of files) {
-      const version = file.split('__')[0];
-      const checkRes = await client.query('SELECT version FROM schema_migrations WHERE version = $1', [version]);
+    for (const folder of orderedFolders) {
+      const folderPath = path.join(baseDir, folder);
+      const sqlFiles = fs.readdirSync(folderPath)
+        .filter(f => f.endsWith('.sql'))
+        .sort((a, b) => {
+          const numA = parseInt(a.replace(/\D/g, '') || '0', 10);
+          const numB = parseInt(b.replace(/\D/g, '') || '0', 10);
+          return numA - numB;
+        });
 
-      if (checkRes.rows.length > 0) {
-        console.log(`  ⏭️  Skipping ${file} (already applied)`);
-        skippedCount++;
-        continue;
+      if (sqlFiles.length === 0) continue;
+
+      console.log(`📁 Processing Service Folder: db/migrations/${folder} (${sqlFiles.length} files)`);
+
+      for (const file of sqlFiles) {
+        totalFiles++;
+        const migrationKey = `${folder}/${file}`;
+        const versionPrefix = file.split('__')[0];
+        const checkRes = await client.query(
+          'SELECT version FROM schema_migrations WHERE version = $1 OR version = $2',
+          [migrationKey, versionPrefix]
+        );
+
+        if (checkRes.rows.length > 0) {
+          console.log(`  ⏭️  Skipping ${migrationKey} (already applied)`);
+          totalSkipped++;
+          continue;
+        }
+
+        console.log(`  🚀 Applying ${migrationKey}...`);
+        const filePath = path.join(folderPath, file);
+        const sql = fs.readFileSync(filePath, 'utf-8');
+
+        await client.query('BEGIN');
+        try {
+          await client.query(sql);
+          await client.query(
+            'INSERT INTO schema_migrations (version, folder, name) VALUES ($1, $2, $3)',
+            [migrationKey, folder, file]
+          );
+          await client.query('COMMIT');
+          console.log(`  ✓ Applied ${migrationKey} successfully.`);
+          totalApplied++;
+        } catch (err) {
+          await client.query('ROLLBACK');
+          console.error(`  ❌ Failed to apply ${migrationKey}: ${err.message}`);
+          throw err;
+        }
       }
-
-      console.log(`  🚀 Applying ${file}...`);
-      const filePath = path.join(migrationsDir, file);
-      const sql = fs.readFileSync(filePath, 'utf-8');
-
-      await client.query('BEGIN');
-      try {
-        await client.query(sql);
-        await client.query('INSERT INTO schema_migrations (version, name) VALUES ($1, $2)', [version, file]);
-        await client.query('COMMIT');
-        console.log(`  ✓ Applied ${file} successfully.`);
-        appliedCount++;
-      } catch (err) {
-        await client.query('ROLLBACK');
-        console.error(`  ❌ Failed to apply ${file}: ${err.message}`);
-        throw err;
-      }
+      console.log('');
     }
 
-    console.log('\n========================================================================');
-    console.log(`🎉 Database Migration Complete!`);
-    console.log(`   Applied: ${appliedCount} | Skipped: ${skippedCount} | Total: ${files.length}`);
+    console.log('========================================================================');
+    console.log(`🎉 All Multi-Service Database Migrations Complete!`);
+    console.log(`   Applied: ${totalApplied} | Skipped: ${totalSkipped} | Total Files: ${totalFiles}`);
     console.log('========================================================================');
   } catch (err) {
     console.error('\n❌ Migration process failed:', err.message);
@@ -88,4 +135,4 @@ async function runMigrations() {
   }
 }
 
-runMigrations();
+runAllMigrations();

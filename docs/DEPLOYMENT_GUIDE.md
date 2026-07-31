@@ -168,22 +168,22 @@ DB_NAME=neondb
 DB_SSL=true
 ```
 
-### 3.5 Run Database Migrations
+### 3.3 Apply Database Migrations (Automated One-Command Runner)
 
-Now apply all 46 Flyway migration scripts to your production database. Open PowerShell:
+Your monorepo includes an automated, platform-independent Node.js migration runner (**[scripts/migrate-db.mjs](file:///c:/Users/TEST/DMS/scripts/migrate-db.mjs)**) that applies all **116 SQL migration files** across **15 microservice domains** (`system`, `identity`, `dms`, `sfa`, `pricing`, `schemes`, `claims`, `finance`, `audit`, `config`, `file`, `forecasting`, `notification`, `recommendation`, `report`):
 
-**Option A — Using psql (recommended if installed):**
-
+#### Run Migration Command:
 ```powershell
-# Set your connection string as a variable
-$CONNECTION = "postgres://neondb_owner:abc123xyz789@ep-cool-darkness-123456.ap-south-1.aws.neon.tech/neondb?sslmode=require"
-
-# Run each migration file in order
-Get-ChildItem "db/migrations/dms/V*.sql" | Sort-Object Name | ForEach-Object {
-    Write-Host "Applying migration: $($_.Name)" -ForegroundColor Green
-    psql $CONNECTION -f $_.FullName
-}
+cd C:\Users\TEST\DMS
+pnpm db:migrate
 ```
+
+#### What `pnpm db:migrate` Does:
+1. Connects securely to your Neon PostgreSQL database over TLS/SSL.
+2. Creates/verifies the `schema_migrations` tracking table.
+3. Recursively scans all 15 service migration subdirectories in `db/migrations/`.
+4. Applies all 116 SQL migration files (`V001` through `V046`) in transactions with automatic rollback on error.
+5. Ensures PostgreSQL Row-Level Security (RLS) tenant isolation policies cast `tenant_id::text` for 100% type compatibility.
 
 **Option B — Using Neon SQL Editor (no install needed):**
 
