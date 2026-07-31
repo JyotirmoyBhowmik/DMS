@@ -78,3 +78,19 @@ describe('RBAC Guard Tests', () => {
     assert.strictEqual(RbacGuard.checkPermission(visitorPrincipal, controller, 'noPermissionsRequired'), true);
   });
 });
+
+describe('RBAC Cache Service Tests', () => {
+  it('should cache and retrieve user permissions and invalidate on update', () => {
+    const { RbacCacheService } = require('./index.js');
+    const cache = new RbacCacheService(60000);
+    cache.setPermissions('usr-1', ['order:create', 'order:read']);
+    assert.deepStrictEqual(cache.getPermissions('usr-1'), ['order:create', 'order:read']);
+    assert.strictEqual(cache.hasPermission('usr-1', 'order:create'), true);
+    assert.strictEqual(cache.hasPermission('usr-1', 'order:delete'), false);
+
+    cache.invalidate('usr-1');
+    assert.strictEqual(cache.getPermissions('usr-1'), null);
+    assert.strictEqual(cache.hasPermission('usr-1', 'order:create'), false);
+  });
+});
+

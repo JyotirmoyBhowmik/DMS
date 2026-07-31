@@ -1,5 +1,10 @@
 -- Migration V024: Add GoodsReceipt constraints, indexes, RLS policies, and optimistic locking version column
 
+CREATE TABLE IF NOT EXISTS goods_receipts (
+  id VARCHAR(255) PRIMARY KEY,
+  tenant_id VARCHAR(255) NOT NULL
+);
+
 ALTER TABLE IF EXISTS goods_receipts
   ADD COLUMN IF NOT EXISTS receipt_number VARCHAR(255) NOT NULL DEFAULT 'GRN-DEFAULT',
   ADD COLUMN IF NOT EXISTS purchase_order_id VARCHAR(255) NOT NULL DEFAULT 'po-default',

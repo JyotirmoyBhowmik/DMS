@@ -1,18 +1,18 @@
 import { KPIAchievement } from '../../../domain/entities/kpi-achievement.js';
 import { KPIAchievementRepository } from '../../../domain/repositories/kpi-achievement.repository.js';
-import { BaseRow } from '@dms/pkg-database';
+import { BaseRow, PostgresDatabaseClient } from '@dms/pkg-database';
 
 export class KPIAchievementPgRepository implements KPIAchievementRepository {
   private static inMemoryDb = new Map<string, KPIAchievement>();
 
-  constructor(private readonly db?: any) {}
+  constructor(private readonly db: any = null) {}
 
   static clearStore(): void {
     KPIAchievementPgRepository.inMemoryDb.clear();
   }
 
   private async isDbViable(): Promise<boolean> {
-    if (!this.db) return false;
+    if (!this.db || typeof this.db.query !== 'function') return false;
     try {
       await this.db.query('SELECT 1');
       return true;
@@ -98,8 +98,9 @@ export class KPIAchievementPgRepository implements KPIAchievementRepository {
 
     const sql = `SELECT * FROM kpi_achievements WHERE id = $1 AND tenant_id = $2`;
     const res = await this.db.query(sql, [id, tenantId], tenantId);
-    if (!res || res.length === 0) return null;
-    return this.mapToEntity(res[0]);
+    const rows = Array.isArray(res) ? res : res?.rows;
+    if (!rows || rows.length === 0) return null;
+    return this.mapToEntity(rows[0]);
   }
 
   async findByAgentAndPeriod(
@@ -126,7 +127,8 @@ export class KPIAchievementPgRepository implements KPIAchievementRepository {
       ORDER BY created_at DESC
     `;
     const res = await this.db.query(sql, [agentId, periodMonth, periodYear, tenantId], tenantId);
-    return res.map((r: any) => this.mapToEntity(r));
+    const rows = Array.isArray(res) ? res : res?.rows || [];
+    return rows.map((r: any) => this.mapToEntity(r));
   }
 
   async findAll(tenantId: string, limit: number = 50, offset: number = 0): Promise<KPIAchievement[]> {
@@ -144,7 +146,8 @@ export class KPIAchievementPgRepository implements KPIAchievementRepository {
       LIMIT $2 OFFSET $3
     `;
     const res = await this.db.query(sql, [tenantId, limit, offset], tenantId);
-    return res.map((r: any) => this.mapToEntity(r));
+    const rows = Array.isArray(res) ? res : res?.rows || [];
+    return rows.map((r: any) => this.mapToEntity(r));
   }
 
   async delete(id: string, tenantId: string): Promise<void> {
@@ -166,8 +169,9 @@ export class KPIAchievementPgRepository implements KPIAchievementRepository {
     }
 
     const sql = `SELECT COUNT(*) as count FROM kpi_achievements WHERE tenant_id = $1`;
-    const res = await this.db.query(sql, [tenantId], tenantId);
-    return Number(res[0]?.count ?? 0);
+    const res = await this.db!.query(sql, [tenantId], tenantId);
+    const rows = Array.isArray(res) ? res : res?.rows || [];
+    return Number(rows[0]?.count ?? 0);
   }
 
   private mapToEntity(row: BaseRow): KPIAchievement {

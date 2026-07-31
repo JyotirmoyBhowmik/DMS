@@ -15,7 +15,7 @@ export class InventoryPgRepository {
     const data = inv.toJSON();
     try {
       await this.db.query(
-        `INSERT INTO inventory
+        `INSERT INTO inventory_records
           (id, tenant_id, warehouse_id, sku_id, quantity_available, quantity_reserved, reorder_level, status, version)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          ON CONFLICT (id) DO UPDATE SET
@@ -36,7 +36,7 @@ export class InventoryPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM inventory WHERE tenant_id = $1 AND id = $2`,
+        `SELECT * FROM inventory_records WHERE tenant_id = $1 AND id = $2`,
         [tenantId, id],
         tenantId
       );
@@ -58,7 +58,7 @@ export class InventoryPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM inventory WHERE tenant_id = $1 AND warehouse_id = $2 AND sku_id = $3`,
+        `SELECT * FROM inventory_records WHERE tenant_id = $1 AND warehouse_id = $2 AND sku_id = $3`,
         [tenantId, warehouseId, skuId],
         tenantId
       );
@@ -79,7 +79,7 @@ export class InventoryPgRepository {
     if (memList.length > 0) return memList;
 
     const result = await this.db.query<any>(
-      `SELECT * FROM inventory WHERE tenant_id = $1 AND status = $2`,
+      `SELECT * FROM inventory_records WHERE tenant_id = $1 AND status = $2`,
       [tenantId, status],
       tenantId
     );
@@ -91,7 +91,7 @@ export class InventoryPgRepository {
     if (memList.length > 0) return memList;
 
     const result = await this.db.query<any>(
-      `SELECT * FROM inventory WHERE tenant_id = $1 ORDER BY warehouse_id, sku_id`,
+      `SELECT * FROM inventory_records WHERE tenant_id = $1 ORDER BY warehouse_id, sku_id`,
       [tenantId],
       tenantId
     );

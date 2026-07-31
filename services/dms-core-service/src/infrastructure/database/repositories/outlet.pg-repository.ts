@@ -15,7 +15,7 @@ export class OutletPgRepository {
     const data = outlet.toJSON();
     try {
       await this.db.query(
-        `INSERT INTO outlets
+        `INSERT INTO retail_outlets
           (id, tenant_id, name, latitude, longitude, radius_meters, status, channel_type, address, owner_name, owner_phone, distributor_id, version)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          ON CONFLICT (id) DO UPDATE SET
@@ -38,7 +38,7 @@ export class OutletPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM outlets WHERE tenant_id = $1 AND id = $2`,
+        `SELECT * FROM retail_outlets WHERE tenant_id = $1 AND id = $2`,
         [tenantId, id],
         tenantId
       );
@@ -54,7 +54,7 @@ export class OutletPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM outlets WHERE tenant_id = $1 AND channel_type = $2`,
+        `SELECT * FROM retail_outlets WHERE tenant_id = $1 AND channel_type = $2`,
         [tenantId, channel],
         tenantId
       );
@@ -70,7 +70,7 @@ export class OutletPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM outlets WHERE tenant_id = $1 AND status = $2`,
+        `SELECT * FROM retail_outlets WHERE tenant_id = $1 AND status = $2`,
         [tenantId, status],
         tenantId
       );
@@ -86,7 +86,7 @@ export class OutletPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM outlets WHERE tenant_id = $1 ORDER BY name`,
+        `SELECT * FROM retail_outlets WHERE tenant_id = $1 ORDER BY name`,
         [tenantId],
         tenantId
       );

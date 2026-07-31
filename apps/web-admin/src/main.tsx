@@ -1394,7 +1394,8 @@ const App = () => {
     let items = [];
     try {
       items = JSON.parse(newVanSale.loadedItemsStr);
-    } catch {
+    } catch (err: any) {
+      console.error('[VanSale] Failed to parse loaded items JSON:', err);
       alert('Invalid JSON for loaded items. Format: [{"skuId":"SKU-1","qty":10,"batchNumber":"B1"}]');
       return;
     }

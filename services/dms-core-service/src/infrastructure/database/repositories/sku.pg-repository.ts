@@ -15,7 +15,7 @@ export class SkuPgRepository {
     const data = sku.toJSON();
     try {
       await this.db.query(
-        `INSERT INTO skus
+        `INSERT INTO products_skus
           (id, tenant_id, code, name, product_id, barcode, ean, unit_price, status, version)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          ON CONFLICT (id) DO UPDATE SET
@@ -36,7 +36,7 @@ export class SkuPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM skus WHERE tenant_id = $1 AND id = $2`,
+        `SELECT * FROM products_skus WHERE tenant_id = $1 AND id = $2`,
         [tenantId, id],
         tenantId
       );
@@ -52,7 +52,7 @@ export class SkuPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM skus WHERE tenant_id = $1 AND code = $2`,
+        `SELECT * FROM products_skus WHERE tenant_id = $1 AND code = $2`,
         [tenantId, code],
         tenantId
       );
@@ -68,7 +68,7 @@ export class SkuPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM skus WHERE tenant_id = $1 AND status = $2`,
+        `SELECT * FROM products_skus WHERE tenant_id = $1 AND status = $2`,
         [tenantId, status],
         tenantId
       );
@@ -84,7 +84,7 @@ export class SkuPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM skus WHERE tenant_id = $1 ORDER BY name`,
+        `SELECT * FROM products_skus WHERE tenant_id = $1 ORDER BY name`,
         [tenantId],
         tenantId
       );

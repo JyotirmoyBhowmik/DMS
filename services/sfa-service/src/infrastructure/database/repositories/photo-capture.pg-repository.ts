@@ -1,12 +1,68 @@
-import { BaseRow } from '@dms/pkg-database';
+import { BasePostgresRepository, BaseRow, PostgresDatabaseClient } from '@dms/pkg-database';
 import { PhotoCaptureRepository } from '../../../domain/repositories/photo-capture.repository.js';
 import { PhotoCapture, PhotoCaptureStatus } from '../../../domain/entities/photo-capture.js';
 
+class PgPhotoCaptureRepo extends BasePostgresRepository<PhotoCapture> {
+  constructor(db: any) {
+    super(db as PostgresDatabaseClient);
+  }
+
+  override tableName(): string {
+    return 'photo_captures';
+  }
+
+  public override mapToEntity(row: BaseRow): PhotoCapture {
+    return PhotoCapture.reconstitute({
+      id: row.id as string,
+      tenantId: row.tenant_id as string,
+      agentId: row.agent_id as string,
+      outletId: row.outlet_id as string,
+      captureDate: row.capture_date instanceof Date ? row.capture_date.toISOString().split('T')[0]! : row.capture_date as string,
+      photoUrl: row.photo_url as string,
+      tags: (row.tags || []) as string[],
+      notes: (row.notes as string) || null,
+      status: row.status as PhotoCaptureStatus,
+      createdAt: new Date(row.created_at as any),
+      updatedAt: new Date(row.updated_at as any),
+      version: Number(row.version),
+    });
+  }
+
+  protected override mapToRow(entity: PhotoCapture): BaseRow {
+    return {
+      id: entity.id,
+      tenant_id: entity.tenantId,
+      agent_id: entity.agentId,
+      outlet_id: entity.outletId,
+      capture_date: entity.captureDate,
+      photo_url: entity.photoUrl,
+      tags: entity.tags,
+      notes: entity.notes,
+      status: entity.status,
+      created_at: entity.createdAt,
+      updated_at: entity.updatedAt,
+      version: entity.version,
+    };
+  }
+
+  async checkHealth() {
+    return await this.db.checkHealth();
+  }
+
+  async query<T = unknown>(sql: string, params?: unknown[], tenantId?: string) {
+    return await this.db.query<T>(sql, params, tenantId);
+  }
+}
+
 export class PhotoCapturePgRepository extends PhotoCaptureRepository {
   private static inMemoryDb = new Map<string, PhotoCapture>();
+  private pgRepo?: PgPhotoCaptureRepo;
 
   constructor(private readonly db?: any) {
     super();
+    if (this.db) {
+      this.pgRepo = new PgPhotoCaptureRepo(this.db);
+    }
   }
 
   static clearStore(): void {
@@ -16,6 +72,10 @@ export class PhotoCapturePgRepository extends PhotoCaptureRepository {
   private async isDbViable(): Promise<boolean> {
     if (!this.db) return false;
     try {
+      if (typeof this.db.checkHealth === 'function') {
+        const health = await this.db.checkHealth();
+        if (health.status === 'HEALTHY') return true;
+      }
       await this.db.query('SELECT 1');
       return true;
     } catch {
@@ -53,7 +113,7 @@ export class PhotoCapturePgRepository extends PhotoCaptureRepository {
         row.id,
         row.tenant_id,
       ];
-      await this.db.query(sql, params, capture.tenantId);
+      await this.db!.query(sql, params, capture.tenantId);
     } else {
       const sql = `
         INSERT INTO photo_captures (
@@ -76,9 +136,9 @@ export class PhotoCapturePgRepository extends PhotoCaptureRepository {
         row.version,
       ];
       try {
-        await this.db.query(sql, params, capture.tenantId);
+        await this.db!.query(sql, params, capture.tenantId);
       } catch (err: any) {
-        if (err.message.includes('unique_constraint') || err.message.includes('uq_photo_captures_business_key')) {
+        if (err.message?.includes('unique_constraint') || err.message?.includes('uq_photo_captures_business_key')) {
           throw new Error(`A photo capture already exists for url ${capture.photoUrl} at outlet ${capture.outletId}`);
         }
         throw err;
@@ -100,8 +160,8 @@ export class PhotoCapturePgRepository extends PhotoCaptureRepository {
 
     const sql = `SELECT * FROM photo_captures WHERE id = $1 AND tenant_id = $2`;
     const res = await this.db.query(sql, [id, tenantId], tenantId);
-    if (!res || res.length === 0) return null;
-    return this.mapToEntity(res[0]);
+    if (!res.rows || res.rows.length === 0) return null;
+    return this.mapToEntity(res.rows[0]);
   }
 
   public override async findByAgent(agentId: string, tenantId: string): Promise<PhotoCapture[]> {
@@ -113,7 +173,7 @@ export class PhotoCapturePgRepository extends PhotoCaptureRepository {
 
     const sql = `SELECT * FROM photo_captures WHERE agent_id = $1 AND tenant_id = $2 ORDER BY capture_date DESC`;
     const res = await this.db.query(sql, [agentId, tenantId], tenantId);
-    return res.map((r: any) => this.mapToEntity(r));
+    return res.rows.map((r: BaseRow) => this.mapToEntity(r));
   }
 
   public override async findByOutlet(outletId: string, tenantId: string): Promise<PhotoCapture[]> {
@@ -125,7 +185,7 @@ export class PhotoCapturePgRepository extends PhotoCaptureRepository {
 
     const sql = `SELECT * FROM photo_captures WHERE outlet_id = $1 AND tenant_id = $2 ORDER BY capture_date DESC`;
     const res = await this.db.query(sql, [outletId, tenantId], tenantId);
-    return res.map((r: any) => this.mapToEntity(r));
+    return res.rows.map((r: BaseRow) => this.mapToEntity(r));
   }
 
   public override async findAll(tenantId: string, limit: number = 50, offset: number = 0): Promise<PhotoCapture[]> {
@@ -138,7 +198,7 @@ export class PhotoCapturePgRepository extends PhotoCaptureRepository {
 
     const sql = `SELECT * FROM photo_captures WHERE tenant_id = $1 ORDER BY capture_date DESC LIMIT $2 OFFSET $3`;
     const res = await this.db.query(sql, [tenantId, limit, offset], tenantId);
-    return res.map((r: any) => this.mapToEntity(r));
+    return res.rows.map((r: BaseRow) => this.mapToEntity(r));
   }
 
   public override async delete(id: string, tenantId: string): Promise<void> {
@@ -161,7 +221,7 @@ export class PhotoCapturePgRepository extends PhotoCaptureRepository {
 
     const sql = `SELECT COUNT(*) as count FROM photo_captures WHERE tenant_id = $1`;
     const res = await this.db.query(sql, [tenantId], tenantId);
-    return Number(res[0]?.count ?? 0);
+    return Number(res.rows[0]?.count ?? 0);
   }
 
   private mapToEntity(row: BaseRow): PhotoCapture {
@@ -170,7 +230,7 @@ export class PhotoCapturePgRepository extends PhotoCaptureRepository {
       tenantId: row.tenant_id as string,
       agentId: row.agent_id as string,
       outletId: row.outlet_id as string,
-      captureDate: row.capture_date instanceof Date ? row.capture_date.toISOString().split('T')[0] : row.capture_date as string,
+      captureDate: row.capture_date instanceof Date ? row.capture_date.toISOString().split('T')[0]! : row.capture_date as string,
       photoUrl: row.photo_url as string,
       tags: (row.tags || []) as string[],
       notes: (row.notes as string) || null,

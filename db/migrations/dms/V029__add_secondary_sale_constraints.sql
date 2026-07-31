@@ -1,5 +1,10 @@
 -- Migration V029: Add SecondarySale constraints, indexes, RLS policies, and optimistic locking version column
 
+CREATE TABLE IF NOT EXISTS secondary_sales (
+  id VARCHAR(255) PRIMARY KEY,
+  tenant_id VARCHAR(255) NOT NULL
+);
+
 ALTER TABLE IF EXISTS secondary_sales
   ADD COLUMN IF NOT EXISTS invoice_number VARCHAR(255) NOT NULL DEFAULT 'INV-SEC-DEFAULT',
   ADD COLUMN IF NOT EXISTS outlet_id VARCHAR(255) NOT NULL DEFAULT 'outlet-default',

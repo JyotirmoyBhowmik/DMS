@@ -15,7 +15,7 @@ export class ProductPgRepository {
     const data = product.toJSON();
     try {
       await this.db.query(
-        `INSERT INTO products
+        `INSERT INTO products_skus
           (id, tenant_id, sku, name, category, price, min_threshold, uom, status, version)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          ON CONFLICT (id) DO UPDATE SET
@@ -36,7 +36,7 @@ export class ProductPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM products WHERE tenant_id = $1 AND id = $2`,
+        `SELECT * FROM products_skus WHERE tenant_id = $1 AND id = $2`,
         [tenantId, id],
         tenantId
       );
@@ -52,7 +52,7 @@ export class ProductPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM products WHERE tenant_id = $1 AND sku = $2`,
+        `SELECT * FROM products_skus WHERE tenant_id = $1 AND sku = $2`,
         [tenantId, sku],
         tenantId
       );
@@ -68,7 +68,7 @@ export class ProductPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM products WHERE tenant_id = $1 AND category = $2`,
+        `SELECT * FROM products_skus WHERE tenant_id = $1 AND category = $2`,
         [tenantId, category],
         tenantId
       );
@@ -84,7 +84,7 @@ export class ProductPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM products WHERE tenant_id = $1 AND status = $2`,
+        `SELECT * FROM products_skus WHERE tenant_id = $1 AND status = $2`,
         [tenantId, status],
         tenantId
       );
@@ -100,7 +100,7 @@ export class ProductPgRepository {
 
     try {
       const result = await this.db.query<any>(
-        `SELECT * FROM products WHERE tenant_id = $1 ORDER BY name`,
+        `SELECT * FROM products_skus WHERE tenant_id = $1 ORDER BY name`,
         [tenantId],
         tenantId
       );

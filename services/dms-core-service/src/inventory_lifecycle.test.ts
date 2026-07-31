@@ -14,7 +14,7 @@ import { StockLedgerEntry } from './domain/entities/stock-ledger-entry.js';
 
 import { BatchPgRepository } from './infrastructure/database/repositories/batch.pg-repository.js';
 import { InventoryPgRepository } from './infrastructure/database/repositories/inventory.pg-repository.js';
-import { StockLedgerPgRepository } from './infrastructure/database/repositories/stock-ledger.pg-repository.js';
+import { StockLedgerPgRepository } from './infrastructure/database/repositories/stock_ledger.pg-repository.js';
 
 import { GatewayController } from '../../api-gateway/src/presentation/rest/controllers/gateway.controller.js';
 import { DmsCoreBackgroundWorker } from './worker.js';

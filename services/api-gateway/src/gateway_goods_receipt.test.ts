@@ -17,9 +17,9 @@ describe('Gateway & GoodsReceipt REST Integration Tests', () => {
     const createRes = await controller.handleCreate(
       {
         receiptNumber: 'GRN-GW-01',
-        purchaseOrderId: 'po-gw-100',
-        warehouseId: 'wh-gw-main',
-        skuId: 'sku-gw-item',
+        purchaseOrderId: '00000000-0000-0000-0000-000000000100',
+        warehouseId: '00000000-0000-0000-0000-000000000200',
+        skuId: '00000000-0000-0000-0000-000000000300',
         receivedQuantity: 300,
       },
       headers

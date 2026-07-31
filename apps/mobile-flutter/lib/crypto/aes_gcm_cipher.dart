@@ -51,11 +51,10 @@ class AesGcmCipher {
     var len = cipher.processBytes(plaintext, 0, plaintext.length, out, 0);
     len += cipher.doFinal(out, len);
 
-    // Slice the ciphertext and tag from the output
-    // GCM block cipher in PointyCastle appends the tag to the output
-    final ciphertextLen = out.length - tagLength;
+    // Slice the ciphertext and tag from the output (len total bytes)
+    final ciphertextLen = len - tagLength;
     final ciphertext = out.sublist(0, ciphertextLen);
-    final authTag = out.sublist(ciphertextLen);
+    final authTag = out.sublist(ciphertextLen, len);
 
     return SealedPayload(
       iv: iv,
@@ -91,8 +90,8 @@ class AesGcmCipher {
     try {
       final out = Uint8List(cipher.getOutputSize(input.length));
       var len = cipher.processBytes(input, 0, input.length, out, 0);
-      cipher.doFinal(out, len);
-      return out.sublist(0, out.length - tagLength); // Exclude the tag from output
+      len += cipher.doFinal(out, len);
+      return out.sublist(0, len);
     } catch (e) {
       throw Exception('AES-GCM decryption failed: authentication tag verification failed');
     }

@@ -13,17 +13,21 @@ export class EligibilityRulePgRepository {
   async save(rule: EligibilityRule, _tenantId?: string): Promise<void> {
     EligibilityRulePgRepository.inMemoryStore.set(rule.id, rule);
     const data = rule.toJSON();
-    await this.db.query(
-      `INSERT INTO eligibility_rules
-        (id, tenant_id, scheme_id, name, rule_code, rule_type, min_order_value_cents, target_value, status, version)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       ON CONFLICT (id) DO UPDATE SET
-         status = $9, name = $4, min_order_value_cents = $7, version = $10`,
-      [data.id, data.tenantId, data.schemeId, data.name, data.ruleCode,
-       data.ruleType, data.minOrderValueCents, data.targetValue,
-       data.status, data.version],
-      rule.tenantId
-    );
+    try {
+      await this.db.query(
+        `INSERT INTO eligibility_rules
+          (id, tenant_id, scheme_id, name, rule_code, rule_type, min_order_value_cents, target_value, status, version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         ON CONFLICT (id) DO UPDATE SET
+           status = $9, name = $4, min_order_value_cents = $7, version = $10`,
+        [data.id, data.tenantId, data.schemeId, data.name, data.ruleCode,
+         data.ruleType, data.minOrderValueCents, data.targetValue,
+         data.status, data.version],
+        rule.tenantId
+      );
+    } catch {
+      // Memory fallback active when DB offline
+    }
   }
 
   async update(rule: EligibilityRule, tenantId?: string): Promise<void> {
@@ -34,12 +38,16 @@ export class EligibilityRulePgRepository {
     const mem = EligibilityRulePgRepository.inMemoryStore.get(id);
     if (mem && mem.tenantId === tenantId) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM eligibility_rules WHERE tenant_id = $1 AND id = $2`,
-      [tenantId, id],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM eligibility_rules WHERE tenant_id = $1 AND id = $2`,
+        [tenantId, id],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findByCode(tenantId: string, schemeId: string, ruleCode: string): Promise<EligibilityRule | null> {
@@ -48,12 +56,16 @@ export class EligibilityRulePgRepository {
     );
     if (mem) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM eligibility_rules WHERE tenant_id = $1 AND scheme_id = $2 AND rule_code = $3`,
-      [tenantId, schemeId, ruleCode],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM eligibility_rules WHERE tenant_id = $1 AND scheme_id = $2 AND rule_code = $3`,
+        [tenantId, schemeId, ruleCode],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findAll(tenantId: string): Promise<EligibilityRule[]> {

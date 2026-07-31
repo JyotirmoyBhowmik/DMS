@@ -243,13 +243,13 @@ describe('Settlement Full Vertical Slice QA Suite (Tasks 1221-1224)', () => {
       // Tenant A fetching Tenant B settlement returns not found
       await assert.rejects(
         () => getUseCase.execute(adminPrincipal, setB.id),
-        /Settlement with id .* not found/
+        /Settlement with (ID|id) .* not found/i
       );
 
       // Tenant B fetching Tenant A settlement returns not found
       await assert.rejects(
         () => getUseCase.execute(tenantBPrincipal, setA.id),
-        /Settlement with id .* not found/
+        /Settlement with (ID|id) .* not found/i
       );
 
       // Tenant A listing settlements sees only 1
@@ -278,7 +278,7 @@ describe('Settlement Full Vertical Slice QA Suite (Tasks 1221-1224)', () => {
       const found = await repository.findById(settlement.id, tenantId);
       assert.strictEqual(found?.settlementCode, 'SET-UNIQUE-1');
 
-      delete (repository as any).inMemoryStore;
+      SettlementPgRepository.clearStore();
       const afterDelete = await repository.findById(settlement.id, tenantId);
       assert.strictEqual(afterDelete, null);
     });

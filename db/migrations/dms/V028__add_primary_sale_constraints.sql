@@ -1,5 +1,10 @@
 -- Migration V028: Add PrimarySale constraints, indexes, RLS policies, and optimistic locking version column
 
+CREATE TABLE IF NOT EXISTS primary_sales (
+  id VARCHAR(255) PRIMARY KEY,
+  tenant_id VARCHAR(255) NOT NULL
+);
+
 ALTER TABLE IF EXISTS primary_sales
   ADD COLUMN IF NOT EXISTS invoice_number VARCHAR(255) NOT NULL DEFAULT 'INV-DEFAULT',
   ADD COLUMN IF NOT EXISTS distributor_id VARCHAR(255) NOT NULL DEFAULT 'dist-default',

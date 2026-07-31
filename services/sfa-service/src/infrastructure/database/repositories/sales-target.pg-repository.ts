@@ -1,12 +1,76 @@
+import { BasePostgresRepository, BaseRow, PostgresDatabaseClient } from '@dms/pkg-database';
 import { SalesTarget } from '../../../domain/entities/sales-target.js';
 import { SalesTargetRepository } from '../../../domain/repositories/sales-target.repository.js';
 import { Money } from '../../../domain/value-objects/money.js';
-import { BaseRow } from '@dms/pkg-database';
+
+class PgSalesTargetRepo extends BasePostgresRepository<SalesTarget> {
+  constructor(db: any) {
+    super(db as PostgresDatabaseClient);
+  }
+
+  override tableName(): string {
+    return 'sales_targets';
+  }
+
+  public override mapToEntity(row: BaseRow): SalesTarget {
+    const targetAmountVal = typeof row.target_amount === 'number'
+      ? row.target_amount
+      : parseFloat(String(row.target_amount || 0));
+    const achievedAmountVal = typeof row.achieved_amount === 'number'
+      ? row.achieved_amount
+      : parseFloat(String(row.achieved_amount || 0));
+
+    return SalesTarget.fromPersistence({
+      id: row.id as string,
+      tenantId: row.tenant_id as string,
+      agentId: row.agent_id as string,
+      periodMonth: Number(row.period_month),
+      periodYear: Number(row.period_year),
+      targetAmount: Money.fromCents(Math.round(targetAmountVal * 100)),
+      achievedAmount: Money.fromCents(Math.round(achievedAmountVal * 100)),
+      targetType: row.target_type as string,
+      status: row.status as any,
+      createdAt: new Date(row.created_at as any),
+      updatedAt: new Date(row.updated_at as any),
+      version: Number(row.version),
+    });
+  }
+
+  protected override mapToRow(entity: SalesTarget): BaseRow {
+    return {
+      id: entity.id,
+      tenant_id: entity.tenantId,
+      agent_id: entity.agentId,
+      period_month: entity.periodMonth,
+      period_year: entity.periodYear,
+      target_amount: entity.targetAmount.amount,
+      achieved_amount: entity.achievedAmount.amount,
+      target_type: entity.targetType,
+      status: entity.status,
+      created_at: entity.createdAt,
+      updated_at: entity.updatedAt,
+      version: entity.version,
+    };
+  }
+
+  async checkHealth() {
+    return await this.db.checkHealth();
+  }
+
+  async query<T = unknown>(sql: string, params?: unknown[], tenantId?: string) {
+    return await this.db.query<T>(sql, params, tenantId);
+  }
+}
 
 export class SalesTargetPgRepository implements SalesTargetRepository {
   private static inMemoryDb = new Map<string, SalesTarget>();
+  private pgRepo?: PgSalesTargetRepo;
 
-  constructor(private readonly db?: any) {}
+  constructor(private readonly db?: any) {
+    if (this.db) {
+      this.pgRepo = new PgSalesTargetRepo(this.db);
+    }
+  }
 
   static clearStore(): void {
     SalesTargetPgRepository.inMemoryDb.clear();
@@ -15,6 +79,10 @@ export class SalesTargetPgRepository implements SalesTargetRepository {
   private async isDbViable(): Promise<boolean> {
     if (!this.db) return false;
     try {
+      if (typeof this.db.checkHealth === 'function') {
+        const health = await this.db.checkHealth();
+        if (health.status === 'HEALTHY') return true;
+      }
       await this.db.query('SELECT 1');
       return true;
     } catch {
@@ -51,7 +119,7 @@ export class SalesTargetPgRepository implements SalesTargetRepository {
         row.id,
         row.tenant_id,
       ];
-      await this.db.query(sql, params, tenantId);
+      await this.db!.query(sql, params, tenantId);
     } else {
       const sql = `
         INSERT INTO sales_targets (
@@ -75,9 +143,9 @@ export class SalesTargetPgRepository implements SalesTargetRepository {
         row.version,
       ];
       try {
-        await this.db.query(sql, params, tenantId);
+        await this.db!.query(sql, params, tenantId);
       } catch (err: any) {
-        if (err.message.includes('unique_constraint') || err.message.includes('uq_sales_targets_agent_period')) {
+        if (err.message?.includes('unique_constraint') || err.message?.includes('uq_sales_targets_agent_period')) {
           throw new Error(`A sales target of type ${target.targetType} already exists for agent ${target.agentId} in period ${target.periodYear}-${target.periodMonth}`);
         }
         throw err;
@@ -99,8 +167,8 @@ export class SalesTargetPgRepository implements SalesTargetRepository {
 
     const sql = `SELECT * FROM sales_targets WHERE id = $1 AND tenant_id = $2`;
     const res = await this.db.query(sql, [id, tenantId], tenantId);
-    if (!res || res.length === 0) return null;
-    return this.mapToEntity(res[0]);
+    if (!res.rows || res.rows.length === 0) return null;
+    return this.mapToEntity(res.rows[0]);
   }
 
   async findByAgentAndPeriod(
@@ -127,7 +195,7 @@ export class SalesTargetPgRepository implements SalesTargetRepository {
       ORDER BY created_at DESC
     `;
     const res = await this.db.query(sql, [agentId, periodMonth, periodYear, tenantId], tenantId);
-    return res.map((r: any) => this.mapToEntity(r));
+    return res.rows.map((r: BaseRow) => this.mapToEntity(r));
   }
 
   async findAll(tenantId: string, limit: number = 50, offset: number = 0): Promise<SalesTarget[]> {
@@ -145,7 +213,7 @@ export class SalesTargetPgRepository implements SalesTargetRepository {
       LIMIT $2 OFFSET $3
     `;
     const res = await this.db.query(sql, [tenantId, limit, offset], tenantId);
-    return res.map((r: any) => this.mapToEntity(r));
+    return res.rows.map((r: BaseRow) => this.mapToEntity(r));
   }
 
   async delete(id: string, tenantId: string): Promise<void> {
@@ -168,18 +236,25 @@ export class SalesTargetPgRepository implements SalesTargetRepository {
 
     const sql = `SELECT COUNT(*) as count FROM sales_targets WHERE tenant_id = $1`;
     const res = await this.db.query(sql, [tenantId], tenantId);
-    return Number(res[0]?.count ?? 0);
+    return Number(res.rows[0]?.count ?? 0);
   }
 
   private mapToEntity(row: BaseRow): SalesTarget {
+    const targetAmountVal = typeof row.target_amount === 'number'
+      ? row.target_amount
+      : parseFloat(String(row.target_amount || 0));
+    const achievedAmountVal = typeof row.achieved_amount === 'number'
+      ? row.achieved_amount
+      : parseFloat(String(row.achieved_amount || 0));
+
     return SalesTarget.fromPersistence({
       id: row.id as string,
       tenantId: row.tenant_id as string,
       agentId: row.agent_id as string,
       periodMonth: Number(row.period_month),
       periodYear: Number(row.period_year),
-      targetAmount: Money.fromCents(Math.round(parseFloat(row.target_amount as string) * 100)),
-      achievedAmount: Money.fromCents(Math.round(parseFloat(row.achieved_amount as string) * 100)),
+      targetAmount: Money.fromCents(Math.round(targetAmountVal * 100)),
+      achievedAmount: Money.fromCents(Math.round(achievedAmountVal * 100)),
       targetType: row.target_type as string,
       status: row.status as any,
       createdAt: new Date(row.created_at as any),

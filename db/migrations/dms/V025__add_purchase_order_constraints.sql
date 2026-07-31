@@ -1,5 +1,10 @@
 -- Migration V025: Add PurchaseOrder constraints, indexes, RLS policies, and optimistic locking version column
 
+CREATE TABLE IF NOT EXISTS purchase_orders (
+  id VARCHAR(255) PRIMARY KEY,
+  tenant_id VARCHAR(255) NOT NULL
+);
+
 ALTER TABLE IF EXISTS purchase_orders
   ADD COLUMN IF NOT EXISTS po_number VARCHAR(255) NOT NULL DEFAULT 'PO-DEFAULT',
   ADD COLUMN IF NOT EXISTS supplier_id VARCHAR(255) NOT NULL DEFAULT 'supplier-default',

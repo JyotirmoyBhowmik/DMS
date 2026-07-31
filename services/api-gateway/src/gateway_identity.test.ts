@@ -56,8 +56,9 @@ describe('Gateway Identity CRUD Integration Tests', () => {
       },
       body: {
         email: 'gateway-user@test.com',
-        password: 'password123',
-        status: 'ACTIVE'
+        passwordHash: '$2b$10$e8pYh8hJz.Q0.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1',
+        firstName: 'Gateway',
+        lastName: 'User'
       }
     });
     assert.strictEqual(createRes.status, 201);

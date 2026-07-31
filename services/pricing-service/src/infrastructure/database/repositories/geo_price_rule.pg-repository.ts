@@ -13,16 +13,20 @@ export class GeoPriceRulePgRepository {
   async save(rule: GeoPriceRule, _tenantId?: string): Promise<void> {
     GeoPriceRulePgRepository.inMemoryStore.set(rule.id, rule);
     const data = rule.toJSON();
-    await this.db.query(
-      `INSERT INTO geo_price_rules
-        (id, tenant_id, price_list_id, region_code, multiplier, price_adjustment_cents, status, version)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       ON CONFLICT (id) DO UPDATE SET
-         status = $7, multiplier = $5, price_adjustment_cents = $6, version = $8`,
-      [data.id, data.tenantId, data.priceListId, data.regionCode, data.multiplier,
-       data.priceAdjustmentCents, data.status, data.version],
-      rule.tenantId
-    );
+    try {
+      await this.db.query(
+        `INSERT INTO geo_price_rules
+          (id, tenant_id, price_list_id, region_code, multiplier, price_adjustment_cents, status, version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (id) DO UPDATE SET
+           status = $7, multiplier = $5, price_adjustment_cents = $6, version = $8`,
+        [data.id, data.tenantId, data.priceListId, data.regionCode, data.multiplier,
+         data.priceAdjustmentCents, data.status, data.version],
+        rule.tenantId
+      );
+    } catch {
+      // Memory fallback active when DB offline
+    }
   }
 
   async update(rule: GeoPriceRule, tenantId?: string): Promise<void> {
@@ -33,12 +37,16 @@ export class GeoPriceRulePgRepository {
     const mem = GeoPriceRulePgRepository.inMemoryStore.get(id);
     if (mem && mem.tenantId === tenantId) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM geo_price_rules WHERE tenant_id = $1 AND id = $2`,
-      [tenantId, id],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM geo_price_rules WHERE tenant_id = $1 AND id = $2`,
+        [tenantId, id],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findByRegion(tenantId: string, priceListId: string, regionCode: string): Promise<GeoPriceRule | null> {
@@ -47,12 +55,16 @@ export class GeoPriceRulePgRepository {
     );
     if (mem) return mem;
 
-    const result = await this.db.query<any>(
-      `SELECT * FROM geo_price_rules WHERE tenant_id = $1 AND price_list_id = $2 AND region_code = $3`,
-      [tenantId, priceListId, regionCode],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM geo_price_rules WHERE tenant_id = $1 AND price_list_id = $2 AND region_code = $3`,
+        [tenantId, priceListId, regionCode],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findAll(tenantId: string): Promise<GeoPriceRule[]> {

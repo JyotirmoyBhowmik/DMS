@@ -22,6 +22,10 @@ export class UpdateSettlementUseCase {
       throw new Error(`Settlement with ID ${id} not found`);
     }
 
+    if (input.version !== undefined && input.version !== existing.version) {
+      throw new Error(`Version conflict: stale update detected (expected version ${existing.version}, got ${input.version})`);
+    }
+
     if (input.status) {
       existing.updateStatus(input.status, input.paymentReference);
     }

@@ -299,3 +299,6 @@ export class RbacGuard {
     return required.every(perm => this.can(principal, perm));
   }
 }
+
+export * from './rbac_cache.service.js';
+

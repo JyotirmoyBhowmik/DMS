@@ -6,7 +6,7 @@ import { Money } from '../../../domain/value-objects/money.js';
 export class MerchandisingAuditPgRepository extends MerchandisingAuditRepository {
   private static inMemoryDb = new Map<string, MerchandisingAudit>();
 
-  constructor(private readonly db?: any) {
+  constructor(private readonly db?: PostgresDatabaseClient | any) {
     super();
   }
 
@@ -58,7 +58,7 @@ export class MerchandisingAuditPgRepository extends MerchandisingAuditRepository
         row.id,
         row.tenant_id,
       ];
-      await this.db.query(sql, params, audit.tenantId);
+      await this.db!.query(sql, params, audit.tenantId);
     } else {
       const sql = `
         INSERT INTO merchandising_audits (
@@ -87,7 +87,7 @@ export class MerchandisingAuditPgRepository extends MerchandisingAuditRepository
         row.version,
       ];
       try {
-        await this.db.query(sql, params, audit.tenantId);
+        await this.db!.query(sql, params, audit.tenantId);
       } catch (err: any) {
         if (err.message.includes('unique_constraint') || err.message.includes('uq_merchandising_audits_business_key')) {
           throw new Error(`An audit already exists for agent ${audit.agentId} at outlet ${audit.outletId} on date ${audit.auditDate}`);
@@ -109,9 +109,10 @@ export class MerchandisingAuditPgRepository extends MerchandisingAuditRepository
     }
 
     const sql = `SELECT * FROM merchandising_audits WHERE id = $1 AND tenant_id = $2`;
-    const res = await this.db.query(sql, [id, tenantId], tenantId);
-    if (!res || res.length === 0) return null;
-    return this.mapToEntity(res[0]);
+    const res = await this.db!.query(sql, [id, tenantId], tenantId);
+    const rows = Array.isArray(res) ? res : res?.rows;
+    if (!rows || rows.length === 0) return null;
+    return this.mapToEntity(rows[0]);
   }
 
   public override async findAll(tenantId: string): Promise<MerchandisingAudit[]> {
@@ -122,8 +123,9 @@ export class MerchandisingAuditPgRepository extends MerchandisingAuditRepository
     }
 
     const sql = `SELECT * FROM merchandising_audits WHERE tenant_id = $1 ORDER BY audit_date DESC`;
-    const res = await this.db.query(sql, [tenantId], tenantId);
-    return res.map((r: any) => this.mapToEntity(r));
+    const res = await this.db!.query(sql, [tenantId], tenantId);
+    const rows = Array.isArray(res) ? res : res?.rows || [];
+    return rows.map((r: any) => this.mapToEntity(r));
   }
 
   public override async findByAgent(agentId: string, tenantId: string): Promise<MerchandisingAudit[]> {
@@ -134,8 +136,9 @@ export class MerchandisingAuditPgRepository extends MerchandisingAuditRepository
     }
 
     const sql = `SELECT * FROM merchandising_audits WHERE agent_id = $1 AND tenant_id = $2 ORDER BY audit_date DESC`;
-    const res = await this.db.query(sql, [agentId, tenantId], tenantId);
-    return res.map((r: any) => this.mapToEntity(r));
+    const res = await this.db!.query(sql, [agentId, tenantId], tenantId);
+    const rows = Array.isArray(res) ? res : res?.rows || [];
+    return rows.map((r: any) => this.mapToEntity(r));
   }
 
   public override async findByOutlet(outletId: string, tenantId: string): Promise<MerchandisingAudit[]> {
@@ -146,8 +149,9 @@ export class MerchandisingAuditPgRepository extends MerchandisingAuditRepository
     }
 
     const sql = `SELECT * FROM merchandising_audits WHERE outlet_id = $1 AND tenant_id = $2 ORDER BY audit_date DESC`;
-    const res = await this.db.query(sql, [outletId, tenantId], tenantId);
-    return res.map((r: any) => this.mapToEntity(r));
+    const res = await this.db!.query(sql, [outletId, tenantId], tenantId);
+    const rows = Array.isArray(res) ? res : res?.rows || [];
+    return rows.map((r: any) => this.mapToEntity(r));
   }
 
   public override async findByVisit(visitId: string, tenantId: string): Promise<MerchandisingAudit | null> {
@@ -159,9 +163,10 @@ export class MerchandisingAuditPgRepository extends MerchandisingAuditRepository
     }
 
     const sql = `SELECT * FROM merchandising_audits WHERE visit_id = $1 AND tenant_id = $2`;
-    const res = await this.db.query(sql, [visitId, tenantId], tenantId);
-    if (!res || res.length === 0) return null;
-    return this.mapToEntity(res[0]);
+    const res = await this.db!.query(sql, [visitId, tenantId], tenantId);
+    const rows = Array.isArray(res) ? res : res?.rows;
+    if (!rows || rows.length === 0) return null;
+    return this.mapToEntity(rows[0]);
   }
 
   public override async delete(id: string, tenantId: string): Promise<void> {
@@ -172,7 +177,7 @@ export class MerchandisingAuditPgRepository extends MerchandisingAuditRepository
     }
 
     const sql = `DELETE FROM merchandising_audits WHERE id = $1 AND tenant_id = $2`;
-    await this.db.query(sql, [id, tenantId], tenantId);
+    await this.db!.query(sql, [id, tenantId], tenantId);
   }
 
   private mapToEntity(row: BaseRow): MerchandisingAudit {

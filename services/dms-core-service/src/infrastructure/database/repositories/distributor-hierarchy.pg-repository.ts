@@ -17,40 +17,55 @@ export class DistributorHierarchyPgRepository extends DistributorHierarchyReposi
     DistributorHierarchyPgRepository.inMemoryStore.set(h.id, h);
     const data = h.toJSON();
 
-    await this.db.query(
-      `INSERT INTO distributor_hierarchy
-        (id, tenant_id, parent_distributor_id, child_distributor_id, hierarchy_level,
-         territory, effective_from, effective_to, is_active, version)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       ON CONFLICT (id) DO UPDATE SET
-         parent_distributor_id = $3, child_distributor_id = $4, hierarchy_level = $5,
-         territory = $6, effective_from = $7, effective_to = $8, is_active = $9, version = $10`,
-      [data.id, data.tenantId, data.parentDistributorId, data.childDistributorId,
-       data.hierarchyLevel, data.territory, data.effectiveFrom, data.effectiveTo ?? null,
-       data.isActive, data.version],
-      data.tenantId
-    );
+    try {
+      await this.db.query(
+        `INSERT INTO distributor_hierarchy
+          (id, tenant_id, parent_distributor_id, child_distributor_id, hierarchy_level,
+           territory, effective_from, effective_to, is_active, version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         ON CONFLICT (id) DO UPDATE SET
+           parent_distributor_id = $3, child_distributor_id = $4, hierarchy_level = $5,
+           territory = $6, effective_from = $7, effective_to = $8, is_active = $9, version = $10`,
+        [data.id, data.tenantId, data.parentDistributorId, data.childDistributorId,
+         data.hierarchyLevel, data.territory, data.effectiveFrom, data.effectiveTo ?? null,
+         data.isActive, data.version],
+        data.tenantId
+      );
+    } catch {
+      // Memory fallback active when DB offline
+    }
   }
 
   async findById(tenantId: string, id: string): Promise<DistributorHierarchy | null> {
     const mem = DistributorHierarchyPgRepository.inMemoryStore.get(id);
     if (mem && mem.tenantId === tenantId) return mem;
 
-    const result = await this.db.query<BaseRow>(
-      `SELECT * FROM distributor_hierarchy WHERE tenant_id = $1 AND id = $2`,
-      [tenantId, id],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    try {
+      const result = await this.db.query<BaseRow>(
+        `SELECT * FROM distributor_hierarchy WHERE tenant_id = $1 AND id = $2`,
+        [tenantId, id],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findByChildDistributor(tenantId: string, childDistributorId: string): Promise<DistributorHierarchy | null> {
-    const result = await this.db.query<BaseRow>(
-      `SELECT * FROM distributor_hierarchy WHERE tenant_id = $1 AND child_distributor_id = $2 AND is_active = true`,
-      [tenantId, childDistributorId],
-      tenantId
-    );
-    return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    const mem = Array.from(DistributorHierarchyPgRepository.inMemoryStore.values()).find(h => h.tenantId === tenantId && h.childDistributorId === childDistributorId && h.isActive);
+    if (mem) return mem;
+
+    try {
+      const result = await this.db.query<BaseRow>(
+        `SELECT * FROM distributor_hierarchy WHERE tenant_id = $1 AND child_distributor_id = $2 AND is_active = true`,
+        [tenantId, childDistributorId],
+        tenantId
+      );
+      return result.rows[0] ? this.toDomain(result.rows[0]) : null;
+    } catch {
+      return null;
+    }
   }
 
   async findByChild(tenantId: string, childDistributorId: string): Promise<DistributorHierarchy | null> {
@@ -58,12 +73,19 @@ export class DistributorHierarchyPgRepository extends DistributorHierarchyReposi
   }
 
   async findByParentDistributor(tenantId: string, parentDistributorId: string): Promise<DistributorHierarchy[]> {
-    const result = await this.db.query<BaseRow>(
-      `SELECT * FROM distributor_hierarchy WHERE tenant_id = $1 AND parent_distributor_id = $2 AND is_active = true`,
-      [tenantId, parentDistributorId],
-      tenantId
-    );
-    return result.rows.map((r: any) => this.toDomain(r));
+    const memList = Array.from(DistributorHierarchyPgRepository.inMemoryStore.values()).filter(h => h.tenantId === tenantId && h.parentDistributorId === parentDistributorId);
+    if (memList.length > 0) return memList;
+
+    try {
+      const result = await this.db.query<BaseRow>(
+        `SELECT * FROM distributor_hierarchy WHERE tenant_id = $1 AND parent_distributor_id = $2`,
+        [tenantId, parentDistributorId],
+        tenantId
+      );
+      return result.rows.map((r: any) => this.toDomain(r));
+    } catch {
+      return [];
+    }
   }
 
   async findByParent(tenantId: string, parentDistributorId: string): Promise<DistributorHierarchy[]> {

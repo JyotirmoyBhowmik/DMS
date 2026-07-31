@@ -1,5 +1,10 @@
 -- Migration V030: Add TertiarySale constraints, indexes, RLS policies, and optimistic locking version column
 
+CREATE TABLE IF NOT EXISTS tertiary_sales (
+  id VARCHAR(255) PRIMARY KEY,
+  tenant_id VARCHAR(255) NOT NULL
+);
+
 ALTER TABLE IF EXISTS tertiary_sales
   ADD COLUMN IF NOT EXISTS invoice_number VARCHAR(255) NOT NULL DEFAULT 'INV-TER-DEFAULT',
   ADD COLUMN IF NOT EXISTS consumer_id VARCHAR(255) NOT NULL DEFAULT 'consumer-default',

@@ -1,5 +1,10 @@
 -- Migration V027: Add Replacement constraints, indexes, RLS policies, and optimistic locking version column
 
+CREATE TABLE IF NOT EXISTS replacements (
+  id VARCHAR(255) PRIMARY KEY,
+  tenant_id VARCHAR(255) NOT NULL
+);
+
 ALTER TABLE IF EXISTS replacements
   ADD COLUMN IF NOT EXISTS replacement_number VARCHAR(255) NOT NULL DEFAULT 'REP-DEFAULT',
   ADD COLUMN IF NOT EXISTS return_id VARCHAR(255) NOT NULL DEFAULT 'ret-default',

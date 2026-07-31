@@ -25,7 +25,7 @@ import { CreditLimitPgRepository } from '../../infrastructure/database/repositor
 import { DistributorPgRepository } from '../../infrastructure/database/repositories/distributor.pg-repository.js';
 import { DistributorOnboardingPgRepository } from '../../infrastructure/database/repositories/distributor-onboarding.pg-repository.js';
 import { BatchPgRepository } from '../../infrastructure/database/repositories/batch.pg-repository.js';
-import { StockLedgerPgRepository } from '../../infrastructure/database/repositories/stock-ledger.pg-repository.js';
+import { StockLedgerPgRepository } from '../../infrastructure/database/repositories/stock_ledger.pg-repository.js';
 import { InventoryPgRepository } from '../../infrastructure/database/repositories/inventory.pg-repository.js';
 
 const config = loadConfigSync();

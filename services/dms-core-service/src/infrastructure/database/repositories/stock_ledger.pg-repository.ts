@@ -10,9 +10,11 @@ export class StockLedgerPgRepository {
 
   constructor(private db: PostgresDatabaseClient) {}
 
-  async save(entry: StockLedgerEntry, _tenantId?: string): Promise<void> {
+  async save(entry: any, tenantId?: string): Promise<void> {
     StockLedgerPgRepository.inMemoryStore.set(entry.id, entry);
-    const data = entry.toJSON();
+    const data = typeof entry.toJSON === 'function' ? entry.toJSON() : entry;
+    const resolvedTenantId = tenantId || entry.tenantId;
+    const skuId = data.skuId || data.productId || '00000000-0000-0000-0000-000000000000';
     try {
       await this.db.query(
         `INSERT INTO stock_ledger
@@ -20,16 +22,20 @@ export class StockLedgerPgRepository {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          ON CONFLICT (id) DO UPDATE SET
            quantity = $7, running_balance = $8, reference_id = $9, version = $10`,
-        [data.id, data.tenantId, data.warehouseId, data.skuId, data.batchNumber,
-         data.transactionType, data.quantity, data.runningBalance, data.referenceId, data.version],
-        entry.tenantId
+        [data.id, data.tenantId, data.warehouseId, skuId, data.batchNumber,
+         data.transactionType, data.quantity, data.runningBalance, data.referenceId ?? null, data.version ?? 1],
+        resolvedTenantId
       );
     } catch {
       // Memory fallback active when DB offline
     }
   }
 
-  async update(entry: StockLedgerEntry, tenantId?: string): Promise<void> {
+  async append(entry: any, tenantId?: string): Promise<void> {
+    await this.save(entry, tenantId);
+  }
+
+  async update(entry: any, tenantId?: string): Promise<void> {
     await this.save(entry, tenantId);
   }
 
@@ -68,6 +74,24 @@ export class StockLedgerPgRepository {
       return result.rows[0] ? Number(result.rows[0].running_balance) : 0;
     } catch {
       return 0;
+    }
+  }
+
+  async findByBatch(tenantId: string, skuId: string, batchNumber: string): Promise<StockLedgerEntry[]> {
+    const memList = Array.from(StockLedgerPgRepository.inMemoryStore.values()).filter(
+      e => e.tenantId === tenantId && (e as any).batchNumber === batchNumber
+    );
+    if (memList.length > 0) return memList;
+
+    try {
+      const result = await this.db.query<any>(
+        `SELECT * FROM stock_ledger WHERE tenant_id = $1 AND batch_number = $2 ORDER BY created_at ASC`,
+        [tenantId, batchNumber],
+        tenantId
+      );
+      return result.rows.map((r: any) => this.toDomain(r));
+    } catch {
+      return [];
     }
   }
 
