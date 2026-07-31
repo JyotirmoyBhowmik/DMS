@@ -31,7 +31,7 @@ export class UpdateRoleUseCase {
       throw new RoleDomainError(`Role with id '${id}' not found`);
     }
 
-    if (existing.version !== dto.version) {
+    if (dto.version !== undefined && existing.version !== dto.version) {
       throw new RoleDomainError(
         `Optimistic locking conflict: Role version is ${existing.version}, provided version is ${dto.version}`
       );

@@ -31,7 +31,7 @@ export class UpdateUserUseCase {
       throw new UserDomainError(`User with id '${id}' not found`);
     }
 
-    if (existing.version !== dto.version) {
+    if (dto.version !== undefined && existing.version !== dto.version) {
       throw new UserDomainError(
         `Optimistic locking conflict: User version is ${existing.version}, provided version is ${dto.version}`
       );

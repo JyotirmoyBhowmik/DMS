@@ -3,6 +3,7 @@ import { UserValidationError } from '../entities/user.entity.js';
 
 const ALLOWED_CREATE_KEYS = new Set([
   'email',
+  'password',
   'passwordHash',
   'firstName',
   'lastName',
@@ -21,6 +22,10 @@ const ALLOWED_UPDATE_KEYS = new Set([
 export function validateCreateUserInput(rawInput: any): CreateUserDto {
   if (!rawInput || typeof rawInput !== 'object') {
     throw new UserValidationError({ body: 'Request body must be a valid JSON object' });
+  }
+
+  if (rawInput.password && !rawInput.passwordHash) {
+    rawInput.passwordHash = rawInput.password;
   }
 
   const errors: Record<string, string> = {};

@@ -5,6 +5,7 @@ const ALLOWED_CREATE_KEYS = new Set([
   'name',
   'code',
   'domain',
+  'status',
   'idempotencyKey'
 ]);
 
@@ -18,6 +19,10 @@ const ALLOWED_UPDATE_KEYS = new Set([
 export function validateCreateTenantInput(rawInput: any): CreateTenantDto {
   if (!rawInput || typeof rawInput !== 'object') {
     throw new TenantValidationError({ body: 'Request body must be a valid JSON object' });
+  }
+
+  if (!rawInput.code && rawInput.name) {
+    rawInput.code = String(rawInput.name).toLowerCase().replace(/\s+/g, '-');
   }
 
   const errors: Record<string, string> = {};

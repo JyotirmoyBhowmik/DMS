@@ -16,12 +16,13 @@ export class ClaimPgRepository {
       const data = claim.toJSON();
       await this.db.query(
         `INSERT INTO claims
-          (id, tenant_id, distributor_id, scheme_id, claim_code, claim_type, requested_amount_cents, approved_amount_cents, status, remarks, version)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          (id, tenant_id, distributor_id, scheme_id, name, claim_code, claim_amount_cents, approved_amount_cents, status, version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          ON CONFLICT (id) DO UPDATE SET
-           status = $9, approved_amount_cents = $8, remarks = $10, version = $11`,
-        [data.id, data.tenantId, data.distributorId, data.schemeId, data.claimCode,
-         data.claimType, data.requestedAmountCents, data.approvedAmountCents, data.status, data.remarks, data.version],
+           status = $9, name = $5, approved_amount_cents = $8, version = $10`,
+        [data.id, data.tenantId, data.distributorId, data.schemeId,
+         data.name, data.claimCode, data.claimAmountCents, data.approvedAmountCents,
+         data.status, data.version],
         claim.tenantId
       );
     } catch {

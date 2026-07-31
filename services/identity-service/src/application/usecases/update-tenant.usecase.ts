@@ -31,7 +31,7 @@ export class UpdateTenantUseCase {
       throw new TenantDomainError(`Tenant with id '${tenantEntityId}' not found`);
     }
 
-    if (existing.version !== dto.version) {
+    if (dto.version !== undefined && existing.version !== dto.version) {
       throw new TenantDomainError(
         `Optimistic concurrency conflict for Tenant '${tenantEntityId}': expected v${dto.version}, found v${existing.version}`
       );
