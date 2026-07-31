@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "name": "dms-web-admin",
+  "alias": ["dms.jyotirmoyb.com"],
+  "buildCommand": "cd ../.. && npm install -g pnpm@8.15.4 && pnpm install && pnpm --filter @dms/web-admin run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.dms.jyotirmoyb.com/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
+}

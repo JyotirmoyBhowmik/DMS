@@ -11,7 +11,8 @@
     "lint": "turbo run lint",
     "test": "turbo run test --concurrency=1",
     "typecheck": "turbo run typecheck",
-    "codegen": "turbo run codegen"
+    "codegen": "turbo run codegen",
+    "deploy:cli": "node scripts/deploy-setup.mjs"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
