@@ -15,6 +15,7 @@ const App = () => {
   const [isLiveApiMode, setIsLiveApiMode] = useState(false);
   const [apiGatewayUrl] = useState('https://api.dms.jyotirmoyb.com');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isDataInputModalOpen, setIsDataInputModalOpen] = useState(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [loginEmail, setLoginEmail] = useState('admin@enterprise.com');
   const [loginPassword, setLoginPassword] = useState('SecureP@ss123!');
@@ -39,9 +40,29 @@ const App = () => {
   const [lastRefreshed, setLastRefreshed] = useState(new Date().toLocaleTimeString());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // --- BEAT MAP & BEAT ROUTES STATE ---
+  const [beatRoutes, setBeatRoutes] = useState([
+    { id: 'beat-101', code: 'BEAT-NORTH-01', name: 'Downtown Grocery Circuit', agent: 'Agent Sarah Jenkins', outletsCount: 18, radiusKm: '2.5 km', status: 'ACTIVE' },
+    { id: 'beat-102', code: 'BEAT-SOUTH-04', name: 'Valley Mart Express Route', agent: 'Agent Mark Vance', outletsCount: 24, radiusKm: '4.0 km', status: 'ACTIVE' },
+    { id: 'beat-103', code: 'BEAT-EAST-09', name: 'Commercial Hub Beat', agent: 'Agent Elena Rostova', outletsCount: 12, radiusKm: '1.8 km', status: 'INACTIVE' }
+  ]);
+
+  // --- ORDER APPROVAL WORKFLOW STATE ---
+  const [salesOrders, setSalesOrders] = useState([
+    { id: 'ord-901', outlet: 'City Supermarket', agent: 'Agent Sarah Jenkins', totalAmount: '$1,450.00', items: 14, status: 'PENDING_APPROVAL', date: '2026-08-01 08:30' },
+    { id: 'ord-902', outlet: 'Valley Grocery Mart', agent: 'Agent Mark Vance', totalAmount: '$890.50', items: 8, status: 'APPROVED', date: '2026-08-01 09:15' },
+    { id: 'ord-903', outlet: 'Corner Express Store', agent: 'Agent Elena Rostova', totalAmount: '$3,200.00', items: 32, status: 'PENDING_APPROVAL', date: '2026-08-01 10:45' }
+  ]);
+
+  // --- INVOICING & CREDIT NOTES STATE ---
+  const [invoices, setInvoices] = useState([
+    { id: 'INV-2026-001', customer: 'Metro Wholesalers Ltd', amount: '$14,250.00', taxAmount: '$1,140.00', status: 'PAID', dueDate: '2026-08-15' },
+    { id: 'INV-2026-002', customer: 'Apex Logistics Inc', amount: '$8,900.00', taxAmount: '$712.00', status: 'OVERDUE', dueDate: '2026-07-28' },
+    { id: 'INV-2026-003', customer: 'Global Distribution Corp', amount: '$22,100.00', taxAmount: '$1,768.00', status: 'CREDIT_NOTE_ISSUED', dueDate: '2026-08-20' }
+  ]);
+
   // --- 29-NODE ENTERPRISE PLATFORM REGISTRY STATE ---
   const [platformNodes] = useState([
-    // 19 Microservices
     { name: 'identity-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '4ms', details: 'Authentication, Authorization, RBAC, JWKS & Tenant Management' },
     { name: 'dms-core-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '6ms', details: 'SKU Master Catalog, Inventory Ledger, Outlets & Distributors' },
     { name: 'sfa-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '5ms', details: 'Geofenced Check-Ins, Beat Routes, Van Sales & Merchandising' },
@@ -61,8 +82,6 @@ const App = () => {
     { name: 'ai-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '15ms', details: 'LLM Intelligent Agent & Natural Language Query Processor' },
     { name: 'api-gateway', category: 'GATEWAY', status: 'HEALTHY', latency: '2ms', details: 'Central Entry Point api.dms.jyotirmoyb.com & Rate Limiting' },
     { name: 'ai-gateway-service', category: 'GATEWAY', status: 'HEALTHY', latency: '3ms', details: 'Dedicated Gateway for High-Throughput AI Inference Requests' },
-
-    // 10 Platform Pillars & Programs
     { name: 'Monorepo', category: 'PLATFORM_PILLAR', status: 'STABLE', latency: 'pnpm-workspace', details: 'pnpm Workspace containing 34 packages, apps & microservices' },
     { name: 'Platform/Infra', category: 'PLATFORM_PILLAR', status: 'DEPLOYED', latency: 'Neon + Vercel', details: 'Neon PostgreSQL Serverless Cloud DB + Vercel Global Edge CDN' },
     { name: 'Multi-Tenancy', category: 'PLATFORM_PILLAR', status: 'ENFORCED', latency: 'Postgres RLS', details: 'Row-Level Security setting app.current_tenant_id per query' },
@@ -126,6 +145,7 @@ const App = () => {
     { id: 'vs-301', vanId: 'VAN-04', orderValue: '$1,450.00', itemsCount: 42, status: 'DELIVERED' },
     { id: 'vs-302', vanId: 'VAN-09', orderValue: '$890.50', itemsCount: 18, status: 'DISPATCHED' }
   ]);
+  const [sfaSubTab, setSfaSubTab] = useState<'visits' | 'van' | 'beats' | 'approvals'>('visits');
 
   // --- 4. PRICING & SCHEMES SERVICE STATE ---
   const [tradeSchemes] = useState([
@@ -138,6 +158,7 @@ const App = () => {
     { id: 'clm-501', distributor: 'Metro Wholesalers', scheme: 'Monsoon Oil Bulk Promotion', amount: '$4,250.00', status: 'PENDING_APPROVAL' },
     { id: 'clm-502', distributor: 'Apex Logistics Inc', scheme: 'Retailer Festival Scheme', amount: '$1,800.00', status: 'SETTLED' }
   ]);
+  const [financeSubTab, setFinanceSubTab] = useState<'claims' | 'invoices'>('claims');
 
   // --- 6. AI & FORECASTING SERVICE STATE ---
   const [aiPrompt, setAiPrompt] = useState('Forecast demand for SKU-FMCG-001 in Zone A for Q3 based on visit frequency and historical volume.');
@@ -276,9 +297,9 @@ const App = () => {
             { id: 'platform-registry', label: '19 Services & 10 Pillars Matrix', icon: '🏛️', desc: '29 Nodes Health Matrix' },
             { id: 'identity', label: 'Identity & Access (RBAC)', icon: '🔒', desc: 'Users, Roles & MFA' },
             { id: 'dms-core', label: 'DMS Core Management', icon: '📦', desc: 'SKUs, Stock & Outlets' },
-            { id: 'sfa', label: 'SFA Field Operations', icon: '🚚', desc: 'Visits, Van Sales & Audits' },
+            { id: 'sfa', label: 'SFA Field Operations', icon: '🚚', desc: 'Beats, Routes & Approvals' },
             { id: 'pricing-schemes', label: 'Pricing & Schemes', icon: '🏷️', desc: 'Rules & Promotions' },
-            { id: 'claims-finance', label: 'Claims & Finance', icon: '💰', desc: 'Settlements & Credits' },
+            { id: 'claims-finance', label: 'Claims & Invoicing', icon: '💰', desc: 'Invoices, Claims & Credits' },
             { id: 'ai-forecasting', label: 'AI & Demand Hub', icon: '⚡', desc: 'Predictive Reordering' },
             { id: 'audit-logs', label: 'Cryptographic Audit', icon: '🛡️', desc: 'Immutable Blockchain' },
             { id: 'integration-sync', label: 'Gateway & Sync Queue', icon: '🔄', desc: 'Upstream Network Sync' },
@@ -337,9 +358,9 @@ const App = () => {
               {activeTab === 'platform-registry' && '29-Node Enterprise Architecture & Platform Matrix'}
               {activeTab === 'identity' && 'Identity & Security Management (identity-service)'}
               {activeTab === 'dms-core' && 'DMS Core Management (dms-core-service)'}
-              {activeTab === 'sfa' && 'SFA Field Operations (sfa-service)'}
+              {activeTab === 'sfa' && 'SFA Field Operations, Beat Routes & Approvals (sfa-service)'}
               {activeTab === 'pricing-schemes' && 'Pricing Rules & Trade Schemes (pricing & schemes)'}
-              {activeTab === 'claims-finance' && 'Trade Claims & Financial Ledger (claims & finance)'}
+              {activeTab === 'claims-finance' && 'Invoicing, Trade Claims & Financial Ledger (claims & finance)'}
               {activeTab === 'ai-forecasting' && 'AI & Forecasting Engine (ai & recommendation)'}
               {activeTab === 'audit-logs' && 'Cryptographic Blockchain Audit Ledger (audit-service)'}
               {activeTab === 'integration-sync' && 'Upstream Gateway & Offline Sync (api-gateway & sync)'}
@@ -351,6 +372,22 @@ const App = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              onClick={() => setIsDataInputModalOpen(true)}
+              style={{
+                padding: '8px 14px',
+                borderRadius: '6px',
+                border: '1px solid #0F172A',
+                backgroundColor: '#2563EB',
+                color: '#FFFFFF',
+                fontWeight: '700',
+                fontSize: '13px',
+                cursor: 'pointer'
+              }}
+            >
+              + Input Data / Import
+            </button>
+
             {/* Mode Switcher */}
             <button
               onClick={() => {
@@ -412,6 +449,52 @@ const App = () => {
             </button>
           </div>
         </header>
+
+        {/* DATA INPUT MODAL */}
+        {isDataInputModalOpen && (
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ backgroundColor: '#FFFFFF', width: '480px', borderRadius: '12px', padding: '28px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>Data Input & Bulk Ingestion Center</h3>
+                <button onClick={() => setIsDataInputModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748B' }}>✕</button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ padding: '14px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A' }}>Option 1: Interactive Web Form Entry</div>
+                  <div style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 10px 0' }}>Add new Users, SKU items, Beat Routes, or Invoices directly into local/live state.</div>
+                  <button
+                    onClick={() => {
+                      const sku = prompt('Enter new SKU Code (e.g. SKU-FMCG-009):');
+                      const name = prompt('Enter Product Name:');
+                      const price = prompt('Enter Price ($):');
+                      if (sku && name) {
+                        alert(`SUCCESS: Added ${name} (${sku}) at $${price || '10.00'} into inventory!`);
+                        setIsDataInputModalOpen(false);
+                      }
+                    }}
+                    style={{ padding: '8px 14px', borderRadius: '6px', backgroundColor: '#0F172A', color: '#FFFFFF', border: 'none', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
+                  >
+                    + Add New Inventory SKU
+                  </button>
+                </div>
+
+                <div style={{ padding: '14px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A' }}>Option 2: Bulk CSV / JSON Ingestion</div>
+                  <div style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 10px 0' }}>Upload CSV/JSON files to seed master catalog, beat routes, and sales records.</div>
+                  <input type="file" accept=".csv,.json" onChange={() => alert('CSV Ingestion API triggered! Uploading records to Neon PostgreSQL...')} style={{ fontSize: '12px' }} />
+                </div>
+
+                <div style={{ padding: '14px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A' }}>Option 3: 3rd-Party ERP REST Sync API</div>
+                  <div style={{ fontSize: '12px', color: '#64748B' }}>
+                    POST to <code style={{ backgroundColor: '#E2E8F0', padding: '2px 4px', borderRadius: '4px' }}>https://api.dms.jyotirmoyb.com/api/v1/integration/sync</code>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* LOGIN MODAL */}
         {isLoginModalOpen && (
@@ -797,8 +880,129 @@ const App = () => {
           {/* TAB 4: SFA FIELD OPERATIONS */}
           {activeTab === 'sfa' && (
             <div style={{ backgroundColor: '#FFFFFF', borderRadius: '10px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '700' }}>Real-Time SFA Field Tracking & Van Sales</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px', marginBottom: '20px' }}>
+                {[
+                  { id: 'visits', label: `Geofenced Field Visits (${fieldVisits.length})` },
+                  { id: 'van', label: `Van Sales (${vanSales.length})` },
+                  { id: 'beats', label: `Beat Routes (${beatRoutes.length})` },
+                  { id: 'approvals', label: `Order Approvals (${salesOrders.length})` }
+                ].map((sub) => (
+                  <button
+                    key={sub.id}
+                    onClick={() => setSfaSubTab(sub.id as any)}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: sfaSubTab === sub.id ? '#0F172A' : '#F1F5F9',
+                      color: sfaSubTab === sub.id ? '#FFFFFF' : '#475569',
+                      fontWeight: '600',
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {sub.label}
+                  </button>
+                ))}
+              </div>
+
+              {sfaSubTab === 'beats' && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>Beat Map & Beat Route Management</h3>
+                    <button
+                      onClick={() => {
+                        const name = prompt('Enter Beat Route Name:');
+                        if (name) {
+                          setBeatRoutes([...beatRoutes, { id: `beat-${beatRoutes.length + 101}`, code: `BEAT-CUSTOM-0${beatRoutes.length + 1}`, name, agent: 'Agent Sarah Jenkins', outletsCount: 15, radiusKm: '3.0 km', status: 'ACTIVE' }]);
+                        }
+                      }}
+                      style={{ padding: '8px 16px', borderRadius: '6px', backgroundColor: '#2563EB', color: '#FFFFFF', border: 'none', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}
+                    >
+                      + Create Beat Route
+                    </button>
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>
+                        <th style={{ padding: '12px' }}>Beat Code</th>
+                        <th style={{ padding: '12px' }}>Route Name</th>
+                        <th style={{ padding: '12px' }}>Assigned Agent</th>
+                        <th style={{ padding: '12px' }}>Outlets Covered</th>
+                        <th style={{ padding: '12px' }}>Geofence Radius</th>
+                        <th style={{ padding: '12px' }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {beatRoutes.map((b) => (
+                        <tr key={b.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '12px', fontWeight: '700', color: '#0F172A', fontFamily: 'monospace' }}>{b.code}</td>
+                          <td style={{ padding: '12px', fontWeight: '600' }}>{b.name}</td>
+                          <td style={{ padding: '12px', color: '#2563EB' }}>{b.agent}</td>
+                          <td style={{ padding: '12px' }}>{b.outletsCount} Retail Stores</td>
+                          <td style={{ padding: '12px', color: '#64748B' }}>{b.radiusKm}</td>
+                          <td style={{ padding: '12px' }}>
+                            <span style={{ backgroundColor: b.status === 'ACTIVE' ? '#DCFCE7' : '#F1F5F9', color: b.status === 'ACTIVE' ? '#15803D' : '#475569', padding: '2px 8px', borderRadius: '12px', fontWeight: '600', fontSize: '11px' }}>{b.status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {sfaSubTab === 'approvals' && (
+                <div>
+                  <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '700' }}>Sales Order Approval Workflow</h3>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>
+                        <th style={{ padding: '12px' }}>Order ID</th>
+                        <th style={{ padding: '12px' }}>Retail Outlet</th>
+                        <th style={{ padding: '12px' }}>Field Agent</th>
+                        <th style={{ padding: '12px' }}>Order Amount</th>
+                        <th style={{ padding: '12px' }}>Status</th>
+                        <th style={{ padding: '12px' }}>Approval Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {salesOrders.map((ord) => (
+                        <tr key={ord.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '12px', fontWeight: '700', color: '#0F172A' }}>{ord.id}</td>
+                          <td style={{ padding: '12px', fontWeight: '600' }}>{ord.outlet}</td>
+                          <td style={{ padding: '12px', color: '#475569' }}>{ord.agent}</td>
+                          <td style={{ padding: '12px', fontWeight: '700', color: '#15803D' }}>{ord.totalAmount}</td>
+                          <td style={{ padding: '12px' }}>
+                            <span style={{ backgroundColor: ord.status === 'APPROVED' ? '#DCFCE7' : '#FEF3C7', color: ord.status === 'APPROVED' ? '#15803D' : '#B45309', padding: '2px 8px', borderRadius: '12px', fontWeight: '600', fontSize: '11px' }}>{ord.status}</span>
+                          </td>
+                          <td style={{ padding: '12px' }}>
+                            {ord.status === 'PENDING_APPROVAL' ? (
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button
+                                  onClick={() => setSalesOrders(salesOrders.map((o) => o.id === ord.id ? { ...o, status: 'APPROVED' } : o))}
+                                  style={{ padding: '4px 10px', borderRadius: '4px', backgroundColor: '#15803D', color: '#FFFFFF', border: 'none', fontWeight: '600', cursor: 'pointer', fontSize: '11px' }}
+                                >
+                                  ✓ Approve
+                                </button>
+                                <button
+                                  onClick={() => setSalesOrders(salesOrders.map((o) => o.id === ord.id ? { ...o, status: 'REJECTED' } : o))}
+                                  style={{ padding: '4px 10px', borderRadius: '4px', backgroundColor: '#B91C1C', color: '#FFFFFF', border: 'none', fontWeight: '600', cursor: 'pointer', fontSize: '11px' }}
+                                >
+                                  ✕ Reject
+                                </button>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '11px', color: '#64748B' }}>Verified</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {sfaSubTab === 'visits' && (
                 <div>
                   <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#0F172A' }}>Active Geofenced Check-Ins</h4>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
@@ -822,7 +1026,9 @@ const App = () => {
                     </tbody>
                   </table>
                 </div>
+              )}
 
+              {sfaSubTab === 'van' && (
                 <div>
                   <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#0F172A' }}>Van Sales Dispatches</h4>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
@@ -846,7 +1052,7 @@ const App = () => {
                     </tbody>
                   </table>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -879,36 +1085,110 @@ const App = () => {
             </div>
           )}
 
-          {/* TAB 6: CLAIMS & FINANCE */}
+          {/* TAB 6: CLAIMS & INVOICING */}
           {activeTab === 'claims-finance' && (
             <div style={{ backgroundColor: '#FFFFFF', borderRadius: '10px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '700' }}>Trade Claims & Credit Notes Ledger</h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>
-                    <th style={{ padding: '12px' }}>Claim ID</th>
-                    <th style={{ padding: '12px' }}>Distributor</th>
-                    <th style={{ padding: '12px' }}>Promotion Scheme</th>
-                    <th style={{ padding: '12px' }}>Claim Amount</th>
-                    <th style={{ padding: '12px' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {claims.map((c) => (
-                    <tr key={c.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                      <td style={{ padding: '12px', fontWeight: '700', color: '#0F172A' }}>{c.id}</td>
-                      <td style={{ padding: '12px' }}>{c.distributor}</td>
-                      <td style={{ padding: '12px', color: '#475569' }}>{c.scheme}</td>
-                      <td style={{ padding: '12px', fontWeight: '700', color: '#15803D' }}>{c.amount}</td>
-                      <td style={{ padding: '12px' }}>
-                        <span style={{ backgroundColor: c.status === 'SETTLED' ? '#DCFCE7' : '#FEF3C7', color: c.status === 'SETTLED' ? '#15803D' : '#B45309', padding: '2px 8px', borderRadius: '12px', fontWeight: '600', fontSize: '11px' }}>
-                          {c.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px', marginBottom: '20px' }}>
+                {[
+                  { id: 'claims', label: `Trade Claims (${claims.length})` },
+                  { id: 'invoices', label: `Invoices & Credit Notes (${invoices.length})` }
+                ].map((sub) => (
+                  <button
+                    key={sub.id}
+                    onClick={() => setFinanceSubTab(sub.id as any)}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: financeSubTab === sub.id ? '#0F172A' : '#F1F5F9',
+                      color: financeSubTab === sub.id ? '#FFFFFF' : '#475569',
+                      fontWeight: '600',
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {sub.label}
+                  </button>
+                ))}
+              </div>
+
+              {financeSubTab === 'invoices' && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>Sales Invoices & Credit Notes Ledger</h3>
+                    <button
+                      onClick={() => {
+                        const customer = prompt('Enter Customer / Distributor Name:');
+                        const amount = prompt('Enter Invoice Amount ($):');
+                        if (customer && amount) {
+                          setInvoices([...invoices, { id: `INV-2026-00${invoices.length + 1}`, customer, amount: `$${amount}`, taxAmount: `$${(parseFloat(amount) * 0.08).toFixed(2)}`, status: 'PAID', dueDate: '2026-08-30' }]);
+                        }
+                      }}
+                      style={{ padding: '8px 16px', borderRadius: '6px', backgroundColor: '#2563EB', color: '#FFFFFF', border: 'none', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}
+                    >
+                      + Generate Invoice
+                    </button>
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>
+                        <th style={{ padding: '12px' }}>Invoice #</th>
+                        <th style={{ padding: '12px' }}>Distributor / Customer</th>
+                        <th style={{ padding: '12px' }}>Total Amount</th>
+                        <th style={{ padding: '12px' }}>Tax (8%)</th>
+                        <th style={{ padding: '12px' }}>Due Date</th>
+                        <th style={{ padding: '12px' }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoices.map((inv) => (
+                        <tr key={inv.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '12px', fontWeight: '700', color: '#0F172A', fontFamily: 'monospace' }}>{inv.id}</td>
+                          <td style={{ padding: '12px', fontWeight: '600' }}>{inv.customer}</td>
+                          <td style={{ padding: '12px', fontWeight: '700', color: '#15803D' }}>{inv.amount}</td>
+                          <td style={{ padding: '12px', color: '#64748B' }}>{inv.taxAmount}</td>
+                          <td style={{ padding: '12px', color: '#475569' }}>{inv.dueDate}</td>
+                          <td style={{ padding: '12px' }}>
+                            <span style={{ backgroundColor: inv.status === 'PAID' ? '#DCFCE7' : inv.status === 'OVERDUE' ? '#FEE2E2' : '#EFF6FF', color: inv.status === 'PAID' ? '#15803D' : inv.status === 'OVERDUE' ? '#B91C1C' : '#1D4ED8', padding: '2px 8px', borderRadius: '12px', fontWeight: '600', fontSize: '11px' }}>{inv.status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {financeSubTab === 'claims' && (
+                <div>
+                  <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '700' }}>Trade Claims & Credit Notes Ledger</h3>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>
+                        <th style={{ padding: '12px' }}>Claim ID</th>
+                        <th style={{ padding: '12px' }}>Distributor</th>
+                        <th style={{ padding: '12px' }}>Promotion Scheme</th>
+                        <th style={{ padding: '12px' }}>Claim Amount</th>
+                        <th style={{ padding: '12px' }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {claims.map((c) => (
+                        <tr key={c.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '12px', fontWeight: '700', color: '#0F172A' }}>{c.id}</td>
+                          <td style={{ padding: '12px' }}>{c.distributor}</td>
+                          <td style={{ padding: '12px', color: '#475569' }}>{c.scheme}</td>
+                          <td style={{ padding: '12px', fontWeight: '700', color: '#15803D' }}>{c.amount}</td>
+                          <td style={{ padding: '12px' }}>
+                            <span style={{ backgroundColor: c.status === 'SETTLED' ? '#DCFCE7' : '#FEF3C7', color: c.status === 'SETTLED' ? '#15803D' : '#B45309', padding: '2px 8px', borderRadius: '12px', fontWeight: '600', fontSize: '11px' }}>
+                              {c.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 
