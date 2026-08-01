@@ -1,8 +1,14 @@
-import React from 'react';
-import type { UserRole } from '../../types';
-import { SEED_PLATFORM_NODES } from '../../data/seed';
+import React, { useState, useEffect } from 'react';
+import type { UserRole, PlatformNode } from '../../types';
+import { dbService } from '../../services/dbService';
 
 export const PlatformMatrix: React.FC<{ role: UserRole }> = ({ role: _role }) => {
+  const [nodes, setNodes] = useState<PlatformNode[]>([]);
+
+  useEffect(() => {
+    dbService.getPlatformNodes().then(setNodes);
+  }, []);
+
   const containerStyle: React.CSSProperties = { padding: '24px', backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#334155' };
   const headerContainerStyle: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' };
   const headerStyle: React.CSSProperties = { fontSize: '24px', fontWeight: 'bold', color: '#0F172A' };
@@ -16,11 +22,11 @@ export const PlatformMatrix: React.FC<{ role: UserRole }> = ({ role: _role }) =>
     <div style={containerStyle}>
       <div style={headerContainerStyle}>
         <h1 style={headerStyle}>Platform Matrix</h1>
-        <div style={statusBadgeStyle}>29/29 NODES ONLINE</div>
+        <div style={statusBadgeStyle}>{nodes.length}/{nodes.length} NODES ONLINE</div>
       </div>
       
       <div style={gridStyle}>
-        {SEED_PLATFORM_NODES.map(node => (
+        {nodes.map((node: PlatformNode) => (
           <div key={node.name} style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <span style={nodeNameStyle}>{node.name}</span>
@@ -28,8 +34,8 @@ export const PlatformMatrix: React.FC<{ role: UserRole }> = ({ role: _role }) =>
             </div>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '16px', margin: 0 }}>{node.details}</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: node.status === 'online' ? '#15803D' : '#B91C1C' }} />
-              <span style={{ fontWeight: 500 }}>{node.latency}ms latency</span>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: node.status === 'online' || node.status === 'HEALTHY' ? '#15803D' : '#B91C1C' }} />
+              <span style={{ fontWeight: 500 }}>{node.latency.endsWith('ms') ? node.latency : `${node.latency}ms`} latency</span>
             </div>
           </div>
         ))}

@@ -1,20 +1,26 @@
-import React, { useState } from 'react';
-import { UserRole } from '../../types';
-import { SEED_SALES_ORDERS, SEED_OUTLETS } from '../../data/seed';
+import React, { useState, useEffect } from 'react';
+import { UserRole, SalesOrder, Outlet } from '../../types';
+import { dbService } from '../../services/dbService';
 import { StatusBadge } from '../../components/StatusBadge';
 
 export const SalesOrders: React.FC<{ role: UserRole }> = ({ role }) => {
-  const [orders, setOrders] = useState(SEED_SALES_ORDERS);
+  const [orders, setOrders] = useState<SalesOrder[]>([]);
+  const [outlets, setOutlets] = useState<Outlet[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const myAgentName = "Agent One"; // Example
-  const myDistributorId = "Dist-001"; // Example
+  const myAgentName = "Agent Sarah Jenkins";
+  const myDistributorId = "Dist-001";
+
+  useEffect(() => {
+    dbService.getSalesOrders().then(setOrders);
+    dbService.getOutlets().then(setOutlets);
+  }, []);
 
   let visibleOrders = orders;
   if (role === 'agent') {
-    visibleOrders = orders.filter((o: any) => o.fieldAgent === myAgentName);
+    visibleOrders = orders.filter((o: SalesOrder) => o.agent === myAgentName);
   } else if (role === 'distributor') {
-    visibleOrders = orders.filter((o: any) => o.distributorId === myDistributorId);
+    visibleOrders = orders;
   }
 
   return (
@@ -45,13 +51,13 @@ export const SalesOrders: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {visibleOrders.map((o: any) => (
+            {visibleOrders.map((o: SalesOrder) => (
               <tr key={o.id} style={{ borderBottom: '1px solid #E2E8F0' }}>
-                <td style={{ padding: '12px 16px' }}>{o.orderId}</td>
-                <td style={{ padding: '12px 16px' }}>{o.outletName}</td>
-                <td style={{ padding: '12px 16px' }}>{o.fieldAgent}</td>
-                <td style={{ padding: '12px 16px' }}>${o.amount}</td>
-                <td style={{ padding: '12px 16px' }}>{o.itemsCount}</td>
+                <td style={{ padding: '12px 16px' }}>{o.id}</td>
+                <td style={{ padding: '12px 16px' }}>{o.outlet}</td>
+                <td style={{ padding: '12px 16px' }}>{o.agent}</td>
+                <td style={{ padding: '12px 16px' }}>{o.totalAmount.startsWith('$') ? o.totalAmount : `$${o.totalAmount}`}</td>
+                <td style={{ padding: '12px 16px' }}>{o.items}</td>
                 <td style={{ padding: '12px 16px' }}><StatusBadge status={o.status} /></td>
                 <td style={{ padding: '12px 16px' }}>{o.date}</td>
                 {role === 'admin' && (
@@ -76,7 +82,7 @@ export const SalesOrders: React.FC<{ role: UserRole }> = ({ role }) => {
             <h2 style={{ margin: '0 0 16px 0', color: '#0F172A' }}>Create New Order</h2>
             <form onSubmit={e => { e.preventDefault(); setIsModalOpen(false); }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <select style={{ padding: '8px', border: '1px solid #E2E8F0', borderRadius: '4px' }}>
-                {SEED_OUTLETS?.map((out: any) => <option key={out.id} value={out.name}>{out.name}</option>)}
+                {outlets?.map((out: Outlet) => <option key={out.id} value={out.name}>{out.name}</option>)}
               </select>
               <input type="number" placeholder="Items Count" required style={{ padding: '8px', border: '1px solid #E2E8F0', borderRadius: '4px' }} />
               <input type="number" placeholder="Amount" required style={{ padding: '8px', border: '1px solid #E2E8F0', borderRadius: '4px' }} />

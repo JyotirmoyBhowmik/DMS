@@ -1,17 +1,22 @@
-import React from 'react';
-import { UserRole } from '../../types';
-import { SEED_FIELD_VISITS } from '../../data/seed';
+import React, { useState, useEffect } from 'react';
+import { UserRole, FieldVisit } from '../../types';
+import { dbService } from '../../services/dbService';
 import { StatusBadge } from '../../components/StatusBadge';
 
 export const FieldVisits: React.FC<{ role: UserRole }> = ({ role }) => {
-  const myAgentName = "Agent One";
+  const [visits, setVisits] = useState<FieldVisit[]>([]);
+  const myAgentName = "Agent Sarah Jenkins";
+
+  useEffect(() => {
+    dbService.getFieldVisits().then(setVisits);
+  }, []);
   
   const visibleVisits = role === 'agent' 
-    ? SEED_FIELD_VISITS.filter((v: any) => v.agentName === myAgentName)
-    : SEED_FIELD_VISITS;
+    ? visits.filter((v: FieldVisit) => v.agent === myAgentName)
+    : visits;
 
   const totalVisits = visibleVisits.length;
-  const completedVisits = visibleVisits.filter((v: any) => v.status === 'COMPLETED').length;
+  const completedVisits = visibleVisits.filter((v: FieldVisit) => v.status === 'COMPLETED').length;
   const compliance = totalVisits > 0 ? ((completedVisits / totalVisits) * 100).toFixed(1) : '0.0';
 
   return (
@@ -34,10 +39,10 @@ export const FieldVisits: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {visibleVisits.map((v: any) => (
+            {visibleVisits.map((v: FieldVisit) => (
               <tr key={v.id} style={{ borderBottom: '1px solid #E2E8F0' }}>
-                <td style={{ padding: '12px 16px' }}>{v.agentName}</td>
-                <td style={{ padding: '12px 16px' }}>{v.outletName}</td>
+                <td style={{ padding: '12px 16px' }}>{v.agent}</td>
+                <td style={{ padding: '12px 16px' }}>{v.outlet}</td>
                 <td style={{ padding: '12px 16px' }}>{v.time}</td>
                 <td style={{ padding: '12px 16px' }}>
                   <StatusBadge status={v.status} />

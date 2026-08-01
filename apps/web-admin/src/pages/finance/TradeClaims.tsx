@@ -1,18 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserRole, TradeClaim } from '../../types';
-import { SEED_TRADE_CLAIMS } from '../../data/seed';
+import { dbService } from '../../services/dbService';
 import { StatusBadge } from '../../components/StatusBadge';
 
 export const TradeClaims: React.FC<{ role: UserRole }> = ({ role }) => {
-  const [claims, setClaims] = useState<TradeClaim[]>(SEED_TRADE_CLAIMS);
+  const [claims, setClaims] = useState<TradeClaim[]>([]);
   const [showForm, setShowForm] = useState(false);
 
+  useEffect(() => {
+    dbService.getTradeClaims().then(setClaims);
+  }, []);
+
   const handleApprove = (id: string) => {
-    setClaims(claims.map(c => c.id === id ? { ...c, status: 'SETTLED' } : c));
+    setClaims(claims.map((c: TradeClaim) => c.id === id ? { ...c, status: 'SETTLED' } : c));
   };
 
   const handleReject = (id: string) => {
-    setClaims(claims.map(c => c.id === id ? { ...c, status: 'REJECTED' } : c));
+    setClaims(claims.map((c: TradeClaim) => c.id === id ? { ...c, status: 'REJECTED' } : c));
   };
 
   // Only distributors see their own, but since we don't have auth context, 
@@ -65,7 +69,7 @@ export const TradeClaims: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {displayClaims.map((claim, idx) => (
+            {displayClaims.map((claim: TradeClaim, idx: number) => (
               <tr key={claim.id} style={{ borderBottom: idx === displayClaims.length - 1 ? 'none' : '1px solid #E2E8F0' }}>
                 <td style={{ padding: '12px 16px', fontWeight: 500 }}>{claim.id}</td>
                 <td style={{ padding: '12px 16px' }}>{claim.distributor}</td>

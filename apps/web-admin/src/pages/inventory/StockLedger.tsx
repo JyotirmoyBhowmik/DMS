@@ -1,19 +1,24 @@
-import React, { useState } from 'react';
-import { UserRole } from '../../types';
-import { SEED_INVENTORY } from '../../data/seed';
+import React, { useState, useEffect } from 'react';
+import { UserRole, SkuItem } from '../../types';
+import { dbService } from '../../services/dbService';
 
 export const StockLedger: React.FC<{ role: UserRole }> = ({ role }) => {
-  const [inventory] = useState(SEED_INVENTORY);
-  const totalSkus = inventory.length;
-  const totalUnits = inventory.reduce((acc: number, item: any) => acc + item.stock, 0);
-  const lowStockCount = inventory.filter((item: any) => item.stock <= item.minThreshold).length;
-  const totalValue = inventory.reduce((acc: number, item: any) => acc + (item.stock * item.price), 0);
+  const [inventory, setInventory] = useState<SkuItem[]>([]);
 
-  const byCategory = inventory.reduce((acc: any, item: any) => {
+  useEffect(() => {
+    dbService.getInventory().then(setInventory);
+  }, []);
+
+  const totalSkus = inventory.length;
+  const totalUnits = inventory.reduce((acc: number, item: SkuItem) => acc + item.stock, 0);
+  const lowStockCount = inventory.filter((item: SkuItem) => item.stock <= item.minThreshold).length;
+  const totalValue = inventory.reduce((acc: number, item: SkuItem) => acc + (item.stock * item.price), 0);
+
+  const byCategory = inventory.reduce((acc: Record<string, SkuItem[]>, item: SkuItem) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;
-  }, {} as Record<string, typeof inventory>);
+  }, {} as Record<string, SkuItem[]>);
 
   return (
     <div style={{ padding: '24px', backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#334155' }}>
@@ -34,7 +39,7 @@ export const StockLedger: React.FC<{ role: UserRole }> = ({ role }) => {
       </div>
 
       <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '24px' }}>
-        {Object.entries(byCategory).map(([category, items]: [string, any]) => (
+        {Object.entries(byCategory).map(([category, items]: [string, SkuItem[]]) => (
           <div key={category} style={{ marginBottom: '24px' }}>
             <h2 style={{ fontSize: '18px', color: '#0F172A', margin: '0 0 12px 0', paddingBottom: '8px', borderBottom: '1px solid #E2E8F0' }}>{category}</h2>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -47,9 +52,9 @@ export const StockLedger: React.FC<{ role: UserRole }> = ({ role }) => {
                 </tr>
               </thead>
               <tbody>
-                {items.map((item: any) => (
-                  <tr key={item.id}>
-                    <td style={{ padding: '8px', borderBottom: '1px solid #E2E8F0' }}>{item.skuCode}</td>
+                {items.map((item: SkuItem) => (
+                  <tr key={item.sku}>
+                    <td style={{ padding: '8px', borderBottom: '1px solid #E2E8F0' }}>{item.sku}</td>
                     <td style={{ padding: '8px', borderBottom: '1px solid #E2E8F0' }}>{item.name}</td>
                     <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #E2E8F0' }}>{item.stock}</td>
                     <td style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid #E2E8F0' }}>${(item.stock * item.price).toFixed(2)}</td>

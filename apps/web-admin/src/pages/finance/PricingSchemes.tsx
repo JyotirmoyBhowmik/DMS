@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
-import { UserRole } from '../../types';
-import { SEED_TRADE_SCHEMES } from '../../data/seed';
+import React, { useState, useEffect } from 'react';
+import { UserRole, TradeScheme } from '../../types';
+import { dbService } from '../../services/dbService';
 import { StatusBadge } from '../../components/StatusBadge';
 
 export const PricingSchemes: React.FC<{ role: UserRole }> = ({ role }) => {
+  const [schemes, setSchemes] = useState<TradeScheme[]>([]);
   const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    dbService.getTradeSchemes().then(setSchemes);
+  }, []);
 
   return (
     <div style={{ padding: '24px', backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#334155', fontFamily: 'system-ui, sans-serif' }}>
@@ -55,8 +60,8 @@ export const PricingSchemes: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {SEED_TRADE_SCHEMES.map((scheme, idx) => (
-              <tr key={scheme.id} style={{ borderBottom: idx === SEED_TRADE_SCHEMES.length - 1 ? 'none' : '1px solid #E2E8F0' }}>
+            {schemes.map((scheme: TradeScheme, idx: number) => (
+              <tr key={scheme.id} style={{ borderBottom: idx === schemes.length - 1 ? 'none' : '1px solid #E2E8F0' }}>
                 <td style={{ padding: '12px 16px', fontWeight: 500 }}>{scheme.name}</td>
                 <td style={{ padding: '12px 16px' }}>
                   <StatusBadge status={scheme.type} />

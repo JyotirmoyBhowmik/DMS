@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
-import { UserRole } from '../../types';
-import { SEED_INVENTORY, SKU_CATEGORIES, DISTRIBUTOR_NAMES } from '../../data/seed';
+import React, { useState, useEffect } from 'react';
+import { UserRole, SkuItem } from '../../types';
+import { SKU_CATEGORIES, DISTRIBUTOR_NAMES } from '../../data/seed';
+import { dbService } from '../../services/dbService';
 
 export const SkuCatalog: React.FC<{ role: UserRole }> = ({ role }) => {
-  const [inventory, setInventory] = useState(SEED_INVENTORY);
+  const [inventory, setInventory] = useState<SkuItem[]>([]);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    dbService.getInventory().then(setInventory);
+  }, []);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     setIsModalOpen(false);
   };
 
-  const filtered = inventory.filter((item: any) => 
+  const filtered = inventory.filter((item: SkuItem) => 
     item.name.toLowerCase().includes(search.toLowerCase()) || 
-    item.skuCode.toLowerCase().includes(search.toLowerCase())
+    item.sku.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -53,12 +58,12 @@ export const SkuCatalog: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((item: any) => (
-              <tr key={item.id} style={{ borderBottom: '1px solid #E2E8F0' }}>
-                <td style={{ padding: '12px 16px' }}>{item.skuCode}</td>
+            {filtered.map((item: SkuItem) => (
+              <tr key={item.sku} style={{ borderBottom: '1px solid #E2E8F0' }}>
+                <td style={{ padding: '12px 16px' }}>{item.sku}</td>
                 <td style={{ padding: '12px 16px' }}>{item.name}</td>
                 <td style={{ padding: '12px 16px' }}>{item.category}</td>
-                <td style={{ padding: '12px 16px' }}>{item.distributorId}</td>
+                <td style={{ padding: '12px 16px' }}>{item.distributor}</td>
                 <td style={{ padding: '12px 16px' }}>{item.stock}</td>
                 <td style={{ padding: '12px 16px' }}>${item.price}</td>
                 <td style={{ padding: '12px 16px', color: item.stock <= item.minThreshold ? '#B91C1C' : '#15803D', fontWeight: 'bold' }}>

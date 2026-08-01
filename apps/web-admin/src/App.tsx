@@ -1,8 +1,8 @@
 // ── App Root: Auth Gate + Hash Router + Layout ──
 
-import React, { useState, useCallback, useMemo } from 'react';
-import type { UserRole, RouteId, AppUser } from './types';
-import { SEED_TENANTS } from './data/seed';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import type { UserRole, RouteId, AppUser, Tenant } from './types';
+import { dbService } from './services/dbService';
 import { Sidebar } from './components/Sidebar';
 import { LandingPage } from './pages/landing/LandingPage';
 
@@ -60,9 +60,14 @@ export const App: React.FC = () => {
 
   // ── App State ──
   const [activeRoute, setActiveRoute] = useState<RouteId>('dashboard');
+  const [tenants, setTenants] = useState<Array<{ id: string; name: string }>>([]);
   const [tenantName, setTenantName] = useState('Global Distribution Corp');
   const [isLiveApiMode, setIsLiveApiMode] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState(new Date().toLocaleTimeString());
+
+  useEffect(() => {
+    dbService.getTenants().then((t: Tenant[]) => setTenants(t.map((x: Tenant) => ({ id: x.id, name: x.name }))));
+  }, []);
 
   // ── Auth Actions ──
   const handleLogin = useCallback((email: string, _password: string, role: UserRole) => {
@@ -154,7 +159,7 @@ export const App: React.FC = () => {
         activeRoute={activeRoute}
         currentRole={currentRole}
         tenantName={tenantName}
-        tenants={SEED_TENANTS.map((t) => ({ id: t.id, name: t.name }))}
+        tenants={tenants}
         onNavigate={setActiveRoute}
         onTenantChange={setTenantName}
       />

@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserRole, Invoice } from '../../types';
-import { SEED_INVOICES } from '../../data/seed';
+import { dbService } from '../../services/dbService';
 import { StatusBadge } from '../../components/StatusBadge';
 
 const DISTRIBUTOR_NAMES = ['Alpha Distributors', 'Beta Logistics', 'Gamma Supplies'];
 
 export const Invoices: React.FC<{ role: UserRole }> = ({ role }) => {
-  const [invoices, setInvoices] = useState<Invoice[]>(SEED_INVOICES);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+
+  useEffect(() => {
+    dbService.getInvoices().then(setInvoices);
+  }, []);
   const [showForm, setShowForm] = useState(false);
   const [newCustomer, setNewCustomer] = useState(DISTRIBUTOR_NAMES[0]);
   const [newAmount, setNewAmount] = useState<number | ''>('');
@@ -54,7 +58,7 @@ export const Invoices: React.FC<{ role: UserRole }> = ({ role }) => {
                 onChange={e => setNewCustomer(e.target.value)}
                 style={{ width: '100%', padding: '8px', border: '1px solid #E2E8F0', borderRadius: '4px' }}
               >
-                {DISTRIBUTOR_NAMES.map(name => <option key={name} value={name}>{name}</option>)}
+                {DISTRIBUTOR_NAMES.map((name: string) => <option key={name} value={name}>{name}</option>)}
               </select>
             </div>
             <div style={{ flex: 1 }}>
@@ -93,7 +97,7 @@ export const Invoices: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {invoices.map((inv, idx) => (
+            {invoices.map((inv: Invoice, idx: number) => (
               <tr key={inv.id} style={{ borderBottom: idx === invoices.length - 1 ? 'none' : '1px solid #E2E8F0' }}>
                 <td style={{ padding: '12px 16px', fontWeight: 500 }}>{inv.id}</td>
                 <td style={{ padding: '12px 16px' }}>{inv.customer}</td>

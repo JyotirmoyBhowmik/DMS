@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
-import { UserRole } from '../../types';
-import { SEED_AUDIT_CHAIN } from '../../data/seed';
+import React, { useState, useEffect } from 'react';
+import type { UserRole, AuditBlock } from '../../types';
+import { dbService } from '../../services/dbService';
 
 interface AuditLedgerProps {
   role: UserRole;
 }
 
 export const AuditLedger: React.FC<AuditLedgerProps> = ({ role }) => {
-  const [verifying, setVerifying] = useState(false);
-  const [verified, setVerified] = useState(false);
+  const [chain, setChain] = useState<AuditBlock[]>([]);
+  const [verifying, setVerifying] = useState<boolean>(false);
+  const [verified, setVerified] = useState<boolean>(false);
+
+  useEffect(() => {
+    dbService.getAuditChain().then(setChain);
+  }, []);
 
   const handleVerify = () => {
     setVerifying(true);
@@ -46,7 +51,7 @@ export const AuditLedger: React.FC<AuditLedgerProps> = ({ role }) => {
           </tr>
         </thead>
         <tbody>
-          {SEED_AUDIT_CHAIN.map(b => (
+          {chain.map((b: AuditBlock) => (
             <tr key={b.block}>
               <td style={tdStyle}>{b.block}</td>
               <td style={tdStyle}>{b.action}</td>

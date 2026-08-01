@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
-import { UserRole } from '../../types';
-import { SEED_OUTLETS, OUTLET_TYPES, AGENT_NAMES } from '../../data/seed';
+import React, { useState, useEffect } from 'react';
+import { UserRole, Outlet } from '../../types';
+import { dbService } from '../../services/dbService';
+import { OUTLET_TYPES, AGENT_NAMES } from '../../data/seed';
 import { StatusBadge } from '../../components/StatusBadge';
 
 export const OutletRegistry: React.FC<{ role: UserRole }> = ({ role }) => {
-  const [outlets, setOutlets] = useState(SEED_OUTLETS);
+  const [outlets, setOutlets] = useState<Outlet[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const myAgentName = "Agent One"; // Example
+  const myAgentName = "agent-001@enterprise.com";
+
+  useEffect(() => {
+    dbService.getOutlets().then(setOutlets);
+  }, []);
 
   const visibleOutlets = role === 'agent' 
-    ? outlets.filter((o: any) => o.assignedAgent === myAgentName)
+    ? outlets.filter((o: Outlet) => o.assignedAgent === myAgentName)
     : outlets;
 
   return (
@@ -38,7 +43,7 @@ export const OutletRegistry: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {visibleOutlets.map((o: any) => (
+            {visibleOutlets.map((o: Outlet) => (
               <tr key={o.id} style={{ borderBottom: '1px solid #E2E8F0' }}>
                 <td style={{ padding: '12px 16px', fontWeight: '500' }}>{o.name}</td>
                 <td style={{ padding: '12px 16px' }}><StatusBadge status={o.type} /></td>

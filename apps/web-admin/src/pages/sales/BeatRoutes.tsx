@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
-import { UserRole } from '../../types';
-import { SEED_BEAT_ROUTES, AGENT_NAMES, GEOFENCE_RADII } from '../../data/seed';
+import React, { useState, useEffect } from 'react';
+import { UserRole, BeatRoute } from '../../types';
+import { AGENT_NAMES, GEOFENCE_RADII } from '../../data/seed';
+import { dbService } from '../../services/dbService';
 import { StatusBadge } from '../../components/StatusBadge';
 
 export const BeatRoutes: React.FC<{ role: UserRole }> = ({ role }) => {
-  const [routes, setRoutes] = useState(SEED_BEAT_ROUTES);
+  const [beats, setBeats] = useState<BeatRoute[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const myAgentName = "Agent One";
+  const myAgentName = "Agent Sarah Jenkins";
+
+  useEffect(() => {
+    dbService.getBeatRoutes().then(setBeats);
+  }, []);
 
   const visibleRoutes = role === 'agent' 
-    ? routes.filter((r: any) => r.assignedAgent === myAgentName)
-    : routes;
+    ? beats.filter((r: BeatRoute) => r.agent === myAgentName)
+    : beats;
 
   return (
     <div style={{ padding: '24px', backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#334155' }}>
@@ -38,13 +43,13 @@ export const BeatRoutes: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {visibleRoutes.map((r: any) => (
+            {visibleRoutes.map((r: BeatRoute) => (
               <tr key={r.id} style={{ borderBottom: '1px solid #E2E8F0' }}>
-                <td style={{ padding: '12px 16px' }}>{r.beatCode}</td>
-                <td style={{ padding: '12px 16px' }}>{r.routeName}</td>
-                <td style={{ padding: '12px 16px' }}>{r.assignedAgent}</td>
+                <td style={{ padding: '12px 16px' }}>{r.code}</td>
+                <td style={{ padding: '12px 16px' }}>{r.name}</td>
+                <td style={{ padding: '12px 16px' }}>{r.agent}</td>
                 <td style={{ padding: '12px 16px' }}>{r.outletsCount}</td>
-                <td style={{ padding: '12px 16px' }}>{r.geofenceRadius}m</td>
+                <td style={{ padding: '12px 16px' }}>{r.radiusKm}</td>
                 <td style={{ padding: '12px 16px' }}><StatusBadge status={r.status} /></td>
               </tr>
             ))}

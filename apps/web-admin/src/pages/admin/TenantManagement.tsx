@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
-import { UserRole } from '../../types';
-import { SEED_TENANTS } from '../../data/seed';
+import React, { useState, useEffect } from 'react';
+import type { UserRole, Tenant } from '../../types';
+import { dbService } from '../../services/dbService';
 
 interface TenantManagementProps {
   role: UserRole;
 }
 
 export const TenantManagement: React.FC<TenantManagementProps> = ({ role }) => {
-  const [tenants, setTenants] = useState(SEED_TENANTS);
-  const [showForm, setShowForm] = useState(false);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [showForm, setShowForm] = useState<boolean>(false);
+
+  useEffect(() => {
+    dbService.getTenants().then(setTenants);
+  }, []);
 
   const containerStyle: React.CSSProperties = { padding: '24px', backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#334155' };
   const headerStyle: React.CSSProperties = { fontSize: '24px', fontWeight: 'bold', color: '#0F172A' };
@@ -44,7 +48,7 @@ export const TenantManagement: React.FC<TenantManagementProps> = ({ role }) => {
           </tr>
         </thead>
         <tbody>
-          {tenants.map(t => (
+          {tenants.map((t: Tenant) => (
             <tr key={t.id}>
               <td style={{ ...tdStyle, ...monoStyle }}>{t.id}</td>
               <td style={tdStyle}>{t.name}</td>
