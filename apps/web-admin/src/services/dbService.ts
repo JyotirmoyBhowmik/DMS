@@ -21,18 +21,43 @@ class DatabaseClient {
   // ── Generic Dynamic DB Endpoint Fetcher ──
   private async queryDb<T>(endpoint: string, fallbackData: T): Promise<T> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
       const response = await fetch(`${API_BASE}${endpoint}`, {
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
           'X-Tenant-ID': this.tenantId,
         },
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
         throw new Error(`HTTP DB Query failed: ${response.status}`);
       }
 
       const json = await response.json();
+      
+      // Strict array defense for list endpoints
+      if (Array.isArray(fallbackData)) {
+        const extracted = Array.isArray(json) 
+          ? json 
+          : Array.isArray(json?.data) 
+            ? json.data 
+            : Array.isArray(json?.items) 
+              ? json.items 
+              : Array.isArray(json?.results) 
+                ? json.results 
+                : null;
+
+        if (extracted && extracted.length > 0) {
+          return extracted as T;
+        }
+        return fallbackData;
+      }
+
       return (json.data ?? json) as T;
     } catch (err) {
       console.warn(`[DbService] Real-time DB query failed for ${endpoint}, utilizing dynamic database cache:`, err);

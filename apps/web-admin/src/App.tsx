@@ -66,7 +66,11 @@ export const App: React.FC = () => {
   const [lastRefreshed, setLastRefreshed] = useState(new Date().toLocaleTimeString());
 
   useEffect(() => {
-    dbService.getTenants().then((t: Tenant[]) => setTenants(t.map((x: Tenant) => ({ id: x.id, name: x.name }))));
+    dbService.getTenants().then((t: Tenant[]) => {
+      if (Array.isArray(t)) {
+        setTenants(t.map((x: Tenant) => ({ id: x.id, name: x.name })));
+      }
+    }).catch(err => console.warn('Tenant fetch error:', err));
   }, []);
 
   // ── Auth Actions ──
