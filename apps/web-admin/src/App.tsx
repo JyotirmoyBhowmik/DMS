@@ -1,4 +1,4 @@
-// ── App Root: Auth Gate + Hash Router + Layout ──
+// ── App Root: Frame-Wise Architecture + Auth Gate + Hash Router ──
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import type { UserRole, RouteId, AppUser, Tenant } from './types';
@@ -6,50 +6,30 @@ import { dbService } from './services/dbService';
 import { Sidebar } from './components/Sidebar';
 import { LandingPage } from './pages/landing/LandingPage';
 
-// ── Lazy page imports (avoids circular deps, keeps bundle clean) ──
-import { AdminDashboard } from './pages/admin/AdminDashboard';
-import { UserManagement } from './pages/admin/UserManagement';
-import { TenantManagement } from './pages/admin/TenantManagement';
-import { PlatformMatrix } from './pages/admin/PlatformMatrix';
-import { AuditLedger } from './pages/admin/AuditLedger';
-import { SystemConfig } from './pages/admin/SystemConfig';
-import { SkuCatalog } from './pages/inventory/SkuCatalog';
-import { StockLedger } from './pages/inventory/StockLedger';
-import { OutletRegistry } from './pages/inventory/OutletRegistry';
-import { SalesOrders } from './pages/sales/SalesOrders';
-import { BeatRoutes } from './pages/sales/BeatRoutes';
-import { FieldVisits } from './pages/sales/FieldVisits';
-import { VanSales } from './pages/sales/VanSales';
-import { Invoices } from './pages/finance/Invoices';
-import { TradeClaims } from './pages/finance/TradeClaims';
-import { PricingSchemes } from './pages/finance/PricingSchemes';
-import { AiForecast } from './pages/analytics/AiForecast';
-import { Reports } from './pages/analytics/Reports';
-import { SyncQueue } from './pages/integration/SyncQueue';
+// ── Frame Container Imports ──
+import { DmsFrame } from './frames/DmsFrame';
+import { SfaFrame } from './frames/SfaFrame';
+import { GovernanceFrame } from './frames/GovernanceFrame';
+import { AnalyticsFrame } from './frames/AnalyticsFrame';
+import { ControlFrame } from './frames/ControlFrame';
 
-// ── Route → Component Map ──
+export type FrameId = 'dms' | 'sfa' | 'governance' | 'analytics' | 'control';
 
-const ROUTE_TITLES: Record<RouteId, string> = {
-  dashboard: 'Dashboard',
-  'platform-matrix': 'Platform Architecture Matrix',
-  users: 'User Management',
-  tenants: 'Tenant Management',
-  'sku-catalog': 'SKU Catalog',
-  'stock-ledger': 'Stock Ledger',
-  'outlet-registry': 'Outlet Registry',
-  'sales-orders': 'Sales Orders',
-  'beat-routes': 'Beat Routes',
-  'field-visits': 'Field Visits',
-  'van-sales': 'Van Sales',
-  invoices: 'Invoice Ledger',
-  'trade-claims': 'Trade Claims',
-  'pricing-schemes': 'Pricing & Schemes',
-  'ai-forecast': 'AI Demand Forecast',
-  reports: 'Reports & Analytics',
-  'audit-ledger': 'Audit Ledger',
-  'system-config': 'System Configuration',
-  'sync-queue': 'Sync Queue',
-};
+interface FrameMeta {
+  id: FrameId;
+  label: string;
+  icon: string;
+  color: string;
+  roles: UserRole[];
+}
+
+const FRAMES: FrameMeta[] = [
+  { id: 'control', label: 'System Control Frame', icon: '🏛️', color: '#0F172A', roles: ['admin', 'auditor'] },
+  { id: 'dms', label: 'DMS Supply Chain Frame', icon: '🏢', color: '#1D4ED8', roles: ['admin', 'agent', 'distributor', 'auditor'] },
+  { id: 'sfa', label: 'SFA Field Ops Frame', icon: '📍', color: '#15803D', roles: ['admin', 'agent'] },
+  { id: 'governance', label: 'Financial Governance Frame', icon: '💰', color: '#B45309', roles: ['admin', 'distributor', 'auditor'] },
+  { id: 'analytics', label: 'AI & Analytics Frame', icon: '⚡', color: '#7C3AED', roles: ['admin'] },
+];
 
 export const App: React.FC = () => {
   // ── Auth State ──
@@ -58,7 +38,8 @@ export const App: React.FC = () => {
   const [currentRole, setCurrentRole] = useState<UserRole>('admin');
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
 
-  // ── App State ──
+  // ── Frame & App State ──
+  const [activeFrame, setActiveFrame] = useState<FrameId>('control');
   const [activeRoute, setActiveRoute] = useState<RouteId>('dashboard');
   const [tenants, setTenants] = useState<Array<{ id: string; name: string }>>([]);
   const [tenantName, setTenantName] = useState('Global Distribution Corp');
@@ -70,7 +51,24 @@ export const App: React.FC = () => {
       if (Array.isArray(t)) {
         setTenants(t.map((x: Tenant) => ({ id: x.id, name: x.name })));
       }
-    }).catch(err => console.warn('Tenant fetch error:', err));
+    }).catch((err) => console.warn('Tenant fetch error:', err));
+  }, []);
+
+  // ── Route → Frame Synchronization ──
+  const handleNavigate = useCallback((route: RouteId) => {
+    setActiveRoute(route);
+    // Auto-switch active frame based on route
+    if (['sku-catalog', 'stock-ledger', 'outlet-registry', 'pricing-schemes'].includes(route)) {
+      setActiveFrame('dms');
+    } else if (['sales-orders', 'beat-routes', 'field-visits', 'van-sales'].includes(route)) {
+      setActiveFrame('sfa');
+    } else if (['invoices', 'trade-claims', 'audit-ledger'].includes(route)) {
+      setActiveFrame('governance');
+    } else if (['ai-forecast', 'reports'].includes(route)) {
+      setActiveFrame('analytics');
+    } else if (['dashboard', 'platform-matrix', 'users', 'tenants', 'system-config', 'sync-queue'].includes(route)) {
+      setActiveFrame('control');
+    }
   }, []);
 
   // ── Auth Actions ──
@@ -86,7 +84,21 @@ export const App: React.FC = () => {
     setCurrentRole(role);
     setIsAuthenticated(true);
     setIsDemoMode(false);
-    setActiveRoute('dashboard');
+    
+    // Set default frame per role
+    if (role === 'agent') {
+      setActiveFrame('sfa');
+      setActiveRoute('sales-orders');
+    } else if (role === 'distributor') {
+      setActiveFrame('dms');
+      setActiveRoute('sku-catalog');
+    } else if (role === 'auditor') {
+      setActiveFrame('governance');
+      setActiveRoute('invoices');
+    } else {
+      setActiveFrame('control');
+      setActiveRoute('dashboard');
+    }
   }, []);
 
   const handleDemoMode = useCallback(() => {
@@ -101,6 +113,7 @@ export const App: React.FC = () => {
     setCurrentRole('admin');
     setIsAuthenticated(true);
     setIsDemoMode(true);
+    setActiveFrame('control');
     setActiveRoute('dashboard');
   }, []);
 
@@ -109,6 +122,7 @@ export const App: React.FC = () => {
     setIsDemoMode(false);
     setCurrentUser(null);
     setCurrentRole('admin');
+    setActiveFrame('control');
     setActiveRoute('dashboard');
   }, []);
 
@@ -116,39 +130,34 @@ export const App: React.FC = () => {
     setLastRefreshed(new Date().toLocaleTimeString());
   }, []);
 
-  // ── Render Route ──
-  const routeContent = useMemo(() => {
-    const props = { role: currentRole };
-    switch (activeRoute) {
-      case 'dashboard': return <AdminDashboard {...props} />;
-      case 'platform-matrix': return <PlatformMatrix {...props} />;
-      case 'users': return <UserManagement {...props} />;
-      case 'tenants': return <TenantManagement {...props} />;
-      case 'sku-catalog': return <SkuCatalog {...props} />;
-      case 'stock-ledger': return <StockLedger {...props} />;
-      case 'outlet-registry': return <OutletRegistry {...props} />;
-      case 'sales-orders': return <SalesOrders {...props} />;
-      case 'beat-routes': return <BeatRoutes {...props} />;
-      case 'field-visits': return <FieldVisits {...props} />;
-      case 'van-sales': return <VanSales {...props} />;
-      case 'invoices': return <Invoices {...props} />;
-      case 'trade-claims': return <TradeClaims {...props} />;
-      case 'pricing-schemes': return <PricingSchemes {...props} />;
-      case 'ai-forecast': return <AiForecast {...props} />;
-      case 'reports': return <Reports {...props} />;
-      case 'audit-ledger': return <AuditLedger {...props} />;
-      case 'system-config': return <SystemConfig {...props} />;
-      case 'sync-queue': return <SyncQueue {...props} />;
-      default: return <AdminDashboard {...props} />;
+  // Filter available frames by role
+  const visibleFrames = useMemo(() => {
+    return FRAMES.filter((f) => f.roles.includes(currentRole));
+  }, [currentRole]);
+
+  // ── Render Active Frame ──
+  const frameContent = useMemo(() => {
+    switch (activeFrame) {
+      case 'dms':
+        return <DmsFrame role={currentRole} initialTab={activeRoute} />;
+      case 'sfa':
+        return <SfaFrame role={currentRole} initialTab={activeRoute} />;
+      case 'governance':
+        return <GovernanceFrame role={currentRole} initialTab={activeRoute} />;
+      case 'analytics':
+        return <AnalyticsFrame role={currentRole} initialTab={activeRoute} />;
+      case 'control':
+      default:
+        return <ControlFrame role={currentRole} initialTab={activeRoute} />;
     }
-  }, [activeRoute, currentRole]);
+  }, [activeFrame, activeRoute, currentRole]);
 
   // ── Pre-Auth: Landing Page ──
   if (!isAuthenticated) {
     return <LandingPage onLogin={handleLogin} onDemoMode={handleDemoMode} />;
   }
 
-  // ── Post-Auth: App Shell ──
+  // ── Post-Auth: App Frame-Wise Shell ──
   return (
     <div
       style={{
@@ -164,7 +173,7 @@ export const App: React.FC = () => {
         currentRole={currentRole}
         tenantName={tenantName}
         tenants={tenants}
-        onNavigate={setActiveRoute}
+        onNavigate={handleNavigate}
         onTenantChange={setTenantName}
       />
 
@@ -173,7 +182,7 @@ export const App: React.FC = () => {
         {/* Top Header Bar */}
         <header
           style={{
-            height: '60px',
+            height: '64px',
             backgroundColor: '#FFFFFF',
             borderBottom: '1px solid #E2E8F0',
             display: 'flex',
@@ -181,17 +190,48 @@ export const App: React.FC = () => {
             justifyContent: 'space-between',
             padding: '0 28px',
             flexShrink: 0,
+            gap: '16px',
           }}
         >
-          <div>
-            <h1 style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A', margin: 0 }}>
-              {ROUTE_TITLES[activeRoute] ?? 'Dashboard'}
-            </h1>
-            <p style={{ fontSize: '11px', color: '#64748B', margin: '2px 0 0' }}>
-              {tenantName} • Last refreshed {lastRefreshed}
-            </p>
+          {/* Frame Switcher Bar */}
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            {visibleFrames.map((f) => {
+              const isActive = activeFrame === f.id;
+              return (
+                <button
+                  key={f.id}
+                  onClick={() => {
+                    setActiveFrame(f.id);
+                    if (f.id === 'dms') setActiveRoute('sku-catalog');
+                    if (f.id === 'sfa') setActiveRoute('sales-orders');
+                    if (f.id === 'governance') setActiveRoute('invoices');
+                    if (f.id === 'analytics') setActiveRoute('ai-forecast');
+                    if (f.id === 'control') setActiveRoute('dashboard');
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    border: isActive ? `2px solid ${f.color}` : '1px solid #E2E8F0',
+                    backgroundColor: isActive ? '#F8FAFC' : '#FFFFFF',
+                    color: isActive ? f.color : '#64748B',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: isActive ? '700' : '500',
+                    transition: 'all 0.12s ease',
+                  }}
+                >
+                  <span style={{ fontSize: '15px' }}>{f.icon}</span>
+                  <span>{f.label}</span>
+                </button>
+              );
+            })}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+
+          {/* Right Header Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
             {/* API Mode Toggle */}
             <button
               onClick={() => setIsLiveApiMode(!isLiveApiMode)}
@@ -206,13 +246,19 @@ export const App: React.FC = () => {
                 fontWeight: '600',
               }}
             >
-              {isLiveApiMode ? '🟢 Live API' : '📋 Static Demo'}
+              {isLiveApiMode ? '🟢 Live API' : '📋 Dynamic DB'}
             </button>
 
             {/* Role Switcher */}
             <select
               value={currentRole}
-              onChange={(e) => setCurrentRole(e.target.value as UserRole)}
+              onChange={(e) => {
+                const newRole = e.target.value as UserRole;
+                setCurrentRole(newRole);
+                if (newRole === 'agent') setActiveFrame('sfa');
+                if (newRole === 'distributor') setActiveFrame('dms');
+                if (newRole === 'auditor') setActiveFrame('governance');
+              }}
               style={{
                 padding: '6px 10px',
                 borderRadius: '6px',
@@ -248,10 +294,16 @@ export const App: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div
                 style={{
-                  width: '30px', height: '30px', borderRadius: '50%',
-                  backgroundColor: '#EFF6FF', color: '#1D4ED8',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: '700', fontSize: '12px',
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '50%',
+                  backgroundColor: '#EFF6FF',
+                  color: '#1D4ED8',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: '700',
+                  fontSize: '12px',
                 }}
               >
                 {(currentUser?.email ?? 'U')[0].toUpperCase()}
@@ -285,9 +337,9 @@ export const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Page Content */}
+        {/* Page Content View */}
         <main style={{ flex: 1, padding: '24px 28px', overflowY: 'auto' }}>
-          {routeContent}
+          {frameContent}
         </main>
 
         {/* Status Bar */}
@@ -306,10 +358,10 @@ export const App: React.FC = () => {
           }}
         >
           <span>
-            ● SYSTEM {isLiveApiMode ? 'LIVE' : 'DEMO'} │ Tenant: {tenantName} │ Role: {currentRole.toUpperCase()} │ Route: {activeRoute}
+            ● FRAME: {activeFrame.toUpperCase()} │ Tenant: {tenantName} │ Role: {currentRole.toUpperCase()} │ Route: {activeRoute}
           </span>
           <span>
-            19 Services HEALTHY │ 29/29 Nodes ONLINE │ Build STABLE │ dms.jyotirmoyb.com
+            19 Services HEALTHY │ 29/29 Nodes ONLINE │ Frame-Wise Build STABLE │ dms.jyotirmoyb.com
           </span>
         </footer>
       </div>
