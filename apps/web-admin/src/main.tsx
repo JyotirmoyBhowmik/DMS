@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 
-// Helper to generate dynamic UUIDs for simulation
+// Helper to generate dynamic UUIDs
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -11,15 +11,30 @@ const generateUUID = () => {
 };
 
 const App = () => {
+  // Gated View: App lands on Login Page first
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
   // Mode State: Static Demo vs Live API
   const [isLiveApiMode, setIsLiveApiMode] = useState(false);
   const [apiGatewayUrl] = useState('https://api.dms.jyotirmoyb.com');
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isDataInputModalOpen, setIsDataInputModalOpen] = useState(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
+  
+  // Login Form Credentials
   const [loginEmail, setLoginEmail] = useState('admin@enterprise.com');
   const [loginPassword, setLoginPassword] = useState('SecureP@ss123!');
   const [authStatus, setAuthStatus] = useState<string | null>(null);
+
+  // --- MODAL STATES (No browser prompts!) ---
+  const [activeModal, setActiveModal] = useState<
+    | null
+    | 'add-sku'
+    | 'add-user'
+    | 'add-tenant'
+    | 'add-beat'
+    | 'add-invoice'
+    | 'bulk-ingest'
+  >(null);
 
   // Navigation State covering all 19 microservice domains + 10 platform pillars
   const [activeTab, setActiveTab] = useState<
@@ -39,6 +54,27 @@ const App = () => {
   const [tenant, setTenant] = useState('Global Distribution Corp');
   const [lastRefreshed, setLastRefreshed] = useState(new Date().toLocaleTimeString());
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // --- FORM DATA STATES (Minimum Typing, Dropdowns & Auto-Increment) ---
+  const [newSkuName, setNewSkuName] = useState('');
+  const [newSkuCategory, setNewSkuCategory] = useState('Cooking Oil');
+  const [newSkuDistributor, setNewSkuDistributor] = useState('Metro Wholesalers Ltd');
+  const [newSkuPrice, setNewSkuPrice] = useState('14.50');
+  const [newSkuStock, setNewSkuStock] = useState('500');
+
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserRole, setNewUserRole] = useState('agent');
+  const [newUserStatus, setNewUserStatus] = useState('ACTIVE');
+
+  const [newTenantName, setNewTenantName] = useState('');
+  const [newTenantDomain, setNewTenantDomain] = useState('');
+
+  const [newBeatName, setNewBeatName] = useState('');
+  const [newBeatAgent, setNewBeatAgent] = useState('Agent Sarah Jenkins');
+  const [newBeatRadius, setNewBeatRadius] = useState('2.5 km');
+
+  const [newInvoiceCustomer, setNewInvoiceCustomer] = useState('Metro Wholesalers Ltd');
+  const [newInvoiceAmount, setNewInvoiceAmount] = useState('12500');
 
   // --- BEAT MAP & BEAT ROUTES STATE ---
   const [beatRoutes, setBeatRoutes] = useState([
@@ -126,12 +162,12 @@ const App = () => {
   const [identitySubTab, setIdentitySubTab] = useState<'users' | 'roles' | 'tenants' | 'permissions' | 'mfa'>('users');
 
   // --- 2. DMS CORE SERVICE STATE ---
-  const [inventory] = useState([
-    { sku: 'SKU-FMCG-001', name: 'Sunflower Cooking Oil 1L', category: 'Cooking Oil', stock: 1420, minThreshold: 500, price: 12.50, distributor: 'Metro Wholesalers' },
-    { sku: 'SKU-FMCG-002', name: 'Whole Wheat Flour 5kg', category: 'Grains', stock: 240, minThreshold: 300, price: 8.90, distributor: 'Metro Wholesalers' },
-    { sku: 'SKU-FMCG-003', name: 'Refined Sugar 2kg', category: 'Sweeteners', stock: 85, minThreshold: 100, price: 3.20, distributor: 'Apex Logistics' },
-    { sku: 'SKU-FMCG-004', name: 'Basmati Rice 5kg', category: 'Rice', stock: 620, minThreshold: 200, price: 18.00, distributor: 'Global Distribution' },
-    { sku: 'SKU-FMCG-005', name: 'Organic Tea Leaves 500g', category: 'Beverages', stock: 45, minThreshold: 100, price: 4.50, distributor: 'Global Distribution' }
+  const [inventory, setInventory] = useState([
+    { sku: 'SKU-FMCG-001', name: 'Sunflower Cooking Oil 1L', category: 'Cooking Oil', stock: 1420, minThreshold: 500, price: 12.50, distributor: 'Metro Wholesalers Ltd' },
+    { sku: 'SKU-FMCG-002', name: 'Whole Wheat Flour 5kg', category: 'Grains', stock: 240, minThreshold: 300, price: 8.90, distributor: 'Metro Wholesalers Ltd' },
+    { sku: 'SKU-FMCG-003', name: 'Refined Sugar 2kg', category: 'Sweeteners', stock: 85, minThreshold: 100, price: 3.20, distributor: 'Apex Logistics Inc' },
+    { sku: 'SKU-FMCG-004', name: 'Basmati Rice 5kg', category: 'Rice', stock: 620, minThreshold: 200, price: 18.00, distributor: 'Global Distribution Corp' },
+    { sku: 'SKU-FMCG-005', name: 'Organic Tea Leaves 500g', category: 'Beverages', stock: 45, minThreshold: 100, price: 4.50, distributor: 'Global Distribution Corp' }
   ]);
   const [inventorySearch, setInventorySearch] = useState('');
 
@@ -155,7 +191,7 @@ const App = () => {
 
   // --- 5. CLAIMS & FINANCE SERVICE STATE ---
   const [claims] = useState([
-    { id: 'clm-501', distributor: 'Metro Wholesalers', scheme: 'Monsoon Oil Bulk Promotion', amount: '$4,250.00', status: 'PENDING_APPROVAL' },
+    { id: 'clm-501', distributor: 'Metro Wholesalers Ltd', scheme: 'Monsoon Oil Bulk Promotion', amount: '$4,250.00', status: 'PENDING_APPROVAL' },
     { id: 'clm-502', distributor: 'Apex Logistics Inc', scheme: 'Retailer Festival Scheme', amount: '$1,800.00', status: 'SETTLED' }
   ]);
   const [financeSubTab, setFinanceSubTab] = useState<'claims' | 'invoices'>('claims');
@@ -197,6 +233,97 @@ const App = () => {
     `[${new Date().toLocaleTimeString()}] [AUDIT-SERVICE] Cryptographic block #4 appended with hash a10b42fc...`
   ]);
 
+  // Form Submit Handlers
+  const handleAddSkuSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const autoSkuCode = `SKU-FMCG-00${inventory.length + 1}`;
+    setInventory([
+      ...inventory,
+      {
+        sku: autoSkuCode,
+        name: newSkuName || `Premium Item #${inventory.length + 1}`,
+        category: newSkuCategory,
+        stock: parseInt(newSkuStock) || 500,
+        minThreshold: 200,
+        price: parseFloat(newSkuPrice) || 12.50,
+        distributor: newSkuDistributor
+      }
+    ]);
+    setNewSkuName('');
+    setActiveModal(null);
+  };
+
+  const handleAddUserSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const autoUserId = `usr-${users.length + 1}`;
+    setUsers([
+      ...users,
+      {
+        id: autoUserId,
+        email: newUserEmail || `user00${users.length + 1}@enterprise.com`,
+        status: newUserStatus,
+        roles: newUserRole,
+        lastLogin: 'Just now'
+      }
+    ]);
+    setNewUserEmail('');
+    setActiveModal(null);
+  };
+
+  const handleAddTenantSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setTenants([
+      ...tenants,
+      {
+        id: generateUUID(),
+        name: newTenantName || `New Partner #${tenants.length + 1}`,
+        status: 'ACTIVE',
+        domain: newTenantDomain || `partner${tenants.length + 1}.dms.com`
+      }
+    ]);
+    setNewTenantName('');
+    setNewTenantDomain('');
+    setActiveModal(null);
+  };
+
+  const handleAddBeatSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const autoBeatCode = `BEAT-NORTH-0${beatRoutes.length + 1}`;
+    setBeatRoutes([
+      ...beatRoutes,
+      {
+        id: `beat-${beatRoutes.length + 101}`,
+        code: autoBeatCode,
+        name: newBeatName || `Express Route #${beatRoutes.length + 1}`,
+        agent: newBeatAgent,
+        outletsCount: 16,
+        radiusKm: newBeatRadius,
+        status: 'ACTIVE'
+      }
+    ]);
+    setNewBeatName('');
+    setActiveModal(null);
+  };
+
+  const handleAddInvoiceSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const autoInvId = `INV-2026-00${invoices.length + 1}`;
+    const amountNum = parseFloat(newInvoiceAmount) || 10000;
+    const taxNum = amountNum * 0.08;
+    setInvoices([
+      ...invoices,
+      {
+        id: autoInvId,
+        customer: newInvoiceCustomer,
+        amount: `$${amountNum.toLocaleString()}.00`,
+        taxAmount: `$${taxNum.toLocaleString()}.00`,
+        status: 'PAID',
+        dueDate: '2026-08-30'
+      }
+    ]);
+    setActiveModal(null);
+  };
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthStatus('Authenticating against https://api.dms.jyotirmoyb.com/api/v1/auth/login...');
@@ -211,18 +338,18 @@ const App = () => {
         setAuthToken(data.accessToken || 'mock-jwt-bearer-token');
         setAuthStatus('SUCCESS: Authenticated as Admin! JWT Bearer token acquired.');
         setIsLiveApiMode(true);
-        setTimeout(() => setIsLoginModalOpen(false), 1200);
+        setIsAuthenticated(true);
       } else {
         setAuthToken('mock-jwt-bearer-token');
         setAuthStatus('SUCCESS (Local Fallback): Authenticated as Admin! JWT token issued.');
         setIsLiveApiMode(true);
-        setTimeout(() => setIsLoginModalOpen(false), 1200);
+        setIsAuthenticated(true);
       }
     } catch {
       setAuthToken('mock-jwt-bearer-token');
       setAuthStatus('SUCCESS (Local Fallback): Authenticated as Admin! JWT token issued.');
       setIsLiveApiMode(true);
-      setTimeout(() => setIsLoginModalOpen(false), 1200);
+      setIsAuthenticated(true);
     }
   };
 
@@ -260,6 +387,132 @@ const App = () => {
       setAuditVerdict('PASS: All 4 cryptographic blocks verified with 0 tampered signatures.');
     }, 600);
   };
+
+  // --- LANDING LOGIN SCREEN (Default Gated View) ---
+  if (!isAuthenticated && !isDemoMode) {
+    return (
+      <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#0F172A', minHeight: '100vh', color: '#F8FAFC', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+        
+        {/* Top Right Corner Action: Launch Static Demo */}
+        <div style={{ position: 'absolute', top: '24px', right: '32px', zIndex: 10 }}>
+          <button
+            onClick={() => {
+              setIsDemoMode(true);
+              setIsAuthenticated(true);
+            }}
+            style={{
+              padding: '12px 24px',
+              borderRadius: '24px',
+              border: '1px solid #38BDF8',
+              backgroundColor: 'rgba(14, 165, 233, 0.15)',
+              color: '#38BDF8',
+              fontWeight: '700',
+              fontSize: '14px',
+              cursor: 'pointer',
+              boxShadow: '0 0 15px rgba(56, 189, 248, 0.3)',
+              backdropFilter: 'blur(8px)',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            🚀 View Instant Static Demo Site
+          </button>
+        </div>
+
+        {/* Brand Header */}
+        <div style={{ padding: '32px 48px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ width: '44px', height: '44px', borderRadius: '10px', backgroundColor: '#2563EB', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '22px', boxShadow: '0 4px 12px rgba(37,99,235,0.4)' }}>
+            D
+          </div>
+          <div>
+            <div style={{ fontWeight: '800', fontSize: '20px', letterSpacing: '-0.5px' }}>DMS & SFA PLATFORM</div>
+            <div style={{ fontSize: '12px', color: '#94A3B8' }}>19 Microservices • Supply Chain & Field Operations Suite</div>
+          </div>
+        </div>
+
+        {/* Main Hero & Login Container */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', position: 'relative', zIndex: 5 }}>
+          <div style={{ backgroundColor: '#1E293B', borderRadius: '16px', border: '1px solid #334155', width: '460px', padding: '36px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+            
+            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+              <h2 style={{ margin: 0, fontSize: '22px', fontWeight: '800', color: '#FFFFFF' }}>Sign In to Control Center</h2>
+              <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#94A3B8' }}>Connects to Production API Gateway (<code style={{ color: '#38BDF8' }}>api.dms.jyotirmoyb.com</code>)</p>
+            </div>
+
+            {/* Quick Credentials Preset Fill */}
+            <div style={{ backgroundColor: '#0F172A', padding: '12px 14px', borderRadius: '8px', border: '1px solid #334155', marginBottom: '20px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748B', textTransform: 'uppercase', marginBottom: '8px' }}>One-Click Role Login Shortcuts</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => { setLoginEmail('admin@enterprise.com'); setLoginPassword('SecureP@ss123!'); }} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', backgroundColor: '#2563EB', color: '#FFFFFF', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
+                  ⚡ Admin
+                </button>
+                <button onClick={() => { setLoginEmail('agent-001@enterprise.com'); setLoginPassword('SecureP@ss123!'); }} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', backgroundColor: '#059669', color: '#FFFFFF', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
+                  ⚡ Field Agent
+                </button>
+                <button onClick={() => { setLoginEmail('distributor-metro@enterprise.com'); setLoginPassword('SecureP@ss123!'); }} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', backgroundColor: '#D97706', color: '#FFFFFF', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
+                  ⚡ Distributor
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '600', color: '#CBD5E1', display: 'block', marginBottom: '6px' }}>Email Address</label>
+                <input
+                  type="email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #475569', backgroundColor: '#0F172A', color: '#FFFFFF', fontSize: '14px', outline: 'none' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '600', color: '#CBD5E1', display: 'block', marginBottom: '6px' }}>Password</label>
+                <input
+                  type="password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #475569', backgroundColor: '#0F172A', color: '#FFFFFF', fontSize: '14px', outline: 'none' }}
+                />
+              </div>
+
+              {authStatus && (
+                <div style={{ fontSize: '12px', fontWeight: '600', color: '#38BDF8', backgroundColor: '#0F172A', padding: '10px', borderRadius: '6px', border: '1px solid #334155' }}>
+                  {authStatus}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                style={{ padding: '14px', borderRadius: '8px', backgroundColor: '#2563EB', color: '#FFFFFF', border: 'none', fontWeight: '800', fontSize: '15px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.4)', marginTop: '8px' }}
+              >
+                🔑 Sign In to Platform
+              </button>
+            </form>
+
+            <div style={{ textAlign: 'center', marginTop: '24px', borderTop: '1px solid #334155', paddingTop: '20px' }}>
+              <span style={{ fontSize: '13px', color: '#94A3B8' }}>Want to explore without credentials? </span>
+              <button
+                onClick={() => {
+                  setIsDemoMode(true);
+                  setIsAuthenticated(true);
+                }}
+                style={{ background: 'none', border: 'none', color: '#38BDF8', fontWeight: '700', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Launch Interactive Demo Mode
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <div style={{ padding: '20px', textAlign: 'center', fontSize: '12px', color: '#64748B', borderTop: '1px solid #1E293B' }}>
+          Enterprise DMS & SFA Monorepo • Production Environment • Neon Cloud DB + Vercel Edge Serverless
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#1E293B', display: 'flex' }}>
@@ -373,11 +626,11 @@ const App = () => {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
-              onClick={() => setIsDataInputModalOpen(true)}
+              onClick={() => setActiveModal('add-sku')}
               style={{
                 padding: '8px 14px',
                 borderRadius: '6px',
-                border: '1px solid #0F172A',
+                border: 'none',
                 backgroundColor: '#2563EB',
                 color: '#FFFFFF',
                 fontWeight: '700',
@@ -385,18 +638,12 @@ const App = () => {
                 cursor: 'pointer'
               }}
             >
-              + Input Data / Import
+              + Input Data / Form
             </button>
 
             {/* Mode Switcher */}
             <button
-              onClick={() => {
-                if (!authToken && !isLiveApiMode) {
-                  setIsLoginModalOpen(true);
-                } else {
-                  setIsLiveApiMode(!isLiveApiMode);
-                }
-              }}
+              onClick={() => setIsLiveApiMode(!isLiveApiMode)}
               style={{
                 padding: '6px 12px',
                 borderRadius: '20px',
@@ -412,19 +659,22 @@ const App = () => {
             </button>
 
             <button
-              onClick={() => setIsLoginModalOpen(true)}
+              onClick={() => {
+                setIsAuthenticated(false);
+                setIsDemoMode(false);
+              }}
               style={{
                 padding: '8px 14px',
                 borderRadius: '6px',
-                border: 'none',
-                backgroundColor: '#0F172A',
-                color: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                backgroundColor: '#FFFFFF',
+                color: '#0F172A',
                 fontWeight: '600',
                 fontSize: '13px',
                 cursor: 'pointer'
               }}
             >
-              {authToken ? '🔑 Admin Authenticated' : '🔑 Log In / Auth'}
+              🚪 Sign Out
             </button>
 
             <div style={{ fontSize: '12px', color: '#64748B', textAlign: 'right' }}>
@@ -450,85 +700,185 @@ const App = () => {
           </div>
         </header>
 
-        {/* DATA INPUT MODAL */}
-        {isDataInputModalOpen && (
+        {/* --- MODAL 1: ADD SKU FORM MODAL (Zero prompt popups!) --- */}
+        {activeModal === 'add-sku' && (
           <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ backgroundColor: '#FFFFFF', width: '480px', borderRadius: '12px', padding: '28px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>Data Input & Bulk Ingestion Center</h3>
-                <button onClick={() => setIsDataInputModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748B' }}>✕</button>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>Add New Inventory SKU</h3>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>Auto-Generated Code: <strong>SKU-FMCG-00{inventory.length + 1}</strong></div>
+                </div>
+                <button onClick={() => setActiveModal(null)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748B' }}>✕</button>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ padding: '14px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A' }}>Option 1: Interactive Web Form Entry</div>
-                  <div style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 10px 0' }}>Add new Users, SKU items, Beat Routes, or Invoices directly into local/live state.</div>
-                  <button
-                    onClick={() => {
-                      const sku = prompt('Enter new SKU Code (e.g. SKU-FMCG-009):');
-                      const name = prompt('Enter Product Name:');
-                      const price = prompt('Enter Price ($):');
-                      if (sku && name) {
-                        alert(`SUCCESS: Added ${name} (${sku}) at $${price || '10.00'} into inventory!`);
-                        setIsDataInputModalOpen(false);
-                      }
-                    }}
-                    style={{ padding: '8px 14px', borderRadius: '6px', backgroundColor: '#0F172A', color: '#FFFFFF', border: 'none', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
-                  >
-                    + Add New Inventory SKU
-                  </button>
+              <form onSubmit={handleAddSkuSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>Product Description</label>
+                  <input type="text" placeholder="e.g. Premium Olive Oil 500ml" value={newSkuName} onChange={(e) => setNewSkuName(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', outline: 'none' }} />
                 </div>
 
-                <div style={{ padding: '14px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A' }}>Option 2: Bulk CSV / JSON Ingestion</div>
-                  <div style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 10px 0' }}>Upload CSV/JSON files to seed master catalog, beat routes, and sales records.</div>
-                  <input type="file" accept=".csv,.json" onChange={() => alert('CSV Ingestion API triggered! Uploading records to Neon PostgreSQL...')} style={{ fontSize: '12px' }} />
-                </div>
-
-                <div style={{ padding: '14px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A' }}>Option 3: 3rd-Party ERP REST Sync API</div>
-                  <div style={{ fontSize: '12px', color: '#64748B' }}>
-                    POST to <code style={{ backgroundColor: '#E2E8F0', padding: '2px 4px', borderRadius: '4px' }}>https://api.dms.jyotirmoyb.com/api/v1/integration/sync</code>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>Product Category</label>
+                    <select value={newSkuCategory} onChange={(e) => setNewSkuCategory(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}>
+                      <option value="Cooking Oil">Cooking Oil</option>
+                      <option value="Grains">Grains</option>
+                      <option value="Sweeteners">Sweeteners</option>
+                      <option value="Beverages">Beverages</option>
+                      <option value="Dairy">Dairy</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>Assigned Distributor</label>
+                    <select value={newSkuDistributor} onChange={(e) => setNewSkuDistributor(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}>
+                      <option value="Metro Wholesalers Ltd">Metro Wholesalers Ltd</option>
+                      <option value="Global Distribution Corp">Global Distribution Corp</option>
+                      <option value="Apex Logistics Inc">Apex Logistics Inc</option>
+                    </select>
                   </div>
                 </div>
-              </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>Unit Price ($)</label>
+                    <input type="number" step="0.5" value={newSkuPrice} onChange={(e) => setNewSkuPrice(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>Initial Stock Qty</label>
+                    <input type="number" value={newSkuStock} onChange={(e) => setNewSkuStock(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }} />
+                  </div>
+                </div>
+
+                <button type="submit" style={{ padding: '12px', borderRadius: '6px', backgroundColor: '#0F172A', color: '#FFFFFF', border: 'none', fontWeight: '700', fontSize: '14px', cursor: 'pointer', marginTop: '6px' }}>
+                  + Save SKU to Master Catalog
+                </button>
+              </form>
             </div>
           </div>
         )}
 
-        {/* LOGIN MODAL */}
-        {isLoginModalOpen && (
+        {/* --- MODAL 2: ADD USER FORM MODAL --- */}
+        {activeModal === 'add-user' && (
           <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ backgroundColor: '#FFFFFF', width: '420px', borderRadius: '12px', padding: '28px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0' }}>
+            <div style={{ backgroundColor: '#FFFFFF', width: '440px', borderRadius: '12px', padding: '28px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>DMS Platform Authentication</h3>
-                <button onClick={() => setIsLoginModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748B' }}>✕</button>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>Add User Account</h3>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>Auto User ID: <strong>usr-{users.length + 1}</strong></div>
+                </div>
+                <button onClick={() => setActiveModal(null)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748B' }}>✕</button>
               </div>
 
-              <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <form onSubmit={handleAddUserSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>API Gateway Target</label>
-                  <input type="text" disabled value={apiGatewayUrl} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', backgroundColor: '#F8FAFC', fontSize: '13px', color: '#0F172A' }} />
+                  <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>User Email Address</label>
+                  <input type="email" placeholder="agent-sales@enterprise.com" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }} />
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>User Email</label>
-                  <input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', outline: 'none' }} />
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>Password</label>
-                  <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px', outline: 'none' }} />
-                </div>
-
-                {authStatus && (
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: authStatus.startsWith('SUCCESS') ? '#15803D' : '#2563EB', backgroundColor: '#F8FAFC', padding: '8px 12px', borderRadius: '6px' }}>
-                    {authStatus}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>RBAC Role</label>
+                    <select value={newUserRole} onChange={(e) => setNewUserRole(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}>
+                      <option value="admin">admin</option>
+                      <option value="agent">agent</option>
+                      <option value="distributor">distributor</option>
+                      <option value="auditor">auditor</option>
+                    </select>
                   </div>
-                )}
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>Account Status</label>
+                    <select value={newUserStatus} onChange={(e) => setNewUserStatus(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}>
+                      <option value="ACTIVE">ACTIVE</option>
+                      <option value="SUSPENDED">SUSPENDED</option>
+                    </select>
+                  </div>
+                </div>
 
                 <button type="submit" style={{ padding: '12px', borderRadius: '6px', backgroundColor: '#0F172A', color: '#FFFFFF', border: 'none', fontWeight: '700', fontSize: '14px', cursor: 'pointer', marginTop: '6px' }}>
-                  🔑 Authenticate & Fetch Live Database
+                  + Create User Account
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* --- MODAL 3: ADD BEAT ROUTE FORM MODAL --- */}
+        {activeModal === 'add-beat' && (
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ backgroundColor: '#FFFFFF', width: '460px', borderRadius: '12px', padding: '28px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>Create Beat Route</h3>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>Auto Beat Code: <strong>BEAT-NORTH-0{beatRoutes.length + 1}</strong></div>
+                </div>
+                <button onClick={() => setActiveModal(null)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748B' }}>✕</button>
+              </div>
+
+              <form onSubmit={handleAddBeatSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>Route Name</label>
+                  <input type="text" placeholder="e.g. Westside Express Grocery Beat" value={newBeatName} onChange={(e) => setNewBeatName(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }} />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>Assigned Agent</label>
+                    <select value={newBeatAgent} onChange={(e) => setNewBeatAgent(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}>
+                      <option value="Agent Sarah Jenkins">Agent Sarah Jenkins</option>
+                      <option value="Agent Mark Vance">Agent Mark Vance</option>
+                      <option value="Agent Elena Rostova">Agent Elena Rostova</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>Geofence Radius</label>
+                    <select value={newBeatRadius} onChange={(e) => setNewBeatRadius(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}>
+                      <option value="1.5 km">1.5 km</option>
+                      <option value="2.5 km">2.5 km</option>
+                      <option value="4.0 km">4.0 km</option>
+                      <option value="5.0 km">5.0 km</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button type="submit" style={{ padding: '12px', borderRadius: '6px', backgroundColor: '#0F172A', color: '#FFFFFF', border: 'none', fontWeight: '700', fontSize: '14px', cursor: 'pointer', marginTop: '6px' }}>
+                  + Save Beat Route
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* --- MODAL 4: ADD INVOICE FORM MODAL --- */}
+        {activeModal === 'add-invoice' && (
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ backgroundColor: '#FFFFFF', width: '460px', borderRadius: '12px', padding: '28px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>Generate Sales Invoice</h3>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>Auto Invoice #: <strong>INV-2026-00{invoices.length + 1}</strong></div>
+                </div>
+                <button onClick={() => setActiveModal(null)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748B' }}>✕</button>
+              </div>
+
+              <form onSubmit={handleAddInvoiceSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>Distributor / Customer</label>
+                  <select value={newInvoiceCustomer} onChange={(e) => setNewInvoiceCustomer(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }}>
+                    <option value="Metro Wholesalers Ltd">Metro Wholesalers Ltd</option>
+                    <option value="Global Distribution Corp">Global Distribution Corp</option>
+                    <option value="Apex Logistics Inc">Apex Logistics Inc</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>Invoice Amount ($)</label>
+                  <input type="number" step="100" value={newInvoiceAmount} onChange={(e) => setNewInvoiceAmount(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '13px' }} />
+                  <div style={{ fontSize: '11px', color: '#15803D', marginTop: '4px', fontWeight: '600' }}>Calculated Tax (8%): ${(parseFloat(newInvoiceAmount || '0') * 0.08).toLocaleString()}.00</div>
+                </div>
+
+                <button type="submit" style={{ padding: '12px', borderRadius: '6px', backgroundColor: '#0F172A', color: '#FFFFFF', border: 'none', fontWeight: '700', fontSize: '14px', cursor: 'pointer', marginTop: '6px' }}>
+                  + Issue Invoice Ledger Entry
                 </button>
               </form>
             </div>
@@ -699,12 +1049,7 @@ const App = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>User Accounts</h3>
                     <button
-                      onClick={() => {
-                        const email = prompt('Enter new User email:');
-                        if (email) {
-                          setUsers([...users, { id: `usr-${users.length + 1}`, email, status: 'ACTIVE', roles: 'agent', lastLogin: 'Just now' }]);
-                        }
-                      }}
+                      onClick={() => setActiveModal('add-user')}
                       style={{ padding: '8px 16px', borderRadius: '6px', backgroundColor: '#2563EB', color: '#FFFFFF', border: 'none', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}
                     >
                       + Add User
@@ -751,12 +1096,7 @@ const App = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>Tenant Organizations</h3>
                     <button
-                      onClick={() => {
-                        const name = prompt('Enter new Tenant Name:');
-                        if (name) {
-                          setTenants([...tenants, { id: generateUUID(), name, status: 'ACTIVE', domain: `${name.toLowerCase().replace(/\s+/g, '')}.com` }]);
-                        }
-                      }}
+                      onClick={() => setActiveModal('add-tenant')}
                       style={{ padding: '8px 16px', borderRadius: '6px', backgroundColor: '#2563EB', color: '#FFFFFF', border: 'none', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}
                     >
                       + Onboard Tenant
@@ -830,13 +1170,21 @@ const App = () => {
             <div style={{ backgroundColor: '#FFFFFF', borderRadius: '10px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>DMS Master Catalog & Inventory Control</h3>
-                <input
-                  type="text"
-                  placeholder="Search SKU or Product Name..."
-                  value={inventorySearch}
-                  onChange={(e) => setInventorySearch(e.target.value)}
-                  style={{ padding: '8px 14px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '280px', fontSize: '13px', outline: 'none' }}
-                />
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search SKU or Product Name..."
+                    value={inventorySearch}
+                    onChange={(e) => setInventorySearch(e.target.value)}
+                    style={{ padding: '8px 14px', borderRadius: '6px', border: '1px solid #CBD5E1', width: '260px', fontSize: '13px', outline: 'none' }}
+                  />
+                  <button
+                    onClick={() => setActiveModal('add-sku')}
+                    style={{ padding: '8px 14px', borderRadius: '6px', backgroundColor: '#2563EB', color: '#FFFFFF', border: 'none', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}
+                  >
+                    + Add New SKU
+                  </button>
+                </div>
               </div>
 
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
@@ -911,12 +1259,7 @@ const App = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>Beat Map & Beat Route Management</h3>
                     <button
-                      onClick={() => {
-                        const name = prompt('Enter Beat Route Name:');
-                        if (name) {
-                          setBeatRoutes([...beatRoutes, { id: `beat-${beatRoutes.length + 101}`, code: `BEAT-CUSTOM-0${beatRoutes.length + 1}`, name, agent: 'Agent Sarah Jenkins', outletsCount: 15, radiusKm: '3.0 km', status: 'ACTIVE' }]);
-                        }
-                      }}
+                      onClick={() => setActiveModal('add-beat')}
                       style={{ padding: '8px 16px', borderRadius: '6px', backgroundColor: '#2563EB', color: '#FFFFFF', border: 'none', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}
                     >
                       + Create Beat Route
@@ -1117,13 +1460,7 @@ const App = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>Sales Invoices & Credit Notes Ledger</h3>
                     <button
-                      onClick={() => {
-                        const customer = prompt('Enter Customer / Distributor Name:');
-                        const amount = prompt('Enter Invoice Amount ($):');
-                        if (customer && amount) {
-                          setInvoices([...invoices, { id: `INV-2026-00${invoices.length + 1}`, customer, amount: `$${amount}`, taxAmount: `$${(parseFloat(amount) * 0.08).toFixed(2)}`, status: 'PAID', dueDate: '2026-08-30' }]);
-                        }
-                      }}
+                      onClick={() => setActiveModal('add-invoice')}
                       style={{ padding: '8px 16px', borderRadius: '6px', backgroundColor: '#2563EB', color: '#FFFFFF', border: 'none', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}
                     >
                       + Generate Invoice
