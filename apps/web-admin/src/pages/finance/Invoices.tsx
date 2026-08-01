@@ -1,117 +1,117 @@
-import React, { useState, useEffect } from 'react';
-import { UserRole, Invoice } from '../../types';
-import { dbService } from '../../services/dbService';
+import React, { useState } from 'react';
+import { UserRole } from '../../types';
+import { useData } from '../../context/DataContext';
 import { StatusBadge } from '../../components/StatusBadge';
-
-const DISTRIBUTOR_NAMES = ['Alpha Distributors', 'Beta Logistics', 'Gamma Supplies'];
+import { DISTRIBUTOR_NAMES } from '../../data/seed';
+import { Modal } from '../../components/Modal';
+import { FormField } from '../../components/FormField';
+import { tokens } from '../../theme/tokens';
 
 export const Invoices: React.FC<{ role: UserRole }> = ({ role }) => {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-
-  useEffect(() => {
-    dbService.getInvoices().then(setInvoices);
-  }, []);
+  const { invoices, addInvoice } = useData();
   const [showForm, setShowForm] = useState(false);
-  const [newCustomer, setNewCustomer] = useState(DISTRIBUTOR_NAMES[0]);
-  const [newAmount, setNewAmount] = useState<number | ''>('');
+  const [customer, setCustomer] = useState(DISTRIBUTOR_NAMES[0]);
+  const [amount, setAmount] = useState('10000.00');
+  const [dueDate, setDueDate] = useState('2026-08-30');
 
-  const handleGenerate = (e: React.FormEvent) => {
+  const canCreate = role === 'admin' || role === 'distributor';
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAmount) return;
-
-    const newInv: Invoice = {
-      id: `INV-2026-${String(invoices.length + 1).padStart(3, '0')}`,
-      customer: newCustomer,
-      amount: `$${Number(newAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-      taxAmount: `$${(Number(newAmount) * 0.08).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-      status: 'PENDING',
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    };
-    
-    setInvoices([newInv, ...invoices]);
+    const num = parseFloat(amount) || 0;
+    const tax = (num * 0.08).toFixed(2);
+    addInvoice({
+      customer,
+      amount: `$${num.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+      taxAmount: `$${tax}`,
+      dueDate,
+    });
     setShowForm(false);
-    setNewAmount('');
   };
 
   return (
-    <div style={{ padding: '24px', backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#334155', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ padding: '24px', backgroundColor: tokens.colors.bgApp, minHeight: '100vh', color: tokens.colors.textBody }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ margin: 0, color: '#0F172A', fontSize: '24px', fontWeight: 'bold' }}>Invoices</h1>
-        {role === 'admin' && (
-          <button 
-            onClick={() => setShowForm(!showForm)}
-            style={{ padding: '8px 16px', backgroundColor: '#2563EB', color: '#FFFFFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 500 }}
-          >
-            {showForm ? 'Cancel' : '+ Generate Invoice'}
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: tokens.colors.textMain, margin: 0 }}>Billing & Invoice Ledger</h1>
+          <p style={{ color: tokens.colors.textMuted, margin: '4px 0 0', fontSize: '14px' }}>
+            Automated secondary sales billing & 8% tax calculation
+          </p>
+        </div>
+
+        {canCreate && (
+          <button style={tokens.presets.buttonPrimary} onClick={() => setShowForm(true)}>
+            + Generate Invoice
           </button>
         )}
       </div>
 
-      {showForm && role === 'admin' && (
-        <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2E8F0', marginBottom: '24px' }}>
-          <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#0F172A' }}>New Invoice</h2>
-          <form onSubmit={handleGenerate} style={{ display: 'flex', gap: '16px', alignItems: 'flex-end' }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Customer / Distributor</label>
-              <select 
-                value={newCustomer} 
-                onChange={e => setNewCustomer(e.target.value)}
-                style={{ width: '100%', padding: '8px', border: '1px solid #E2E8F0', borderRadius: '4px' }}
-              >
-                {DISTRIBUTOR_NAMES.map((name: string) => <option key={name} value={name}>{name}</option>)}
-              </select>
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Amount ($)</label>
-              <input 
-                type="number" 
-                value={newAmount} 
-                onChange={e => setNewAmount(Number(e.target.value))}
-                style={{ width: '100%', padding: '8px', border: '1px solid #E2E8F0', borderRadius: '4px' }}
-                required
-                min="1"
-              />
-              {newAmount !== '' && (
-                <small style={{ color: '#64748B', display: 'block', marginTop: '4px' }}>
-                  Auto-calculated 8% Tax: ${(Number(newAmount) * 0.08).toFixed(2)}
-                </small>
-              )}
-            </div>
-            <button type="submit" style={{ padding: '8px 24px', backgroundColor: '#15803D', color: '#FFFFFF', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 500, height: '35px' }}>
-              Create
-            </button>
-          </form>
-        </div>
-      )}
-
-      <div style={{ backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+      <div style={{ backgroundColor: '#FFFFFF', border: `1px solid ${tokens.colors.border}`, borderRadius: '8px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
-            <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
-              <th style={{ padding: '12px 16px', fontWeight: 500, color: '#64748B' }}>Invoice #</th>
-              <th style={{ padding: '12px 16px', fontWeight: 500, color: '#64748B' }}>Distributor/Customer</th>
-              <th style={{ padding: '12px 16px', fontWeight: 500, color: '#64748B' }}>Total Amount</th>
-              <th style={{ padding: '12px 16px', fontWeight: 500, color: '#64748B' }}>Tax (8%)</th>
-              <th style={{ padding: '12px 16px', fontWeight: 500, color: '#64748B' }}>Due Date</th>
-              <th style={{ padding: '12px 16px', fontWeight: 500, color: '#64748B' }}>Status</th>
+            <tr style={{ backgroundColor: '#F8FAFC', borderBottom: `1px solid ${tokens.colors.border}` }}>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textBody, fontSize: '13px' }}>Invoice ID</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textBody, fontSize: '13px' }}>Distributor / Customer</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textBody, fontSize: '13px' }}>Total Amount</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textBody, fontSize: '13px' }}>Tax Amount (8%)</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textBody, fontSize: '13px' }}>Status</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textBody, fontSize: '13px' }}>Due Date</th>
             </tr>
           </thead>
           <tbody>
-            {invoices.map((inv: Invoice, idx: number) => (
-              <tr key={inv.id} style={{ borderBottom: idx === invoices.length - 1 ? 'none' : '1px solid #E2E8F0' }}>
-                <td style={{ padding: '12px 16px', fontWeight: 500 }}>{inv.id}</td>
-                <td style={{ padding: '12px 16px' }}>{inv.customer}</td>
-                <td style={{ padding: '12px 16px' }}>{inv.amount}</td>
-                <td style={{ padding: '12px 16px' }}>{inv.taxAmount}</td>
-                <td style={{ padding: '12px 16px' }}>{inv.dueDate}</td>
-                <td style={{ padding: '12px 16px' }}>
-                  <StatusBadge status={inv.status} />
-                </td>
+            {invoices.map((inv, idx) => (
+              <tr key={inv.id} style={{ borderBottom: idx === invoices.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
+                <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{inv.id}</td>
+                <td style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textMain }}>{inv.customer}</td>
+                <td style={{ padding: '12px 16px', fontWeight: 700 }}>{inv.amount}</td>
+                <td style={{ padding: '12px 16px', color: tokens.colors.textMuted }}>{inv.taxAmount}</td>
+                <td style={{ padding: '12px 16px' }}><StatusBadge status={inv.status} /></td>
+                <td style={{ padding: '12px 16px', color: tokens.colors.textMuted, fontSize: '12px' }}>{inv.dueDate}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <Modal title="Generate Sales Invoice" subtitle="Issue bill to distributor with automatic tax calculation" isOpen={showForm} onClose={() => setShowForm(false)}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <FormField label="Customer / Distributor">
+            <select value={customer} onChange={(e) => setCustomer(e.target.value)} style={tokens.presets.input}>
+              {DISTRIBUTOR_NAMES.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </FormField>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <FormField label="Invoice Amount ($)">
+              <input
+                type="number"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                style={tokens.presets.input}
+                required
+              />
+            </FormField>
+
+            <FormField label="Due Date">
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                style={tokens.presets.input}
+                required
+              />
+            </FormField>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
+            <button type="button" onClick={() => setShowForm(false)} style={tokens.presets.buttonSecondary}>Cancel</button>
+            <button type="submit" style={tokens.presets.buttonPrimary}>Issue Invoice</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

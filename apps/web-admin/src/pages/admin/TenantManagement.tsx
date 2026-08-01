@@ -1,65 +1,91 @@
-import React, { useState, useEffect } from 'react';
-import type { UserRole, Tenant } from '../../types';
-import { dbService } from '../../services/dbService';
+import React, { useState } from 'react';
+import { UserRole } from '../../types';
+import { useData } from '../../context/DataContext';
+import { StatusBadge } from '../../components/StatusBadge';
+import { tokens } from '../../theme/tokens';
+import { Modal } from '../../components/Modal';
+import { FormField } from '../../components/FormField';
 
-interface TenantManagementProps {
-  role: UserRole;
-}
+export const TenantManagement: React.FC<{ role: UserRole }> = ({ role: _role }) => {
+  const { tenants, addTenant } = useData();
+  const [showModal, setShowModal] = useState(false);
+  const [name, setName] = useState('');
+  const [domain, setDomain] = useState('');
 
-export const TenantManagement: React.FC<TenantManagementProps> = ({ role }) => {
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [showForm, setShowForm] = useState<boolean>(false);
-
-  useEffect(() => {
-    dbService.getTenants().then(setTenants);
-  }, []);
-
-  const containerStyle: React.CSSProperties = { padding: '24px', backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#334155' };
-  const headerStyle: React.CSSProperties = { fontSize: '24px', fontWeight: 'bold', color: '#0F172A' };
-  const tableStyle: React.CSSProperties = { width: '100%', borderCollapse: 'collapse', backgroundColor: '#FFFFFF', borderRadius: '8px', overflow: 'hidden', border: '1px solid #E2E8F0', marginTop: '24px' };
-  const thStyle: React.CSSProperties = { padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', color: '#64748B', fontWeight: 600, fontSize: '14px' };
-  const tdStyle: React.CSSProperties = { padding: '12px 16px', borderBottom: '1px solid #E2E8F0', fontSize: '14px' };
-  const monoStyle: React.CSSProperties = { fontFamily: 'monospace', color: '#475569' };
-  const buttonStyle: React.CSSProperties = { backgroundColor: '#2563EB', color: '#FFFFFF', padding: '8px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 };
-  const formStyle: React.CSSProperties = { backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', border: '1px solid #E2E8F0', marginTop: '24px' };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    addTenant({ name, domain });
+    setName('');
+    setDomain('');
+    setShowModal(false);
+  };
 
   return (
-    <div style={containerStyle}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={headerStyle}>Tenant Management</h1>
-        <button style={buttonStyle} onClick={() => setShowForm(!showForm)}>+ Onboard Tenant</button>
+    <div style={{ padding: '24px', backgroundColor: tokens.colors.bgApp, minHeight: '100vh', color: tokens.colors.textBody }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: tokens.colors.textMain, margin: 0 }}>Multi-Tenant Isolation</h1>
+          <p style={{ color: tokens.colors.textMuted, margin: '4px 0 0', fontSize: '14px' }}>
+            Managed tenant organizations & Postgres Row-Level Security domains
+          </p>
+        </div>
+        <button style={tokens.presets.buttonPrimary} onClick={() => setShowModal(true)}>
+          + Onboard New Tenant
+        </button>
       </div>
 
-      {showForm && (
-        <div style={formStyle}>
-          <h3 style={{ marginTop: 0, color: '#0F172A' }}>New Tenant Onboarding</h3>
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-            <input placeholder="Organization Name" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #E2E8F0', flex: 1 }} />
-            <input placeholder="Domain" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #E2E8F0', flex: 1 }} />
-          </div>
-          <button style={buttonStyle} onClick={() => setShowForm(false)}>Submit</button>
-        </div>
-      )}
-
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thStyle}>Tenant ID</th><th style={thStyle}>Organization Name</th><th style={thStyle}>Domain</th><th style={thStyle}>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tenants.map((t: Tenant) => (
-            <tr key={t.id}>
-              <td style={{ ...tdStyle, ...monoStyle }}>{t.id}</td>
-              <td style={tdStyle}>{t.name}</td>
-              <td style={tdStyle}>{t.domain}</td>
-              <td style={tdStyle}>
-                <span style={{ color: t.status === 'ACTIVE' ? '#15803D' : '#64748B', fontWeight: 500 }}>{t.status.toUpperCase()}</span>
-              </td>
+      <div style={{ backgroundColor: '#FFFFFF', border: `1px solid ${tokens.colors.border}`, borderRadius: '8px', overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#F8FAFC', borderBottom: `1px solid ${tokens.colors.border}` }}>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textBody, fontSize: '13px' }}>Tenant ID</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textBody, fontSize: '13px' }}>Organization Name</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textBody, fontSize: '13px' }}>Domain</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textBody, fontSize: '13px' }}>Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {tenants.map((t, idx) => (
+              <tr key={t.id} style={{ borderBottom: idx === tenants.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
+                <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{t.id}</td>
+                <td style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textMain }}>{t.name}</td>
+                <td style={{ padding: '12px 16px', color: tokens.colors.brand }}>{t.domain}</td>
+                <td style={{ padding: '12px 16px' }}><StatusBadge status={t.status} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <Modal title="Onboard New Tenant Organization" subtitle="Provision tenant record & Postgres RLS context" isOpen={showModal} onClose={() => setShowModal(false)}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <FormField label="Organization Name">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Pacific Logistics Corp"
+              style={tokens.presets.input}
+              required
+            />
+          </FormField>
+          <FormField label="Domain Name">
+            <input
+              type="text"
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              placeholder="pacific.dms.com"
+              style={tokens.presets.input}
+              required
+            />
+          </FormField>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
+            <button type="button" onClick={() => setShowModal(false)} style={tokens.presets.buttonSecondary}>Cancel</button>
+            <button type="submit" style={tokens.presets.buttonPrimary}>Onboard Tenant</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

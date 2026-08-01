@@ -1,180 +1,142 @@
-// ── App Root: Frame-Wise Architecture + Auth Gate + Hash Router ──
+// ── App Root: Frame-Wise Architecture + URL Hash Router + DataProvider ──
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import type { UserRole, RouteId, AppUser, Tenant } from './types';
-import { dbService } from './services/dbService';
+import React, { useState, useCallback, useMemo } from 'react';
+import { HashRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import type { UserRole, AppUser } from './types';
+import { DataProvider, useData } from './context/DataContext';
 import { Sidebar } from './components/Sidebar';
 import { LandingPage } from './pages/landing/LandingPage';
+import { tokens } from './theme/tokens';
 
-// ── Frame Container Imports ──
+// ── Frame Containers ──
 import { DmsFrame } from './frames/DmsFrame';
 import { SfaFrame } from './frames/SfaFrame';
 import { GovernanceFrame } from './frames/GovernanceFrame';
 import { AnalyticsFrame } from './frames/AnalyticsFrame';
 import { ControlFrame } from './frames/ControlFrame';
 
-export type FrameId = 'dms' | 'sfa' | 'governance' | 'analytics' | 'control';
+export type FrameId = 'control' | 'dms' | 'sfa' | 'governance' | 'analytics';
 
 interface FrameMeta {
   id: FrameId;
   label: string;
   icon: string;
   color: string;
+  path: string;
   roles: UserRole[];
 }
 
 const FRAMES: FrameMeta[] = [
-  { id: 'control', label: 'System Control Frame', icon: '🏛️', color: '#0F172A', roles: ['admin', 'auditor'] },
-  { id: 'dms', label: 'DMS Supply Chain Frame', icon: '🏢', color: '#1D4ED8', roles: ['admin', 'agent', 'distributor', 'auditor'] },
-  { id: 'sfa', label: 'SFA Field Ops Frame', icon: '📍', color: '#15803D', roles: ['admin', 'agent'] },
-  { id: 'governance', label: 'Financial Governance Frame', icon: '💰', color: '#B45309', roles: ['admin', 'distributor', 'auditor'] },
-  { id: 'analytics', label: 'AI & Analytics Frame', icon: '⚡', color: '#7C3AED', roles: ['admin'] },
+  { id: 'control', label: 'System Control Frame', icon: '🏛️', color: '#0F172A', path: '/control/dashboard', roles: ['admin', 'auditor'] },
+  { id: 'dms', label: 'DMS Supply Chain Frame', icon: '🏢', color: '#1D4ED8', path: '/dms/sku-catalog', roles: ['admin', 'agent', 'distributor', 'auditor'] },
+  { id: 'sfa', label: 'SFA Field Ops Frame', icon: '📍', color: '#15803D', path: '/sfa/sales-orders', roles: ['admin', 'agent'] },
+  { id: 'governance', label: 'Financial Governance Frame', icon: '💰', color: '#B45309', path: '/governance/invoices', roles: ['admin', 'distributor', 'auditor'] },
+  { id: 'analytics', label: 'AI & Analytics Frame', icon: '⚡', color: '#7C3AED', path: '/analytics/ai-forecast', roles: ['admin'] },
 ];
 
-export const App: React.FC = () => {
-  // ── Auth State ──
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isDemoMode, setIsDemoMode] = useState(false);
-  const [currentRole, setCurrentRole] = useState<UserRole>('admin');
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+const MainAppLayout: React.FC<{
+  isAuthenticated: boolean;
+  isDemoMode: boolean;
+  currentRole: UserRole;
+  currentUser: AppUser | null;
+  tenantName: string;
+  isLiveApiMode: boolean;
+  onLogin: (email: string, password: string, role: UserRole) => void;
+  onDemoMode: () => void;
+  onLogout: () => void;
+  onRoleChange: (role: UserRole) => void;
+  onTenantChange: (name: string) => void;
+  onApiModeToggle: () => void;
+}> = ({
+  isAuthenticated,
+  isDemoMode,
+  currentRole,
+  currentUser,
+  tenantName,
+  isLiveApiMode,
+  onLogin,
+  onDemoMode,
+  onLogout,
+  onRoleChange,
+  onTenantChange,
+  onApiModeToggle,
+}) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { tenants } = useData();
 
-  // ── Frame & App State ──
-  const [activeFrame, setActiveFrame] = useState<FrameId>('control');
-  const [activeRoute, setActiveRoute] = useState<RouteId>('dashboard');
-  const [tenants, setTenants] = useState<Array<{ id: string; name: string }>>([]);
-  const [tenantName, setTenantName] = useState('Global Distribution Corp');
-  const [isLiveApiMode, setIsLiveApiMode] = useState(false);
-  const [lastRefreshed, setLastRefreshed] = useState(new Date().toLocaleTimeString());
+  // Determine active frame from URL pathname
+  const activeFrame: FrameId = useMemo(() => {
+    const path = location.pathname;
+    if (path.startsWith('/dms')) return 'dms';
+    if (path.startsWith('/sfa')) return 'sfa';
+    if (path.startsWith('/governance')) return 'governance';
+    if (path.startsWith('/analytics')) return 'analytics';
+    return 'control';
+  }, [location.pathname]);
 
-  useEffect(() => {
-    dbService.getTenants().then((t: Tenant[]) => {
-      if (Array.isArray(t)) {
-        setTenants(t.map((x: Tenant) => ({ id: x.id, name: x.name })));
-      }
-    }).catch((err) => console.warn('Tenant fetch error:', err));
-  }, []);
+  // Determine active route ID for Sidebar
+  const activeRoute = useMemo(() => {
+    const parts = location.pathname.split('/');
+    return parts[parts.length - 1] || 'dashboard';
+  }, [location.pathname]);
 
-  // ── Route → Frame Synchronization ──
-  const handleNavigate = useCallback((route: RouteId) => {
-    setActiveRoute(route);
-    // Auto-switch active frame based on route
-    if (['sku-catalog', 'stock-ledger', 'outlet-registry', 'pricing-schemes'].includes(route)) {
-      setActiveFrame('dms');
-    } else if (['sales-orders', 'beat-routes', 'field-visits', 'van-sales'].includes(route)) {
-      setActiveFrame('sfa');
-    } else if (['invoices', 'trade-claims', 'audit-ledger'].includes(route)) {
-      setActiveFrame('governance');
-    } else if (['ai-forecast', 'reports'].includes(route)) {
-      setActiveFrame('analytics');
-    } else if (['dashboard', 'platform-matrix', 'users', 'tenants', 'system-config', 'sync-queue'].includes(route)) {
-      setActiveFrame('control');
-    }
-  }, []);
-
-  // ── Auth Actions ──
-  const handleLogin = useCallback((email: string, _password: string, role: UserRole) => {
-    const user: AppUser = {
-      id: `usr-${Date.now()}`,
-      email,
-      status: 'ACTIVE',
-      roles: role,
-      lastLogin: new Date().toISOString(),
-    };
-    setCurrentUser(user);
-    setCurrentRole(role);
-    setIsAuthenticated(true);
-    setIsDemoMode(false);
-    
-    // Set default frame per role
-    if (role === 'agent') {
-      setActiveFrame('sfa');
-      setActiveRoute('sales-orders');
-    } else if (role === 'distributor') {
-      setActiveFrame('dms');
-      setActiveRoute('sku-catalog');
-    } else if (role === 'auditor') {
-      setActiveFrame('governance');
-      setActiveRoute('invoices');
-    } else {
-      setActiveFrame('control');
-      setActiveRoute('dashboard');
-    }
-  }, []);
-
-  const handleDemoMode = useCallback(() => {
-    const demoUser: AppUser = {
-      id: 'demo-admin-001',
-      email: 'admin@enterprise.com',
-      status: 'ACTIVE',
-      roles: 'admin',
-      lastLogin: new Date().toISOString(),
-    };
-    setCurrentUser(demoUser);
-    setCurrentRole('admin');
-    setIsAuthenticated(true);
-    setIsDemoMode(true);
-    setActiveFrame('control');
-    setActiveRoute('dashboard');
-  }, []);
-
-  const handleLogout = useCallback(() => {
-    setIsAuthenticated(false);
-    setIsDemoMode(false);
-    setCurrentUser(null);
-    setCurrentRole('admin');
-    setActiveFrame('control');
-    setActiveRoute('dashboard');
-  }, []);
-
-  const handleRefresh = useCallback(() => {
-    setLastRefreshed(new Date().toLocaleTimeString());
-  }, []);
-
-  // Filter available frames by role
+  // Filter visible frames per role
   const visibleFrames = useMemo(() => {
     return FRAMES.filter((f) => f.roles.includes(currentRole));
   }, [currentRole]);
 
-  // ── Render Active Frame ──
-  const frameContent = useMemo(() => {
-    switch (activeFrame) {
-      case 'dms':
-        return <DmsFrame role={currentRole} initialTab={activeRoute} />;
-      case 'sfa':
-        return <SfaFrame role={currentRole} initialTab={activeRoute} />;
-      case 'governance':
-        return <GovernanceFrame role={currentRole} initialTab={activeRoute} />;
-      case 'analytics':
-        return <AnalyticsFrame role={currentRole} initialTab={activeRoute} />;
-      case 'control':
-      default:
-        return <ControlFrame role={currentRole} initialTab={activeRoute} />;
-    }
-  }, [activeFrame, activeRoute, currentRole]);
-
-  // ── Pre-Auth: Landing Page ──
+  // Pre-auth Landing Page
   if (!isAuthenticated) {
-    return <LandingPage onLogin={handleLogin} onDemoMode={handleDemoMode} />;
+    return <LandingPage onLogin={onLogin} onDemoMode={onDemoMode} />;
   }
 
-  // ── Post-Auth: App Frame-Wise Shell ──
   return (
     <div
       style={{
         display: 'flex',
         minHeight: '100vh',
-        backgroundColor: '#F8FAFC',
-        fontFamily: "'Inter', system-ui, sans-serif",
+        backgroundColor: tokens.colors.bgApp,
+        fontFamily: tokens.typography.fontFamily,
       }}
     >
-      {/* Sidebar */}
+      {/* Sidebar Navigation */}
       <Sidebar
-        activeRoute={activeRoute}
+        activeRoute={activeRoute as any}
         currentRole={currentRole}
         tenantName={tenantName}
-        tenants={tenants}
-        onNavigate={handleNavigate}
-        onTenantChange={setTenantName}
+        tenants={tenants.map((t) => ({ id: t.id, name: t.name }))}
+        onNavigate={(routeId) => {
+          // Route mapping to frame path
+          const framePathMap: Record<string, string> = {
+            dashboard: '/control/dashboard',
+            'platform-matrix': '/control/platform-matrix',
+            users: '/control/users',
+            tenants: '/control/tenants',
+            'system-config': '/control/system-config',
+            'sync-queue': '/control/sync-queue',
+
+            'sku-catalog': '/dms/sku-catalog',
+            'stock-ledger': '/dms/stock-ledger',
+            'outlet-registry': '/dms/outlet-registry',
+            'pricing-schemes': '/dms/pricing-schemes',
+
+            'sales-orders': '/sfa/sales-orders',
+            'beat-routes': '/sfa/beat-routes',
+            'field-visits': '/sfa/field-visits',
+            'van-sales': '/sfa/van-sales',
+
+            invoices: '/governance/invoices',
+            'trade-claims': '/governance/trade-claims',
+            'audit-ledger': '/governance/audit-ledger',
+
+            'ai-forecast': '/analytics/ai-forecast',
+            reports: '/analytics/reports',
+          };
+          const targetPath = framePathMap[routeId] || '/control/dashboard';
+          navigate(targetPath);
+        }}
+        onTenantChange={onTenantChange}
       />
 
       {/* Main Content Area */}
@@ -183,8 +145,8 @@ export const App: React.FC = () => {
         <header
           style={{
             height: '64px',
-            backgroundColor: '#FFFFFF',
-            borderBottom: '1px solid #E2E8F0',
+            backgroundColor: tokens.colors.bgSurface,
+            borderBottom: `1px solid ${tokens.colors.border}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -200,26 +162,19 @@ export const App: React.FC = () => {
               return (
                 <button
                   key={f.id}
-                  onClick={() => {
-                    setActiveFrame(f.id);
-                    if (f.id === 'dms') setActiveRoute('sku-catalog');
-                    if (f.id === 'sfa') setActiveRoute('sales-orders');
-                    if (f.id === 'governance') setActiveRoute('invoices');
-                    if (f.id === 'analytics') setActiveRoute('ai-forecast');
-                    if (f.id === 'control') setActiveRoute('dashboard');
-                  }}
+                  onClick={() => navigate(f.path)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
                     padding: '8px 14px',
-                    borderRadius: '8px',
-                    border: isActive ? `2px solid ${f.color}` : '1px solid #E2E8F0',
-                    backgroundColor: isActive ? '#F8FAFC' : '#FFFFFF',
-                    color: isActive ? f.color : '#64748B',
+                    borderRadius: tokens.radii.lg,
+                    border: isActive ? `2px solid ${f.color}` : `1px solid ${tokens.colors.border}`,
+                    backgroundColor: isActive ? tokens.colors.bgSubtle : tokens.colors.bgSurface,
+                    color: isActive ? f.color : tokens.colors.textMuted,
                     cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: isActive ? '700' : '500',
+                    fontSize: tokens.typography.fontSizeSm,
+                    fontWeight: isActive ? tokens.typography.fontWeightBold : tokens.typography.fontWeightMedium,
                     transition: 'all 0.12s ease',
                   }}
                 >
@@ -230,43 +185,37 @@ export const App: React.FC = () => {
             })}
           </div>
 
-          {/* Right Header Actions */}
+          {/* Right Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-            {/* API Mode Toggle */}
+            {/* Live API Mode Toggle */}
             <button
-              onClick={() => setIsLiveApiMode(!isLiveApiMode)}
+              onClick={onApiModeToggle}
               style={{
                 padding: '6px 14px',
-                borderRadius: '6px',
-                border: '1px solid #E2E8F0',
-                backgroundColor: isLiveApiMode ? '#DCFCE7' : '#F8FAFC',
-                color: isLiveApiMode ? '#15803D' : '#64748B',
+                borderRadius: tokens.radii.md,
+                border: `1px solid ${tokens.colors.border}`,
+                backgroundColor: isLiveApiMode ? tokens.colors.successBg : tokens.colors.bgApp,
+                color: isLiveApiMode ? tokens.colors.success : tokens.colors.textMuted,
                 cursor: 'pointer',
-                fontSize: '11px',
-                fontWeight: '600',
+                fontSize: tokens.typography.fontSizeXs,
+                fontWeight: tokens.typography.fontWeightSemibold,
               }}
             >
-              {isLiveApiMode ? '🟢 Live API' : '📋 Dynamic DB'}
+              {isLiveApiMode ? '🟢 Live API' : '📋 Reactive DB Store'}
             </button>
 
-            {/* Role Switcher */}
+            {/* Role Selector */}
             <select
               value={currentRole}
-              onChange={(e) => {
-                const newRole = e.target.value as UserRole;
-                setCurrentRole(newRole);
-                if (newRole === 'agent') setActiveFrame('sfa');
-                if (newRole === 'distributor') setActiveFrame('dms');
-                if (newRole === 'auditor') setActiveFrame('governance');
-              }}
+              onChange={(e) => onRoleChange(e.target.value as UserRole)}
               style={{
                 padding: '6px 10px',
-                borderRadius: '6px',
-                border: '1px solid #E2E8F0',
-                backgroundColor: '#FFFFFF',
-                fontSize: '11px',
-                fontWeight: '600',
-                color: '#334155',
+                borderRadius: tokens.radii.md,
+                border: `1px solid ${tokens.colors.border}`,
+                backgroundColor: tokens.colors.bgSurface,
+                fontSize: tokens.typography.fontSizeXs,
+                fontWeight: tokens.typography.fontWeightSemibold,
+                color: tokens.colors.textBody,
               }}
             >
               <option value="admin">👑 Admin</option>
@@ -275,44 +224,29 @@ export const App: React.FC = () => {
               <option value="auditor">🛡️ Auditor</option>
             </select>
 
-            {/* Refresh */}
-            <button
-              onClick={handleRefresh}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '6px',
-                border: '1px solid #E2E8F0',
-                backgroundColor: '#FFFFFF',
-                cursor: 'pointer',
-                fontSize: '13px',
-              }}
-            >
-              🔄
-            </button>
-
-            {/* User Menu */}
+            {/* User Avatar */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div
                 style={{
                   width: '30px',
                   height: '30px',
-                  borderRadius: '50%',
-                  backgroundColor: '#EFF6FF',
-                  color: '#1D4ED8',
+                  borderRadius: tokens.radii.pill,
+                  backgroundColor: tokens.colors.brandLight,
+                  color: tokens.colors.brandDark,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontWeight: '700',
-                  fontSize: '12px',
+                  fontWeight: tokens.typography.fontWeightBold,
+                  fontSize: tokens.typography.fontSizeSm,
                 }}
               >
                 {(currentUser?.email ?? 'U')[0].toUpperCase()}
               </div>
               <div>
-                <div style={{ fontSize: '12px', fontWeight: '600', color: '#0F172A' }}>
+                <div style={{ fontSize: tokens.typography.fontSizeSm, fontWeight: tokens.typography.fontWeightSemibold, color: tokens.colors.textMain }}>
                   {currentUser?.email ?? 'User'}
                 </div>
-                <div style={{ fontSize: '10px', color: '#64748B' }}>
+                <div style={{ fontSize: tokens.typography.fontSizeXs, color: tokens.colors.textMuted }}>
                   {isDemoMode ? 'Demo Mode' : 'Authenticated'}
                 </div>
               </div>
@@ -320,16 +254,16 @@ export const App: React.FC = () => {
 
             {/* Logout */}
             <button
-              onClick={handleLogout}
+              onClick={onLogout}
               style={{
                 padding: '6px 14px',
-                borderRadius: '6px',
-                border: '1px solid #FCA5A5',
-                backgroundColor: '#FEF2F2',
-                color: '#B91C1C',
+                borderRadius: tokens.radii.md,
+                border: `1px solid ${tokens.colors.dangerBorder}`,
+                backgroundColor: tokens.colors.dangerBg,
+                color: tokens.colors.danger,
                 cursor: 'pointer',
-                fontSize: '11px',
-                fontWeight: '600',
+                fontSize: tokens.typography.fontSizeXs,
+                fontWeight: tokens.typography.fontWeightSemibold,
               }}
             >
               Sign Out
@@ -337,17 +271,24 @@ export const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Page Content View */}
+        {/* Page Content Routes */}
         <main style={{ flex: 1, padding: '24px 28px', overflowY: 'auto' }}>
-          {frameContent}
+          <Routes>
+            <Route path="/control/*" element={<ControlFrame role={currentRole} initialTab={activeRoute} />} />
+            <Route path="/dms/*" element={<DmsFrame role={currentRole} initialTab={activeRoute} />} />
+            <Route path="/sfa/*" element={<SfaFrame role={currentRole} initialTab={activeRoute} />} />
+            <Route path="/governance/*" element={<GovernanceFrame role={currentRole} initialTab={activeRoute} />} />
+            <Route path="/analytics/*" element={<AnalyticsFrame role={currentRole} initialTab={activeRoute} />} />
+            <Route path="*" element={<Navigate to="/control/dashboard" replace />} />
+          </Routes>
         </main>
 
         {/* Status Bar */}
         <footer
           style={{
             height: '28px',
-            backgroundColor: '#0F172A',
-            color: '#94A3B8',
+            backgroundColor: tokens.colors.bgDark,
+            color: tokens.colors.textLight,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -358,13 +299,78 @@ export const App: React.FC = () => {
           }}
         >
           <span>
-            ● FRAME: {activeFrame.toUpperCase()} │ Tenant: {tenantName} │ Role: {currentRole.toUpperCase()} │ Route: {activeRoute}
+            ● ROUTE: {location.pathname} │ Tenant: {tenantName} │ Role: {currentRole.toUpperCase()}
           </span>
           <span>
-            19 Services HEALTHY │ 29/29 Nodes ONLINE │ Frame-Wise Build STABLE │ dms.jyotirmoyb.com
+            19 Services HEALTHY │ React Router v6 URL Hash Routing │ dms.jyotirmoyb.com
           </span>
         </footer>
       </div>
     </div>
+  );
+};
+
+export const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [currentRole, setCurrentRole] = useState<UserRole>('admin');
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+  const [tenantName, setTenantName] = useState('Global Distribution Corp');
+  const [isLiveApiMode, setIsLiveApiMode] = useState(false);
+
+  const handleLogin = useCallback((email: string, _password: string, role: UserRole) => {
+    const user: AppUser = {
+      id: `usr-${Date.now()}`,
+      email,
+      status: 'ACTIVE',
+      roles: role,
+      lastLogin: new Date().toISOString(),
+    };
+    setCurrentUser(user);
+    setCurrentRole(role);
+    setIsAuthenticated(true);
+    setIsDemoMode(false);
+  }, []);
+
+  const handleDemoMode = useCallback(() => {
+    const demoUser: AppUser = {
+      id: 'demo-admin-001',
+      email: 'admin@enterprise.com',
+      status: 'ACTIVE',
+      roles: 'admin',
+      lastLogin: new Date().toISOString(),
+    };
+    setCurrentUser(demoUser);
+    setCurrentRole('admin');
+    setIsAuthenticated(true);
+    setIsDemoMode(true);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    setIsAuthenticated(false);
+    setIsDemoMode(false);
+    setCurrentUser(null);
+    setCurrentRole('admin');
+  }, []);
+
+  return (
+    <DataProvider>
+      <HashRouter>
+        <MainAppLayout
+          isAuthenticated={isAuthenticated}
+          isDemoMode={isDemoMode}
+          currentRole={currentRole}
+          currentUser={currentUser}
+          tenantName={tenantName}
+          isLiveApiMode={isLiveApiMode}
+          onLogin={handleLogin}
+          onDemoMode={handleDemoMode}
+          onLogout={handleLogout}
+          onRoleChange={(role) => setCurrentRole(role)}
+          onTenantChange={(name) => setTenantName(name)}
+          onApiModeToggle={() => setIsLiveApiMode(!isLiveApiMode)}
+        />
+      </HashRouter>
+    </DataProvider>
   );
 };
