@@ -11,38 +11,36 @@ import type {
 // ── Navigation Menu Items (role-filtered) ──
 
 export const NAV_ITEMS: NavItem[] = [
-  // Dashboard
-  { id: 'dashboard', label: 'Dashboard', icon: '📊', section: 'OVERVIEW', roles: ['admin', 'agent', 'distributor', 'auditor'] },
-  { id: 'platform-matrix', label: 'Platform Matrix', icon: '🏛️', section: 'OVERVIEW', roles: ['admin', 'auditor'] },
+  // Overview
+  { id: 'dashboard', label: 'Dashboard Overview', icon: '📊', section: 'OVERVIEW', roles: ['admin', 'agent', 'distributor', 'auditor'] },
+  { id: 'platform-matrix', label: 'Platform 29-Node Grid', icon: '🏛️', section: 'OVERVIEW', roles: ['admin', 'auditor'] },
 
-  // Identity & Access
-  { id: 'users', label: 'User Management', icon: '👤', section: 'IDENTITY & ACCESS', roles: ['admin', 'auditor'] },
-  { id: 'tenants', label: 'Tenant Management', icon: '🏢', section: 'IDENTITY & ACCESS', roles: ['admin'] },
+  // Identity & Tenancy
+  { id: 'users', label: 'User & Role RBAC', icon: '👤', section: 'IDENTITY & ACCESS', roles: ['admin', 'auditor'] },
+  { id: 'tenants', label: 'Tenant Isolation', icon: '🏢', section: 'IDENTITY & ACCESS', roles: ['admin'] },
 
-  // Inventory & Master Data
-  { id: 'sku-catalog', label: 'SKU Catalog', icon: '📦', section: 'INVENTORY', roles: ['admin', 'agent', 'distributor', 'auditor'] },
-  { id: 'stock-ledger', label: 'Stock Ledger', icon: '📋', section: 'INVENTORY', roles: ['admin', 'distributor', 'auditor'] },
-  { id: 'outlet-registry', label: 'Outlet Registry', icon: '🏪', section: 'INVENTORY', roles: ['admin', 'agent', 'auditor'] },
+  // DMS Engine (Distributors, Stock Flow, Billing, Secondary Sales)
+  { id: 'sku-catalog', label: 'SKU Master Catalog', icon: '📦', section: 'DMS ENGINE (SUPPLY CHAIN)', roles: ['admin', 'agent', 'distributor', 'auditor'] },
+  { id: 'stock-ledger', label: 'Stock & Warehouse Ledger', icon: '📋', section: 'DMS ENGINE (SUPPLY CHAIN)', roles: ['admin', 'distributor', 'auditor'] },
+  { id: 'outlet-registry', label: 'Retailer & Credit Limits', icon: '🏪', section: 'DMS ENGINE (SUPPLY CHAIN)', roles: ['admin', 'agent', 'auditor'] },
+  { id: 'invoices', label: 'Billing & Invoicing', icon: '📄', section: 'DMS ENGINE (SUPPLY CHAIN)', roles: ['admin', 'distributor', 'auditor'] },
+  { id: 'pricing-schemes', label: 'Pricing & Scheme Control', icon: '🏷️', section: 'DMS ENGINE (SUPPLY CHAIN)', roles: ['admin', 'agent', 'distributor', 'auditor'] },
+  { id: 'trade-claims', label: 'Distributor Trade Claims', icon: '💰', section: 'DMS ENGINE (SUPPLY CHAIN)', roles: ['admin', 'distributor', 'auditor'] },
 
-  // Sales & Field Operations
-  { id: 'sales-orders', label: 'Sales Orders', icon: '🛒', section: 'SALES & FIELD OPS', roles: ['admin', 'agent', 'distributor', 'auditor'] },
-  { id: 'beat-routes', label: 'Beat Routes', icon: '🗺️', section: 'SALES & FIELD OPS', roles: ['admin', 'agent'] },
-  { id: 'field-visits', label: 'Field Visits', icon: '📍', section: 'SALES & FIELD OPS', roles: ['admin', 'agent', 'auditor'] },
-  { id: 'van-sales', label: 'Van Sales', icon: '🚚', section: 'SALES & FIELD OPS', roles: ['admin', 'agent'] },
+  // SFA Engine (Field Sales, Visits, Beat Planning, Van Sales)
+  { id: 'sales-orders', label: 'Field Order Collection', icon: '🛒', section: 'SFA ENGINE (FIELD SALES)', roles: ['admin', 'agent', 'distributor', 'auditor'] },
+  { id: 'beat-routes', label: 'Beat & Route Planning', icon: '🗺️', section: 'SFA ENGINE (FIELD SALES)', roles: ['admin', 'agent'] },
+  { id: 'field-visits', label: 'GPS Visit & Attendance', icon: '📍', section: 'SFA ENGINE (FIELD SALES)', roles: ['admin', 'agent', 'auditor'] },
+  { id: 'van-sales', label: 'Van Sales & Dispatch', icon: '🚚', section: 'SFA ENGINE (FIELD SALES)', roles: ['admin', 'agent'] },
 
-  // Finance & Claims
-  { id: 'invoices', label: 'Invoices', icon: '📄', section: 'FINANCE', roles: ['admin', 'distributor', 'auditor'] },
-  { id: 'trade-claims', label: 'Trade Claims', icon: '💰', section: 'FINANCE', roles: ['admin', 'distributor', 'auditor'] },
-  { id: 'pricing-schemes', label: 'Pricing & Schemes', icon: '🏷️', section: 'FINANCE', roles: ['admin', 'agent', 'distributor', 'auditor'] },
-
-  // Analytics & AI
-  { id: 'ai-forecast', label: 'AI Forecast', icon: '⚡', section: 'ANALYTICS', roles: ['admin'] },
-  { id: 'reports', label: 'Reports', icon: '📈', section: 'ANALYTICS', roles: ['admin', 'agent', 'distributor', 'auditor'] },
+  // Analytics & Decision Insights
+  { id: 'ai-forecast', label: 'AI Demand Forecast', icon: '⚡', section: 'ANALYTICS & AI', roles: ['admin'] },
+  { id: 'reports', label: 'Sales & Territory Reports', icon: '📈', section: 'ANALYTICS & AI', roles: ['admin', 'agent', 'distributor', 'auditor'] },
 
   // System & Security
-  { id: 'audit-ledger', label: 'Audit Ledger', icon: '🛡️', section: 'SYSTEM', roles: ['admin', 'auditor'] },
-  { id: 'system-config', label: 'System Config', icon: '⚙️', section: 'SYSTEM', roles: ['admin'] },
-  { id: 'sync-queue', label: 'Sync Queue', icon: '🔄', section: 'SYSTEM', roles: ['admin', 'agent'] },
+  { id: 'audit-ledger', label: 'Blockchain Audit Log', icon: '🛡️', section: 'SYSTEM & SECURITY', roles: ['admin', 'auditor'] },
+  { id: 'system-config', label: 'Feature Flags & Config', icon: '⚙️', section: 'SYSTEM & SECURITY', roles: ['admin'] },
+  { id: 'sync-queue', label: 'Offline Sync Queue', icon: '🔄', section: 'SYSTEM & SECURITY', roles: ['admin', 'agent'] },
 ];
 
 // ── Identity ──
