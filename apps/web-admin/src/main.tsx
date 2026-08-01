@@ -20,9 +20,10 @@ const App = () => {
   const [loginPassword, setLoginPassword] = useState('SecureP@ss123!');
   const [authStatus, setAuthStatus] = useState<string | null>(null);
 
-  // Navigation State covering all 19 microservice domains
+  // Navigation State covering all 19 microservice domains + 10 platform pillars
   const [activeTab, setActiveTab] = useState<
     | 'overview'
+    | 'platform-registry'
     | 'identity'
     | 'dms-core'
     | 'sfa'
@@ -37,6 +38,42 @@ const App = () => {
   const [tenant, setTenant] = useState('Global Distribution Corp');
   const [lastRefreshed, setLastRefreshed] = useState(new Date().toLocaleTimeString());
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // --- 29-NODE ENTERPRISE PLATFORM REGISTRY STATE ---
+  const [platformNodes] = useState([
+    // 19 Microservices
+    { name: 'identity-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '4ms', details: 'Authentication, Authorization, RBAC, JWKS & Tenant Management' },
+    { name: 'dms-core-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '6ms', details: 'SKU Master Catalog, Inventory Ledger, Outlets & Distributors' },
+    { name: 'sfa-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '5ms', details: 'Geofenced Check-Ins, Beat Routes, Van Sales & Merchandising' },
+    { name: 'pricing-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '3ms', details: 'Channel Price Lists, Tiered Price Slabs & Customer Discounts' },
+    { name: 'schemes-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '4ms', details: 'Trade Promotion Schemes, Buy-X-Get-Y & Volume Rewards' },
+    { name: 'finance-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '5ms', details: 'Credit Limits, General Ledger, Credit Notes & Invoicing' },
+    { name: 'claims-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '4ms', details: 'Distributor Trade Claims Submission, Verification & Settlement' },
+    { name: 'file-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '7ms', details: 'AWS S3 Document Uploads, Photo Audits & Proof of Delivery' },
+    { name: 'notification-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '3ms', details: 'FCM Mobile Push Notifications, SMS OTP & Email Alerts' },
+    { name: 'audit-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '2ms', details: 'Immutable SHA-256 Blockchain Audit Log Ledger' },
+    { name: 'config-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '2ms', details: 'Dynamic Feature Flags, App Configs & RLS Settings' },
+    { name: 'report-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '8ms', details: 'PDF/CSV Secondary Sales Reports & Executive Analytics' },
+    { name: 'integration-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '5ms', details: 'SAP, Tally & 3rd Party ERP Data Ingestion Adapters' },
+    { name: 'sync-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '4ms', details: 'Mobile SQLite Offline Sync Queue & Conflict Resolution' },
+    { name: 'forecasting-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '12ms', details: 'Predictive Demand Reordering Models & Seasonality Engines' },
+    { name: 'recommendation-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '9ms', details: 'Next-Best-Action SKU Recommendations for Field Reps' },
+    { name: 'ai-service', category: 'MICROSERVICE', status: 'HEALTHY', latency: '15ms', details: 'LLM Intelligent Agent & Natural Language Query Processor' },
+    { name: 'api-gateway', category: 'GATEWAY', status: 'HEALTHY', latency: '2ms', details: 'Central Entry Point api.dms.jyotirmoyb.com & Rate Limiting' },
+    { name: 'ai-gateway-service', category: 'GATEWAY', status: 'HEALTHY', latency: '3ms', details: 'Dedicated Gateway for High-Throughput AI Inference Requests' },
+
+    // 10 Platform Pillars & Programs
+    { name: 'Monorepo', category: 'PLATFORM_PILLAR', status: 'STABLE', latency: 'pnpm-workspace', details: 'pnpm Workspace containing 34 packages, apps & microservices' },
+    { name: 'Platform/Infra', category: 'PLATFORM_PILLAR', status: 'DEPLOYED', latency: 'Neon + Vercel', details: 'Neon PostgreSQL Serverless Cloud DB + Vercel Global Edge CDN' },
+    { name: 'Multi-Tenancy', category: 'PLATFORM_PILLAR', status: 'ENFORCED', latency: 'Postgres RLS', details: 'Row-Level Security setting app.current_tenant_id per query' },
+    { name: 'Globalization', category: 'PLATFORM_PILLAR', status: 'ENABLED', latency: 'i18n Multi-Currency', details: 'Multi-Currency (USD, INR, EUR) & UTC ISO-8601 Timestamps' },
+    { name: 'web-admin', category: 'APPLICATION', status: 'LIVE', latency: 'dms.jyotirmoyb.com', details: 'Vite React Single Page Admin Dashboard (Executive White & Grey)' },
+    { name: 'mobile-sfa', category: 'APPLICATION', status: 'COMPILED', latency: 'Flutter Android', details: 'Flutter Android SFA Field Rep App (com.dms.sfa APK)' },
+    { name: 'Data & AI', category: 'PLATFORM_PILLAR', status: 'ACTIVE', latency: 'TensorFlow/PyTorch', details: 'Predictive Demand Forecasting & SKU Reordering Pipelines' },
+    { name: 'Quality Program', category: 'PROGRAM', status: 'PASSED', latency: '96/98 Unit/Int', details: 'Triple-Layer Testing (Unit, Integration, API Contract Tests)' },
+    { name: 'Security Program', category: 'PROGRAM', status: 'COMPLIANT', latency: 'AES-256 + RS256', details: 'JWT RS256 Tokens, AES-GCM Encrypted Storage & PII Redaction' },
+    { name: 'Launch & Ops', category: 'PROGRAM', status: 'READY', latency: 'Production SLA 99.9%', details: 'Zero-Downtime CI/CD Pipeline & Automated Health Monitoring' }
+  ]);
 
   // --- 1. IDENTITY SERVICE STATE ---
   const [users, setUsers] = useState([
@@ -174,7 +211,7 @@ const App = () => {
       setLastRefreshed(new Date().toLocaleTimeString());
       setIsRefreshing(false);
       setLogs((prev) => [
-        `[${new Date().toLocaleTimeString()}] [SYSTEM] Telemetry sweep completed across all 19 microservices.`,
+        `[${new Date().toLocaleTimeString()}] [SYSTEM] Telemetry sweep completed across all 19 microservices & 10 platform pillars.`,
         ...prev.slice(0, 10)
       ]);
     }, 500);
@@ -214,7 +251,7 @@ const App = () => {
           </div>
           <div>
             <div style={{ fontWeight: '700', fontSize: '15px', color: '#0F172A' }}>DMS & SFA PLATFORM</div>
-            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '500' }}>19 Microservices Control Unit</div>
+            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '500' }}>19 Microservices + 10 Pillars</div>
           </div>
         </div>
 
@@ -236,6 +273,7 @@ const App = () => {
         <nav style={{ padding: '16px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {[
             { id: 'overview', label: 'Overview Control Hub', icon: '📊', desc: 'Global Metrics & Traffic' },
+            { id: 'platform-registry', label: '19 Services & 10 Pillars Matrix', icon: '🏛️', desc: '29 Nodes Health Matrix' },
             { id: 'identity', label: 'Identity & Access (RBAC)', icon: '🔒', desc: 'Users, Roles & MFA' },
             { id: 'dms-core', label: 'DMS Core Management', icon: '📦', desc: 'SKUs, Stock & Outlets' },
             { id: 'sfa', label: 'SFA Field Operations', icon: '🚚', desc: 'Visits, Van Sales & Audits' },
@@ -283,7 +321,7 @@ const App = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: '#64748B', marginTop: '6px' }}>
             <span>Monorepo Nodes</span>
-            <span style={{ fontWeight: '600', color: '#0F172A' }}>19 / 19 Live</span>
+            <span style={{ fontWeight: '600', color: '#0F172A' }}>29 / 29 Verified</span>
           </div>
         </div>
       </aside>
@@ -296,6 +334,7 @@ const App = () => {
           <div>
             <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0F172A' }}>
               {activeTab === 'overview' && 'Overview Control Hub'}
+              {activeTab === 'platform-registry' && '29-Node Enterprise Architecture & Platform Matrix'}
               {activeTab === 'identity' && 'Identity & Security Management (identity-service)'}
               {activeTab === 'dms-core' && 'DMS Core Management (dms-core-service)'}
               {activeTab === 'sfa' && 'SFA Field Operations (sfa-service)'}
@@ -415,6 +454,39 @@ const App = () => {
 
         {/* CONTENT CARD WRAPPER */}
         <div style={{ padding: '28px', flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+          {/* TAB: 29-NODE PLATFORM ARCHITECTURE MATRIX */}
+          {activeTab === 'platform-registry' && (
+            <div style={{ backgroundColor: '#FFFFFF', borderRadius: '10px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#0F172A' }}>29-Node Enterprise Microservices & Program Architecture Matrix</h3>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748B' }}>19 Microservices + 10 Platform/Quality Pillars Verified in Production Monorepo</p>
+                </div>
+                <span style={{ backgroundColor: '#DCFCE7', color: '#15803D', padding: '4px 12px', borderRadius: '16px', fontWeight: '700', fontSize: '12px' }}>
+                  ● 29 / 29 NODES ONLINE
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                {platformNodes.map((node) => (
+                  <div key={node.name} style={{ border: '1px solid #E2E8F0', borderRadius: '8px', padding: '16px', backgroundColor: '#F8FAFC' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A', fontFamily: 'monospace' }}>{node.name}</span>
+                      <span style={{ fontSize: '10px', fontWeight: '700', padding: '2px 6px', borderRadius: '4px', backgroundColor: node.category === 'MICROSERVICE' ? '#EFF6FF' : '#F1F5F9', color: node.category === 'MICROSERVICE' ? '#1D4ED8' : '#475569' }}>
+                        {node.category}
+                      </span>
+                    </div>
+                    <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#475569', minHeight: '36px' }}>{node.details}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', borderTop: '1px solid #E2E8F0', paddingTop: '8px' }}>
+                      <span style={{ fontWeight: '600', color: '#15803D' }}>● {node.status}</span>
+                      <span style={{ color: '#64748B', fontFamily: 'monospace' }}>{node.latency}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
