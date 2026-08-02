@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"dist/**/*.test.js\""
+    "test": "node --test \"dist/*.test.js\""
   },
   "dependencies": {
     "zod": "^3.22.4"
