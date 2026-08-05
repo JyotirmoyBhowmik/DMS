@@ -3,26 +3,25 @@ set -euo pipefail
 
 # ==============================================================================
 # Enterprise DMS & SFA Automated Production Deployment Script
-# Target Domain: https://dms.jyotirmoyb.com
 # ==============================================================================
 
 echo "========================================================================"
 echo " Starting Automated Production Deployment for DMS Platform"
-echo " Target Domain: ${PRODUCTION_DOMAIN:-https://dms.jyotirmoyb.com}"
-echo " API Endpoint:   ${API_GATEWAY_URL:-https://api.dms.jyotirmoyb.com}"
+echo " Target Domain: ${PRODUCTION_DOMAIN:-[CONFIGURED_DOMAIN]}"
+echo " API Endpoint:   ${API_GATEWAY_URL:-[CONFIGURED_API_GATEWAY]}"
 echo " Timestamp:      $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo "========================================================================"
 
 # 1. Environment Variable Validation
 echo "[1/5] Validating Production Environment Variables..."
-: "${PRODUCTION_DOMAIN:="https://dms.jyotirmoyb.com"}"
-: "${API_GATEWAY_URL:="https://api.dms.jyotirmoyb.com"}"
-: "${VITE_API_URL:="https://api.dms.jyotirmoyb.com"}"
+: "${PRODUCTION_DOMAIN:=""}"
+: "${API_GATEWAY_URL:=""}"
+: "${VITE_API_URL:=""}"
 : "${NODE_ENV:="production"}"
-: "${DB_HOST:="ep-cool-darkness-123456.ap-south-1.aws.neon.tech"}"
+: "${DB_HOST:=""}"
 : "${DB_PORT:="5432"}"
-: "${DB_USER:="neondb_owner"}"
-: "${DB_NAME:="neondb"}"
+: "${DB_USER:=""}"
+: "${DB_NAME:=""}"
 
 echo "  ✓ Domain:            ${PRODUCTION_DOMAIN}"
 echo "  ✓ API Gateway URL:   ${API_GATEWAY_URL}"

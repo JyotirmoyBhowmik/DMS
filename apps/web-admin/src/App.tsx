@@ -302,7 +302,7 @@ const MainAppLayout: React.FC<{
             ● ROUTE: {location.pathname} │ Tenant: {tenantName} │ Role: {currentRole.toUpperCase()}
           </span>
           <span>
-            19 Services HEALTHY │ React Router v6 URL Hash Routing │ dms.jyotirmoyb.com
+            19 Services HEALTHY │ React Router v6 URL Hash Routing
           </span>
         </footer>
       </div>

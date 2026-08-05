@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: sfa-service-rollout
+  namespace: dms-production
+spec:
+  replicas: 5
+  strategy:
+    canary:
+      canaryService: sfa-service-canary
+      stableService: sfa-service-stable
+      trafficRouting:
+        istio:
+          virtualService:
+            name: sfa-service-vservice
+            routes:
+            - primary
+      steps:
+      - setWeight: 10
+      - pause: { duration: 10m }
+      - setWeight: 25
+      - pause: { duration: 15m }
+      - setWeight: 50
+      - pause: { duration: 30m }
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: dms-core-service-rollout
+  namespace: dms-production
+spec:
+  replicas: 5
+  strategy:
+    canary:
+      canaryService: dms-core-service-canary
+      stableService: dms-core-service-stable
+      trafficRouting:
+        istio:
+          virtualService:
+            name: dms-core-service-vservice
+            routes:
+            - primary
+      steps:
+      - setWeight: 10
+      - pause: { duration: 10m }
+      - setWeight: 25
+      - pause: { duration: 15m }
+      - setWeight: 50
+      - pause: { duration: 30m }

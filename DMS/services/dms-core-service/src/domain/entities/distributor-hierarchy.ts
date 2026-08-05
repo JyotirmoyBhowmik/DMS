@@ -4,16 +4,26 @@
  * Levels: SUPER_STOCKIST > CNF > DISTRIBUTOR > SUB_DISTRIBUTOR
  */
 
-export type HierarchyLevel = 'SUPER_STOCKIST' | 'CNF' | 'DISTRIBUTOR' | 'SUB_DISTRIBUTOR';
+export type HierarchyLevel =
+  | 'CUSTOMER'
+  | 'SUPER_STOCKIST'
+  | 'CNF'
+  | 'DISTRIBUTOR'
+  | 'SUB_DISTRIBUTOR'
+  | 'DEPOT'
+  | 'RETAILER';
 
 const HIERARCHY_RANK: Record<HierarchyLevel, number> = {
+  CUSTOMER: 0,
   SUPER_STOCKIST: 1,
   CNF: 2,
   DISTRIBUTOR: 3,
   SUB_DISTRIBUTOR: 4,
+  DEPOT: 5,
+  RETAILER: 6,
 };
 
-const MAX_DEPTH = 4;
+const MAX_DEPTH = 32;
 
 export interface DistributorHierarchyProps {
   id: string;

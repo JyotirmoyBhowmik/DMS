@@ -9,7 +9,16 @@ import type {
   AuditBlock, SyncTask, ConfigFlag, PlatformNode, Outlet
 } from '../types';
 
-const API_BASE = 'https://api.dms.jyotirmoyb.com';
+const getApiBase = (): string => {
+  try {
+    if (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) {
+      return (import.meta as any).env.VITE_API_URL;
+    }
+  } catch {}
+  return '';
+};
+
+const API_BASE = getApiBase();
 
 class DatabaseClient {
   private tenantId: string = '00000000-0000-0000-0000-000000000001';
@@ -133,16 +142,46 @@ class DatabaseClient {
 
   // ── DMS Core Engine DB Queries & Mutations ──
   public async getInventory(): Promise<SkuItem[]> {
-    return this.queryDb<SkuItem[]>('/api/v1/dms/inventory', [
+    const fallback: SkuItem[] = [
       { sku: 'SKU-FMCG-001', name: 'Sunflower Cooking Oil 1L', category: 'Cooking Oil', stock: 1420, minThreshold: 500, price: 12.50, distributor: 'Metro Wholesalers Ltd' },
       { sku: 'SKU-FMCG-002', name: 'Whole Wheat Flour 5kg', category: 'Grains', stock: 240, minThreshold: 300, price: 8.90, distributor: 'Metro Wholesalers Ltd' },
       { sku: 'SKU-FMCG-003', name: 'Refined Sugar 2kg', category: 'Sweeteners', stock: 85, minThreshold: 100, price: 3.20, distributor: 'Apex Logistics Inc' },
       { sku: 'SKU-FMCG-004', name: 'Basmati Rice 5kg', category: 'Rice', stock: 620, minThreshold: 200, price: 18.00, distributor: 'Global Distribution Corp' },
       { sku: 'SKU-FMCG-005', name: 'Organic Tea Leaves 500g', category: 'Beverages', stock: 45, minThreshold: 100, price: 4.50, distributor: 'Global Distribution Corp' },
-    ]);
+    ];
+
+    try {
+      const skuData = await this.queryDb<any>('/api/v1/skus', null);
+      if (skuData && Array.isArray(skuData.data) && skuData.data.length > 0) {
+        const fetchedSkus: SkuItem[] = skuData.data.map((item: any) => ({
+          sku: item.code || item.sku,
+          name: item.name,
+          category: item.category || 'General',
+          stock: item.stock ?? 100,
+          minThreshold: item.minThreshold ?? 20,
+          price: item.unitPrice ? item.unitPrice / 100 : (item.price || 10.00),
+          distributor: item.distributor || 'Global Distribution Corp',
+        }));
+        return fetchedSkus;
+      }
+    } catch (err) {
+      console.warn('[DbService] Fetching /api/v1/skus failed, using inventory query:', err);
+    }
+
+    return this.queryDb<SkuItem[]>('/api/v1/dms/inventory', fallback);
   }
 
   public async postSku(sku: SkuItem): Promise<SkuItem | null> {
+    try {
+      const skuPayload = {
+        code: sku.sku,
+        name: sku.name,
+        unitPrice: Math.round((sku.price || 0) * 100),
+      };
+      await this.postDb('/api/v1/skus', skuPayload);
+    } catch (err) {
+      console.warn('[DbService] Posting to /api/v1/skus endpoint failed:', err);
+    }
     return this.postDb<SkuItem>('/api/v1/dms/inventory', sku);
   }
 

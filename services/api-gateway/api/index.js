@@ -24,7 +24,7 @@ module.exports = async function handler(req, res) {
       service: 'api-gateway',
       version: '1.0.0',
       message: 'Enterprise DMS & SFA Production API Gateway Running',
-      documentation: 'https://dms.jyotirmoyb.com',
+      documentation: '/docs',
       health: '/api/v1/health',
       routes: '/api/v1/routes',
       endpoints: [

@@ -5,7 +5,16 @@ import { GeoPoint } from '../value-objects/geo-point';
  * Captures field data for retail outlets: classification, KYC, trade info,
  * competitor presence. State machine: draft → submitted → verified → approved | rejected.
  */
-export type OutletType = 'kirana' | 'supermarket' | 'pharmacy' | 'general';
+export type OutletType =
+  | 'kirana'
+  | 'supermarket'
+  | 'pharmacy'
+  | 'general'
+  | 'MART'
+  | 'HOTEL_RESTAURANT'
+  | 'SMALL_SHOP'
+  | 'VAN_OPERATOR'
+  | 'SALES_MARKETING_INTERNAL';
 export type KycStatus = 'pending' | 'verified' | 'rejected';
 export type OutletCensusStatus = 'draft' | 'submitted' | 'verified' | 'approved' | 'rejected';
 

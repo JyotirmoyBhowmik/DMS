@@ -1,6 +1,15 @@
 import { GeoPoint } from '../value-objects/geo-point.js';
 
-export type OutletType = 'kirana' | 'supermarket' | 'pharmacy' | 'general';
+export type OutletType =
+  | 'kirana'
+  | 'supermarket'
+  | 'pharmacy'
+  | 'general'
+  | 'MART'
+  | 'HOTEL_RESTAURANT'
+  | 'SMALL_SHOP'
+  | 'VAN_OPERATOR'
+  | 'SALES_MARKETING_INTERNAL';
 export type KycStatus = 'pending' | 'verified' | 'rejected';
 export type OutletProfileStatus = 'active' | 'inactive';
 

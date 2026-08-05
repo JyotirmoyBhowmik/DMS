@@ -19,3 +19,11 @@ export type { CanonicalRequestParts } from './hashing/hmac.js';
 
 // Key derivation
 export { deriveKey, deriveFromPassphrase } from './hashing/kdf.js';
+
+// Envelope encryption & PII classifier
+export { EnvelopeEncryptionService } from './envelope/envelope_encryption.js';
+export type { WrappedDek } from './envelope/envelope_encryption.js';
+export { PiiClassifier } from './pii/pii_classifier.js';
+export type { SensitiveDataType } from './pii/pii_classifier.js';
+export { KekRotatorEngine } from './rotation/kek_rotator.js';
+export type { KekRotationLog } from './rotation/kek_rotator.js';

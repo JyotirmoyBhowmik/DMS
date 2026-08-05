@@ -7,6 +7,7 @@ import { PlatformMatrix } from '../pages/admin/PlatformMatrix';
 import { UserManagement } from '../pages/admin/UserManagement';
 import { TenantManagement } from '../pages/admin/TenantManagement';
 import { SystemConfig } from '../pages/admin/SystemConfig';
+import { TenantAdminPortal } from '../pages/admin/TenantAdminPortal';
 import { SyncQueue } from '../pages/integration/SyncQueue';
 
 interface ControlFrameProps {
@@ -23,6 +24,7 @@ export const ControlFrame: React.FC<ControlFrameProps> = ({ role, initialTab = '
     { id: 'platform-matrix', label: 'Platform 29-Node Matrix', icon: '🏛️' },
     { id: 'users', label: 'User & Role RBAC', icon: '👤' },
     { id: 'tenants', label: 'Multi-Tenant Isolation', icon: '🏢' },
+    { id: 'tenant-portal', label: 'Tenant Self-Service Portal', icon: '⚙️' },
     { id: 'system-config', label: 'Feature Flags & Config', icon: '⚙️' },
     { id: 'sync-queue', label: 'Offline Sync Queue', icon: '🔄' },
   ];
@@ -59,6 +61,7 @@ export const ControlFrame: React.FC<ControlFrameProps> = ({ role, initialTab = '
         {activeTab === 'platform-matrix' && <PlatformMatrix role={role} />}
         {activeTab === 'users' && <UserManagement role={role} />}
         {activeTab === 'tenants' && <TenantManagement role={role} />}
+        {activeTab === 'tenant-portal' && <TenantAdminPortal />}
         {activeTab === 'system-config' && <SystemConfig role={role} />}
         {activeTab === 'sync-queue' && <SyncQueue role={role} />}
       </div>

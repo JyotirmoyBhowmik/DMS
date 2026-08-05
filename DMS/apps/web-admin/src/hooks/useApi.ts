@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export const API_GATEWAY_URL = 'https://api.dms.jyotirmoyb.com';
+export const API_GATEWAY_URL = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || '';
 
 export interface ApiResponse<T = any> {
   data: T | null;

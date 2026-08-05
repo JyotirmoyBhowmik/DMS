@@ -14,6 +14,7 @@ export const NAV_ITEMS: NavItem[] = [
   // Identity & Tenancy
   { id: 'users', label: 'User & Role RBAC', icon: '👤', section: 'IDENTITY & ACCESS', roles: ['admin', 'auditor'] },
   { id: 'tenants', label: 'Tenant Isolation', icon: '🏢', section: 'IDENTITY & ACCESS', roles: ['admin'] },
+  { id: 'tenant-portal', label: 'Tenant Self-Service Portal', icon: '⚙️', section: 'IDENTITY & ACCESS', roles: ['admin', 'distributor'] },
 
   // DMS Engine (Distributors, Stock Flow, Billing, Secondary Sales)
   { id: 'sku-catalog', label: 'SKU Master Catalog', icon: '📦', section: 'DMS ENGINE (SUPPLY CHAIN)', roles: ['admin', 'agent', 'distributor', 'auditor'] },

@@ -225,6 +225,9 @@ export class InMemoryRouteRepository {
         'inventory/allocate',
         'inventory/alerts',
         'inventory/reconcile',
+        'skus',
+        'products',
+        'products/:id',
         'price-lists',
         'returns'
       ] },

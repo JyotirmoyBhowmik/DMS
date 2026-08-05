@@ -163,6 +163,7 @@ export type RouteId =
   | 'platform-matrix'
   | 'users'
   | 'tenants'
+  | 'tenant-portal'
   | 'sku-catalog'
   | 'stock-ledger'
   | 'outlet-registry'

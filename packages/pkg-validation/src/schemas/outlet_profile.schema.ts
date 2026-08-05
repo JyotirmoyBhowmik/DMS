@@ -5,10 +5,15 @@ const GeoPointSchema = z.object({
   longitude: z.number().min(-180).max(180),
 });
 
+export const OutletTypeEnum = z.enum([
+  'kirana', 'supermarket', 'pharmacy', 'general',
+  'MART', 'HOTEL_RESTAURANT', 'SMALL_SHOP', 'VAN_OPERATOR', 'SALES_MARKETING_INTERNAL'
+]);
+
 export const CreateOutletProfileSchema = z.object({
   id: z.string().uuid().optional(),
   outletName: z.string().min(1, { message: 'Outlet name is required' }).max(255),
-  outletType: z.enum(['kirana', 'supermarket', 'pharmacy', 'general']),
+  outletType: OutletTypeEnum,
   ownerName: z.string().min(1, { message: 'Owner name is required' }).max(255),
   ownerPhone: z.string().min(10).max(15, { message: 'Phone must be between 10 and 15 digits' }),
   address: z.string().min(1, { message: 'Address is required' }).max(500),
@@ -19,7 +24,7 @@ export const CreateOutletProfileSchema = z.object({
 
 export const UpdateOutletProfileSchema = z.object({
   outletName: z.string().min(1).max(255).optional(),
-  outletType: z.enum(['kirana', 'supermarket', 'pharmacy', 'general']).optional(),
+  outletType: OutletTypeEnum.optional(),
   ownerName: z.string().min(1).max(255).optional(),
   ownerPhone: z.string().min(10).max(15).optional(),
   address: z.string().min(1).max(500).optional(),

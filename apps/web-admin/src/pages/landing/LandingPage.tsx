@@ -255,7 +255,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
           color: '#94A3B8', fontSize: '12px',
         }}
       >
-        © 2026 Enterprise DMS & SFA Platform — Production Deployment: dms.jyotirmoyb.com
+        © 2026 Enterprise DMS & SFA Platform
       </footer>
 
       {/* Login Modal Overlay */}

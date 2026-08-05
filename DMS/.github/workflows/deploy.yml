@@ -14,9 +14,9 @@ permissions:
 
 env:
   APP_NAME: dms-platform
-  PRODUCTION_DOMAIN: https://dms.jyotirmoyb.com
-  API_GATEWAY_URL: https://api.dms.jyotirmoyb.com
-  VITE_API_URL: https://api.dms.jyotirmoyb.com
+  PRODUCTION_DOMAIN: ${{ secrets.PRODUCTION_DOMAIN || '' }}
+  API_GATEWAY_URL: ${{ secrets.API_GATEWAY_URL || '' }}
+  VITE_API_URL: ${{ secrets.VITE_API_URL || '' }}
   NODE_ENV: production
   LOG_LEVEL: INFO
   SEED_MOCK_DATA: 'false'
@@ -45,8 +45,6 @@ jobs:
 
       - name: Build All Monorepo Targets
         run: pnpm run build
-        env:
-          VITE_API_URL: https://api.dms.jyotirmoyb.com
 
       - name: Run Full Test Suite
         run: pnpm run test
@@ -68,7 +66,7 @@ jobs:
           retention-days: 7
 
   deploy-production:
-    name: Deploy to Production (dms.jyotirmoyb.com)
+    name: Deploy to Production
     needs: validate-and-build
     runs-on: ubuntu-latest
     steps:
@@ -94,27 +92,29 @@ jobs:
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Execute Deployment Script
         run: bash scripts/deploy.sh
         env:
-          PRODUCTION_DOMAIN: https://dms.jyotirmoyb.com
-          API_GATEWAY_URL: https://api.dms.jyotirmoyb.com
-          VITE_API_URL: https://api.dms.jyotirmoyb.com
-          DB_HOST: ${{ secrets.PROD_DB_HOST || 'ep-cool-darkness-123456.ap-south-1.aws.neon.tech' }}
+          PRODUCTION_DOMAIN: ${{ secrets.PRODUCTION_DOMAIN || '' }}
+          API_GATEWAY_URL: ${{ secrets.API_GATEWAY_URL || '' }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL || '' }}
+          DB_HOST: ${{ secrets.PROD_DB_HOST }}
           DB_PORT: '5432'
-          DB_USER: ${{ secrets.PROD_DB_USER || 'neondb_owner' }}
-          DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD || 'sample_secure_password' }}
-          DB_NAME: ${{ secrets.PROD_DB_NAME || 'neondb' }}
+          DB_USER: ${{ secrets.PROD_DB_USER }}
+          DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+          DB_NAME: ${{ secrets.PROD_DB_NAME }}
           DB_SSL: 'true'
           JWT_ISSUER: dms-identity-service
           JWT_AUDIENCE: dms-enterprise
-          JWT_SECRET: ${{ secrets.PROD_JWT_SECRET || 'production-super-secret-jwt-signing-key-32chars' }}
+          JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL || '' }}
           VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL || '' }}
 
       - name: Verify Live Production Health Check
         run: |
-          echo "Verifying health endpoint at https://dms.jyotirmoyb.com / https://api.dms.jyotirmoyb.com..."
-          curl --fail --silent --show-error https://dms.jyotirmoyb.com || echo "Frontend deployment triggered for https://dms.jyotirmoyb.com"
+          if [ -n "${PRODUCTION_DOMAIN}" ]; then
+            echo "Verifying health endpoint at ${PRODUCTION_DOMAIN}..."
+            curl --fail --silent --show-error "${PRODUCTION_DOMAIN}" || echo "Frontend deployment triggered for ${PRODUCTION_DOMAIN}"
+          fi

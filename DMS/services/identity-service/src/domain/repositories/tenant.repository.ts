@@ -14,6 +14,8 @@ export interface TenantRepository {
   findById(id: string, tenantId?: string): Promise<any>;
   findByName?(name: string, tenantId?: string): Promise<any>;
   findByCode?(code: string, tenantId?: string): Promise<any>;
+  findBySubdomain?(subdomain: string): Promise<any>;
+  findByCustomDomain?(domain: string): Promise<any>;
   list(tenantId?: string, options?: ListTenantsOptions): Promise<{ items: any[]; total: number }>;
   findAll?(tenantId?: string, options?: any): Promise<any>;
   update(tenant: any, tenantId?: string): Promise<any>;

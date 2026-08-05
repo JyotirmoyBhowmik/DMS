@@ -361,7 +361,7 @@ export const App: React.FC = () => {
             ● FRAME: {activeFrame.toUpperCase()} │ Tenant: {tenantName} │ Role: {currentRole.toUpperCase()} │ Route: {activeRoute}
           </span>
           <span>
-            19 Services HEALTHY │ 29/29 Nodes ONLINE │ Frame-Wise Build STABLE │ dms.jyotirmoyb.com
+            19 Services HEALTHY │ React Router v6 URL Hash Routing
           </span>
         </footer>
       </div>

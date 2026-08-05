@@ -8,8 +8,8 @@ import 'screens/outlet_census_screen.dart';
 import 'screens/photo_capture_screen.dart';
 import 'screens/van_sale_screen.dart';
 
-const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://api.dms.jyotirmoyb.com');
-const String webAdminUrl = String.fromEnvironment('WEB_ADMIN_URL', defaultValue: 'https://dms.jyotirmoyb.com');
+const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+const String webAdminUrl = String.fromEnvironment('WEB_ADMIN_URL', defaultValue: '');
 
 void main() {
   runApp(const SfaApp());

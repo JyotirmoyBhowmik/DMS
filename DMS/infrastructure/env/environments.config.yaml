@@ -1,0 +1,32 @@
+environments:
+  dev:
+    environment: development
+    vaultNamespace: dms/dev
+    vaultAddress: https://vault-dev.dmsenterprise.internal:8200
+    postgresHost: db-dev.dmsenterprise.internal
+    postgresDatabase: dms_dev
+    rabbitmqVhost: /dev
+    corsOrigins:
+      - http://localhost:3000
+      - https://dev-admin.dmsenterprise.com
+
+  staging:
+    environment: staging
+    vaultNamespace: dms/staging
+    vaultAddress: https://vault-staging.dmsenterprise.internal:8200
+    postgresHost: db-staging.dmsenterprise.internal
+    postgresDatabase: dms_staging
+    rabbitmqVhost: /staging
+    corsOrigins:
+      - https://staging-admin.dmsenterprise.com
+
+  production:
+    environment: production
+    vaultNamespace: dms/prod
+    vaultAddress: https://vault-prod.dmsenterprise.internal:8200
+    postgresHost: db-prod.dmsenterprise.internal
+    postgresDatabase: dms_production
+    rabbitmqVhost: /prod
+    corsOrigins:
+      - https://admin.dmsenterprise.com
+      - https://*.dmsenterprise.com

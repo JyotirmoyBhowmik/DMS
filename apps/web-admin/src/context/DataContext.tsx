@@ -203,13 +203,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // ── Reactive Persistent Mutations ──
 
   const addSku = (item: Omit<SkuItem, 'sku'>) => {
+    const nextNum = inventory.length + Date.now().toString().slice(-3);
     const newSku: SkuItem = {
-      sku: `SKU-FMCG-${String(inventory.length + 1).padStart(3, '0')}`,
+      sku: `SKU-FMCG-${String(nextNum).padStart(3, '0')}`,
       ...item,
     };
-    dbService.postSku(newSku); // Send to DB API endpoint
+    dbService.postSku(newSku); // Send to dms-core-service DB API endpoint
     setInventory((prev) => {
-      const updated = [newSku, ...prev];
+      const exists = prev.some((s) => s.sku === newSku.sku || s.name === newSku.name);
+      const updated = exists ? prev : [newSku, ...prev];
       setStored(LS_KEYS.INVENTORY, updated);
       return updated;
     });

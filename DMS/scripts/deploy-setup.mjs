@@ -5,8 +5,6 @@ import path from 'path';
 
 console.log('========================================================================');
 echo('🚀 DMS Automated One-Click Deployment & Environment Setup Tool');
-echo('Target Domain: https://dms.jyotirmoyb.com');
-echo('API Gateway:   https://api.dms.jyotirmoyb.com');
 console.log('========================================================================\n');
 
 function echo(msg) {
@@ -55,13 +53,13 @@ const renderYamlPath = path.resolve('render.yaml');
 const vercelJsonPath = path.resolve('apps/web-admin/vercel.json');
 
 if (fs.existsSync(renderYamlPath)) {
-  echo('  ✓ Render Blueprint (render.yaml) verified for api.dms.jyotirmoyb.com');
+  echo('  ✓ Render Blueprint (render.yaml) verified');
 } else {
   echo('  ❌ Missing render.yaml');
 }
 
 if (fs.existsSync(vercelJsonPath)) {
-  echo('  ✓ Vercel Config (apps/web-admin/vercel.json) verified for dms.jyotirmoyb.com');
+  echo('  ✓ Vercel Config (apps/web-admin/vercel.json) verified');
 } else {
   echo('  ❌ Missing vercel.json');
 }
@@ -75,8 +73,8 @@ if (fs.existsSync(flutterPath)) {
 
 echo('\n========================================================================');
 echo('🎉 All Deployment Readiness Checks PASSED!');
-echo('To complete deployment to https://dms.jyotirmoyb.com:');
+echo('To complete deployment:');
 echo('  1. Git Push:  git push origin main (triggers GitHub Actions CD pipeline)');
-echo('  2. Vercel:    Import repository & connect domain dms.jyotirmoyb.com');
-echo('  3. Render:    New + Blueprint & connect domain api.dms.jyotirmoyb.com');
+echo('  2. Vercel:    Import repository & connect custom domain');
+echo('  3. Render:    New + Blueprint & connect custom domain');
 echo('========================================================================');

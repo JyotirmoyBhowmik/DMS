@@ -1,6 +1,14 @@
 import { z } from 'zod';
 
-export const HierarchyLevelEnum = z.enum(['SUPER_STOCKIST', 'CNF', 'DISTRIBUTOR', 'SUB_DISTRIBUTOR']);
+export const HierarchyLevelEnum = z.enum([
+  'CUSTOMER',
+  'SUPER_STOCKIST',
+  'CNF',
+  'DISTRIBUTOR',
+  'SUB_DISTRIBUTOR',
+  'DEPOT',
+  'RETAILER',
+]);
 
 export const CreateDistributorHierarchySchema = z.object({
   parentDistributorId: z.string().uuid({ message: 'parentDistributorId must be a valid UUID' }),

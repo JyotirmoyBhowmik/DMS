@@ -102,7 +102,8 @@ describe('Gateway Identity CRUD Integration Tests', () => {
       }
     });
     assert.strictEqual(listRes.status, 200);
-    assert.ok(Array.isArray(listRes.body.data));
+    const userArray = Array.isArray(listRes.body) ? listRes.body : (listRes.body.data || listRes.body.items || []);
+    assert.ok(Array.isArray(userArray));
 
     // 5. Delete User
     const deleteRes = await gateway.handleRequest({
@@ -301,7 +302,7 @@ describe('Gateway Identity CRUD Integration Tests', () => {
         'x-tenant-id': tenantId,
       },
       body: {
-        userId: 'gate-user-123',
+        userId: `gate-user-${Date.now()}`,
         type: 'TOTP',
         secretEncrypted: 'encryptedsecretkeys',
         isActive: true

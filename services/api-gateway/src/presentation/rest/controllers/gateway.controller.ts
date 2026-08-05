@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { TrieRouter, ApiKeyValidator, RateLimitStore, InMemoryRouteRepository } from '../../../infrastructure/routing/trie_router.js';
 import type { RouteHandler } from '../../../infrastructure/routing/trie_router.js';
 import { JwtAuthMiddleware } from '../../../middleware/auth.js';
+import { TenantResolver } from '../../../middleware/tenant_resolver.js';
 import { RbacGuard } from '@dms/pkg-rbac';
 import { AuditController } from '../../../../../audit-service/src/presentation/rest/controllers/audit.controller.js';
 import { KeyManager } from '../../../../../identity-service/src/application/usecases/key_manager.js';
@@ -26,6 +27,7 @@ import { FieldRepController as SfaFieldRepController } from '../../../../../sfa-
 import { SurveyController as SfaSurveyController } from '../../../../../sfa-service/src/presentation/rest/controllers/survey.controller.js';
 import { SchemeController } from '../../../../../schemes-service/src/presentation/rest/controllers/scheme.controller.js';
 import { ClaimController } from '../../../../../claims-service/src/presentation/rest/controllers/claim.controller.js';
+import { SkuController } from '../../../../../dms-core-service/src/presentation/rest/controllers/sku.controller.js';
 import { EnterpriseDmsController } from '../../../../../dms-core-service/src/presentation/rest/controllers/enterprise_dms.controller.js';
 import { DistributorOnboardingController } from '../../../../../dms-core-service/src/presentation/rest/controllers/distributor-onboarding.controller.js';
 import { DistributorOnboardingUseCases } from '../../../../../dms-core-service/src/application/usecases/distributor-onboarding/distributor-onboarding.usecases.js';
@@ -81,6 +83,7 @@ export class GatewayController {
   private readonly sfaSurveyController: SfaSurveyController;
   private readonly schemesController: SchemeController;
   private readonly claimsController: ClaimController;
+  private readonly skuController: SkuController;
   private readonly enterpriseDmsController: EnterpriseDmsController;
   private readonly distributorOnboardingController: DistributorOnboardingController;
   private readonly identityAuthController: IdentityAuthController;
@@ -122,6 +125,7 @@ export class GatewayController {
     this.sfaSurveyController = new SfaSurveyController();
     this.schemesController = new SchemeController();
     this.claimsController = new ClaimController();
+    this.skuController = new SkuController();
     this.identityAuthController = new IdentityAuthController();
     this.identityUserController = new IdentityUserController();
     this.identityRoleController = new IdentityRoleController();
@@ -189,7 +193,8 @@ export class GatewayController {
       return { status: 401, headers: responseHeaders, body: { error: 'Authentication required', code: 'AUTH_REQUIRED' } };
     }
 
-    let tenantId = request.headers['x-tenant-id'] ?? 'unknown';
+    const resolvedTenant = TenantResolver.resolve(request.headers, request.query);
+    let tenantId = (request.headers['x-tenant-id'] as string) || resolvedTenant.tenantId;
     let principal: { id: string; tenantId: string; roles: string[] } | undefined;
 
     if (authHeader.startsWith('Bearer ')) {
@@ -198,10 +203,10 @@ export class GatewayController {
         await this.recordAuditLog('unknown', tenantId, 'auth.access_denied', authResult.error ?? 'Invalid token', request);
         return { status: 401, headers: responseHeaders, body: { error: authResult.error ?? 'Invalid token', code: 'INVALID_TOKEN' } };
       }
-      tenantId = authResult.payload.tenantId;
+      tenantId = authResult.payload.tenantId || tenantId;
       principal = {
         id: authResult.payload.sub,
-        tenantId: authResult.payload.tenantId,
+        tenantId: authResult.payload.tenantId || tenantId,
         roles: authResult.payload.roles,
       };
     } else {
@@ -1184,6 +1189,39 @@ export class GatewayController {
       return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'dms-core-service' }, body: resultBody };
     }
 
+    if (handler.targetService === 'dms-core-service' && handler.targetPath.startsWith('/skus')) {
+      let resultBody: any = {};
+      let statusCode = 200;
+      const skuHeaders = {
+        'x-tenant-id': tenantId,
+        'x-user-id': principal?.id || 'admin-user-id',
+        'x-user-roles': principal?.roles?.join(',') || 'admin',
+      };
+
+      if (request.method === 'POST') {
+        const res = await this.skuController.handleCreate(request.body, skuHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (params.id && request.method === 'GET') {
+        const res = await this.skuController.handleGet(params.id, skuHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (params.id && (request.method === 'PUT' || request.method === 'PATCH')) {
+        const res = await this.skuController.handleUpdate(params.id, request.body, skuHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else if (request.method === 'GET') {
+        const res = await this.skuController.handleList(request.body || {}, skuHeaders);
+        statusCode = res.statusCode;
+        resultBody = res.body;
+      } else {
+        const upstreamResponse = this.forwardToUpstream(handler, request, params);
+        return { status: 200, headers: { ...responseHeaders, 'x-upstream-service': handler.targetService }, body: upstreamResponse };
+      }
+
+      return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'dms-core-service' }, body: resultBody };
+    }
+
     if (handler.targetService === 'identity-service') {
       let resultBody: any = {};
       let statusCode = 200;
@@ -1239,8 +1277,13 @@ export class GatewayController {
           resultBody = res.body;
         }
       } else if (handler.targetPath.startsWith('/tenants')) {
+        const subPath = handler.targetPath.replace('/tenants', '');
         const id = params.id;
-        if (request.method === 'POST') {
+        if (subPath === '/provision' && request.method === 'POST') {
+          const res = await this.identityTenantController.handleProvisionTenant(request.body, { 'x-tenant-id': tenantId });
+          statusCode = res.statusCode;
+          resultBody = res.body;
+        } else if (request.method === 'POST') {
           const res = await this.identityTenantController.handlePostTenant(request.body, { 'x-tenant-id': tenantId });
           statusCode = res.statusCode;
           resultBody = res.body;

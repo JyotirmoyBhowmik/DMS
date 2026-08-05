@@ -458,6 +458,7 @@ export class PostgresDatabaseClient {
     params?: unknown[],
     tenantId?: string,
     cacheOpts?: CacheOptions,
+    isolationTier: 'SHARED_RLS' | 'SCHEMA_PER_TENANT' | 'DEDICATED_CLUSTER' = 'SHARED_RLS'
   ): Promise<QueryResult<T>> {
     if (cacheOpts && this.cacheClient) {
       const cached = await this.cacheClient.get<QueryResult<T>>(cacheOpts.key);
@@ -478,11 +479,16 @@ export class PostgresDatabaseClient {
 
     try {
       if (tenantId) {
-        await setTenantContext(
-          { query: (s: string, p?: unknown[]) => client.query(s, p).then(() => undefined as unknown) },
-          tenantId,
-          'SESSION'
-        );
+        if (isolationTier === 'SCHEMA_PER_TENANT') {
+          const cleanSchema = `tenant_${tenantId.replace(/[^a-zA-Z0-9_]/g, '')}`;
+          await client.query(`SET LOCAL search_path TO "${cleanSchema}", public`);
+        } else {
+          await setTenantContext(
+            { query: (s: string, p?: unknown[]) => client.query(s, p).then(() => undefined as unknown) },
+            tenantId,
+            'SESSION'
+          );
+        }
       }
 
       let result;

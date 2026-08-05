@@ -114,6 +114,60 @@ export class TenantPgRepository implements TenantRepository {
     return null;
   }
 
+  async findBySubdomain(subdomain: string): Promise<TenantAggregate | null> {
+    const normalized = subdomain.trim().toLowerCase();
+
+    if (this.dbPool && typeof this.dbPool.connect === 'function') {
+      try {
+        const client = await this.dbPool.connect();
+        try {
+          const res = await client.query('SELECT * FROM identity_tenants WHERE LOWER(subdomain) = $1 OR LOWER(code) = $1', [normalized]);
+          if (res.rows.length === 0) return null;
+          return this.mapRowToEntity(res.rows[0]);
+        } finally {
+          client.release();
+        }
+      } catch {}
+    }
+
+    for (const tenant of this.inMemoryDb.values()) {
+      if (
+        (tenant.subdomain && tenant.subdomain.trim().toLowerCase() === normalized) ||
+        tenant.code.trim().toLowerCase() === normalized
+      ) {
+        return tenant;
+      }
+    }
+    return null;
+  }
+
+  async findByCustomDomain(domain: string): Promise<TenantAggregate | null> {
+    const normalized = domain.trim().toLowerCase();
+
+    if (this.dbPool && typeof this.dbPool.connect === 'function') {
+      try {
+        const client = await this.dbPool.connect();
+        try {
+          const res = await client.query('SELECT * FROM identity_tenants WHERE LOWER(custom_domain) = $1 OR LOWER(domain) = $1', [normalized]);
+          if (res.rows.length === 0) return null;
+          return this.mapRowToEntity(res.rows[0]);
+        } finally {
+          client.release();
+        }
+      } catch {}
+    }
+
+    for (const tenant of this.inMemoryDb.values()) {
+      if (
+        (tenant.customDomain && tenant.customDomain.trim().toLowerCase() === normalized) ||
+        (tenant.domain && tenant.domain.trim().toLowerCase() === normalized)
+      ) {
+        return tenant;
+      }
+    }
+    return null;
+  }
+
   async list(tenantId?: string, options?: ListTenantsOptions): Promise<{ items: TenantAggregate[]; total: number }> {
     const page = options?.page || 1;
     const limit = Math.min(options?.limit || 20, 100);

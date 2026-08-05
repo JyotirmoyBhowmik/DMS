@@ -2,6 +2,7 @@ import { IERPPort } from './erp-port.interface';
 import { Logger } from '@dms/pkg-logger';
 
 export class SapBapiAdapter implements IERPPort {
+  readonly connectorType = 'SAP_BAPI' as const;
   private failureCount = 0;
   private readonly CIRCUIT_BREAKER_THRESHOLD = 3;
 
