@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { UserRole } from '../types';
+import { useData } from '../context/DataContext';
 import { FrameHeader } from '../components/FrameHeader';
 import { BeatRoutes } from '../pages/sales/BeatRoutes';
 import { FieldVisits } from '../pages/sales/FieldVisits';
@@ -13,6 +14,7 @@ interface SfaFrameProps {
 
 export const SfaFrame: React.FC<SfaFrameProps> = ({ role, initialTab = 'sales-orders' }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const { beatRoutes, fieldVisits, salesOrders } = useData();
 
   const tabs = [
     { id: 'sales-orders', label: 'Field Order Collection', icon: '🛒' },
@@ -21,11 +23,22 @@ export const SfaFrame: React.FC<SfaFrameProps> = ({ role, initialTab = 'sales-or
     { id: 'van-sales', label: 'Van Sales Dispatch', icon: '🚚' },
   ];
 
-  const kpis = [
-    { label: 'Active Beats', value: '4 Beats', color: '#15803D' },
-    { label: 'Visit Compliance', value: '98.2%', color: '#1D4ED8' },
-    { label: 'Today Orders', value: '$12,420', color: '#0F172A' },
-  ];
+  // Dynamic KPIs computed from DataContext
+  const kpis = useMemo(() => {
+    const activeBeats = beatRoutes.filter(b => b.status === 'ACTIVE').length;
+    const completedVisits = fieldVisits.filter(v => v.status === 'COMPLETED' || v.status === 'CHECKED_IN').length;
+    const complianceRate = fieldVisits.length > 0 ? `${((completedVisits / fieldVisits.length) * 100).toFixed(1)}%` : '100%';
+
+    const todayOrderSum = salesOrders.reduce((sum, order) => {
+      return sum + (parseFloat(order.totalAmount.replace(/[^0-9.]/g, '')) || 0);
+    }, 0);
+
+    return [
+      { label: 'Active Beats', value: `${activeBeats} Routes`, color: '#15803D' },
+      { label: 'Visit Compliance', value: complianceRate, color: '#1D4ED8' },
+      { label: 'Orders Value', value: `$${todayOrderSum.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, color: '#0F172A' },
+    ];
+  }, [beatRoutes, fieldVisits, salesOrders]);
 
   return (
     <div>

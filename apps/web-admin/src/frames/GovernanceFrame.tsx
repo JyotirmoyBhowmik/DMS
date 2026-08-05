@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { UserRole } from '../types';
+import { useData } from '../context/DataContext';
 import { FrameHeader } from '../components/FrameHeader';
 import { Invoices } from '../pages/finance/Invoices';
 import { TradeClaims } from '../pages/finance/TradeClaims';
@@ -12,6 +13,7 @@ interface GovernanceFrameProps {
 
 export const GovernanceFrame: React.FC<GovernanceFrameProps> = ({ role, initialTab = 'invoices' }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const { invoices, tradeClaims, auditChain } = useData();
 
   const tabs = [
     { id: 'invoices', label: 'Billing & Invoice Ledger', icon: '📄' },
@@ -19,11 +21,22 @@ export const GovernanceFrame: React.FC<GovernanceFrameProps> = ({ role, initialT
     { id: 'audit-ledger', label: 'Blockchain Audit Chain', icon: '🛡️' },
   ];
 
-  const kpis = [
-    { label: 'Billed Revenue', value: '$51,570', color: '#15803D' },
-    { label: 'Pending Claims', value: '$6,650', color: '#B45309' },
-    { label: 'Audit Chain', value: 'VERIFIED', color: '#1D4ED8' },
-  ];
+  // Dynamic KPIs computed from DataContext
+  const kpis = useMemo(() => {
+    const totalBilled = invoices.reduce((sum, inv) => {
+      return sum + (parseFloat(inv.amount.replace(/[^0-9.]/g, '')) || 0);
+    }, 0);
+
+    const pendingClaims = tradeClaims
+      .filter(c => c.status === 'PENDING_APPROVAL')
+      .reduce((sum, c) => sum + (parseFloat(c.amount.replace(/[^0-9.]/g, '')) || 0), 0);
+
+    return [
+      { label: 'Billed Revenue', value: `$${totalBilled.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, color: '#15803D' },
+      { label: 'Pending Claims', value: `$${pendingClaims.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, color: pendingClaims > 0 ? '#B45309' : '#15803D' },
+      { label: 'Audit Ledger', value: `${auditChain.length} BLOCKS`, color: '#1D4ED8' },
+    ];
+  }, [invoices, tradeClaims, auditChain]);
 
   return (
     <div>

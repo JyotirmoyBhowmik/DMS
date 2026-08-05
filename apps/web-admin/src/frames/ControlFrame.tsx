@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { UserRole } from '../types';
+import { useData } from '../context/DataContext';
 import { FrameHeader } from '../components/FrameHeader';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
 import { PlatformMatrix } from '../pages/admin/PlatformMatrix';
@@ -15,6 +16,7 @@ interface ControlFrameProps {
 
 export const ControlFrame: React.FC<ControlFrameProps> = ({ role, initialTab = 'dashboard' }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const { platformNodes, syncQueue, auditChain } = useData();
 
   const tabs = [
     { id: 'dashboard', label: 'System Overview Dashboard', icon: '📊' },
@@ -25,11 +27,17 @@ export const ControlFrame: React.FC<ControlFrameProps> = ({ role, initialTab = '
     { id: 'sync-queue', label: 'Offline Sync Queue', icon: '🔄' },
   ];
 
-  const kpis = [
-    { label: 'Platform Status', value: '29/29 ONLINE', color: '#15803D' },
-    { label: 'Avg Latency', value: '4ms', color: '#1D4ED8' },
-    { label: 'Build Status', value: 'STABLE', color: '#0F172A' },
-  ];
+  // Dynamic KPIs computed from DataContext
+  const kpis = useMemo(() => {
+    const online = platformNodes.filter(n => n.status === 'online' || n.status === 'HEALTHY').length;
+    const pendingSync = syncQueue.filter(s => s.status !== 'SYNCHRONIZED').length;
+
+    return [
+      { label: 'Platform Status', value: `${online}/${platformNodes.length} ONLINE`, color: online === platformNodes.length ? '#15803D' : '#B45309' },
+      { label: 'Sync Backlog', value: `${pendingSync} Pending`, color: pendingSync === 0 ? '#15803D' : '#B91C1C' },
+      { label: 'Audit Chain', value: `${auditChain.length} BLOCKS`, color: '#0F172A' },
+    ];
+  }, [platformNodes, syncQueue, auditChain]);
 
   return (
     <div>

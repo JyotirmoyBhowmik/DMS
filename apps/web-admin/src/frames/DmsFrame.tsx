@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { UserRole } from '../types';
+import { useData } from '../context/DataContext';
 import { FrameHeader } from '../components/FrameHeader';
 import { SkuCatalog } from '../pages/inventory/SkuCatalog';
 import { StockLedger } from '../pages/inventory/StockLedger';
@@ -14,6 +15,7 @@ interface DmsFrameProps {
 
 export const DmsFrame: React.FC<DmsFrameProps> = ({ role, initialTab = 'sku-catalog' }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const { inventory, outlets } = useData();
 
   const tabs = [
     { id: 'sku-catalog', label: 'SKU Master Catalog', icon: '📦' },
@@ -23,11 +25,17 @@ export const DmsFrame: React.FC<DmsFrameProps> = ({ role, initialTab = 'sku-cata
     { id: 'pricing-schemes', label: 'Pricing & Schemes', icon: '🏷️' },
   ];
 
-  const kpis = [
-    { label: 'Stock Value', value: '$142,500', color: '#15803D' },
-    { label: 'Active Outlets', value: '4 Outlets', color: '#1D4ED8' },
-    { label: 'Low Stock Alerts', value: '2 SKUs', color: '#B45309' },
-  ];
+  // Dynamic KPIs computed from DataContext
+  const kpis = useMemo(() => {
+    const totalVal = inventory.reduce((acc, item) => acc + item.stock * item.price, 0);
+    const lowStock = inventory.filter(item => item.stock <= item.minThreshold).length;
+
+    return [
+      { label: 'Stock Valuation', value: `$${totalVal.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, color: '#15803D' },
+      { label: 'Active Outlets', value: `${outlets.length} Stores`, color: '#1D4ED8' },
+      { label: 'Low Stock Alerts', value: `${lowStock} SKUs`, color: lowStock > 0 ? '#B45309' : '#15803D' },
+    ];
+  }, [inventory, outlets]);
 
   return (
     <div>
