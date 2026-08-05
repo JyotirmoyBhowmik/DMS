@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dms.enterprise/events/sync/conflict.detected.v1",
+  "title": "ConflictDetectedV1",
+  "description": "Emitted when a data conflict is detected during sync between a client device and the server.",
+  "type": "object",
+  "required": [
+    "conflictId",
+    "syncId",
+    "entityType",
+    "entityId",
+    "clientVersion",
+    "serverVersion",
+    "resolution",
+    "detectedAt"
+  ],
+  "properties": {
+    "conflictId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this conflict."
+    },
+    "syncId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Sync session in which the conflict was detected."
+    },
+    "entityType": {
+      "type": "string",
+      "description": "Type of entity with conflicting versions."
+    },
+    "entityId": {
+      "type": "string",
+      "description": "Identifier of the conflicting entity."
+    },
+    "field": {
+      "type": "string",
+      "description": "Specific field that conflicted, if applicable."
+    },
+    "clientVersion": {
+      "type": "object",
+      "required": ["value", "timestamp", "deviceId"],
+      "properties": {
+        "value": {
+          "description": "Client-side value."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Client modification timestamp."
+        },
+        "deviceId": {
+          "type": "string",
+          "description": "Device that produced the client version."
+        }
+      },
+      "additionalProperties": false,
+      "description": "The client-side conflicting version."
+    },
+    "serverVersion": {
+      "type": "object",
+      "required": ["value", "timestamp", "modifiedBy"],
+      "properties": {
+        "value": {
+          "description": "Server-side value."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server modification timestamp."
+        },
+        "modifiedBy": {
+          "type": "string",
+          "format": "uuid",
+          "description": "User who last modified on the server."
+        }
+      },
+      "additionalProperties": false,
+      "description": "The server-side conflicting version."
+    },
+    "resolution": {
+      "type": "string",
+      "enum": ["CLIENT_WINS", "SERVER_WINS", "MERGED", "MANUAL_REQUIRED"],
+      "description": "How the conflict was resolved."
+    },
+    "mergedValue": {
+      "description": "The merged value, if resolution is MERGED."
+    },
+    "detectedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp when the conflict was detected."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@dms/mobile-sfa",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~50.0.8",
+    "expo-sqlite": "~13.2.2",
+    "@dms/pkg-mobile-sync": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

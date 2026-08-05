@@ -1,0 +1,17 @@
+{
+  "name": "@dms/pkg-integrations",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/pkg-integrations/src/index.js",
+  "types": "./dist/pkg-integrations/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dms/pkg-logger": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

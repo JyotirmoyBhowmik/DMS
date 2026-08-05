@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+transformers
+scikit-learn
+opencv-python-headless

@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DeliveryScheduledV1",
+  "type": "object",
+  "properties": {
+    "deliveryId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "orderId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "distributorId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "outletId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "scheduledDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "estimatedTimeOfArrival": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "carrierId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "skuId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": ["skuId", "quantity"]
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["deliveryId", "orderId", "distributorId", "outletId", "scheduledDate", "items"]
+}

@@ -1,0 +1,107 @@
+openapi: 3.0.3
+info:
+  title: Schemes Service API
+  version: 1.0.0
+  description: OpenAPI 3.0 spec for DMS Schemes Service managing trade and promotional scheme rules.
+
+paths:
+  /schemes:
+    post:
+      summary: Create a promotional scheme
+      operationId: createScheme
+      responses:
+        '201':
+          description: Scheme created successfully
+        '409':
+          description: Duplicate scheme code conflict
+    get:
+      summary: List schemes with status, schemeType, and code filters
+      operationId: listSchemes
+      responses:
+        '200':
+          description: Paginated schemes list
+
+  /scheme-promotions:
+    post:
+      summary: Create a promotional campaign for a scheme
+      operationId: createSchemePromotion
+      responses:
+        '201':
+          description: Scheme promotion created successfully
+        '409':
+          description: Duplicate promo code conflict
+    get:
+      summary: List scheme promotions with status, schemeId, and promoCode filters
+      operationId: listSchemePromotions
+      responses:
+        '200':
+          description: Paginated scheme promotions list
+
+  /eligibility-rules:
+    post:
+      summary: Create an eligibility rule for a scheme
+      operationId: createEligibilityRule
+      responses:
+        '201':
+          description: Eligibility rule created successfully
+        '409':
+          description: Duplicate rule code conflict
+    get:
+      summary: List eligibility rules with status, schemeId, and ruleCode filters
+      operationId: listEligibilityRules
+      responses:
+        '200':
+          description: Paginated eligibility rules list
+
+  /scheme-budgets:
+    post:
+      summary: Create a scheme budget allocation
+      operationId: createSchemeBudget
+      responses:
+        '201':
+          description: Scheme budget created successfully
+        '409':
+          description: Duplicate budget code conflict
+    get:
+      summary: List scheme budgets with status, schemeId, and budgetCode filters
+      operationId: listSchemeBudgets
+      responses:
+        '200':
+          description: Paginated scheme budgets list
+
+  /slab-rewards:
+    post:
+      summary: Create a slab reward tier for a scheme
+      operationId: createSlabReward
+      responses:
+        '201':
+          description: Slab reward tier created successfully
+        '409':
+          description: Duplicate slab code conflict
+    get:
+      summary: List slab rewards with status, schemeId, and slabCode filters
+      operationId: listSlabRewards
+      responses:
+        '200':
+          description: Paginated slab rewards list
+
+  /scheme-payouts:
+    post:
+      summary: Create a scheme payout to a distributor
+      operationId: createSchemePayout
+      responses:
+        '201':
+          description: Scheme payout created successfully
+        '409':
+          description: Duplicate payout code conflict
+    get:
+      summary: List scheme payouts with status, schemeId, distributorId, and payoutCode filters
+      operationId: listSchemePayouts
+      responses:
+        '200':
+          description: Paginated scheme payouts list
+
+
+
+
+

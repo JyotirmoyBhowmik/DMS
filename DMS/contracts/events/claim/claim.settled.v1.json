@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dms.enterprise/events/claim/claim.settled.v1",
+  "title": "ClaimSettledV1",
+  "description": "Emitted when a distributor scheme claim is settled (approved or rejected).",
+  "type": "object",
+  "required": [
+    "claimId",
+    "distributorId",
+    "schemeId",
+    "status",
+    "claimedAmount",
+    "settledAmount",
+    "settledBy",
+    "settledAt"
+  ],
+  "properties": {
+    "claimId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the claim."
+    },
+    "distributorId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Distributor who submitted the claim."
+    },
+    "schemeId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Promotional scheme the claim is filed against."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["APPROVED", "PARTIALLY_APPROVED", "REJECTED"],
+      "description": "Settlement outcome."
+    },
+    "claimedAmount": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Original amount claimed by the distributor."
+    },
+    "settledAmount": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Actual amount approved in settlement."
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO-4217 currency code."
+    },
+    "rejectionReason": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Reason for rejection or partial approval."
+    },
+    "supportingDocIds": {
+      "type": "array",
+      "description": "File IDs of supporting documentation.",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      }
+    },
+    "settledBy": {
+      "type": "string",
+      "format": "uuid",
+      "description": "User who settled the claim."
+    },
+    "settledAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp when the claim was settled."
+    }
+  },
+  "additionalProperties": false
+}

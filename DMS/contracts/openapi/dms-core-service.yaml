@@ -1,0 +1,427 @@
+openapi: 3.0.3
+info:
+  title: Distributor Management System (DMS) Core API
+  version: 1.0.0
+  description: API for managing distributor inventory, schemes, claims, returns, and profiles.
+paths:
+  /inventory/adjust:
+    post:
+      summary: Adjust warehouse stock levels
+      operationId: adjustStock
+      responses:
+        '200':
+          description: Stock adjusted successfully
+
+  /distributors:
+    post:
+      summary: Register a new wholesale distributor account
+      operationId: createDistributor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - region
+                - creditLimit
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                region:
+                  type: string
+                creditLimit:
+                  type: integer
+                  description: Credit limit in cents/paise
+      responses:
+        '201':
+          description: Distributor created successfully
+        '400':
+          description: Validation error
+        '409':
+          description: Name duplicate conflict
+
+    get:
+      summary: List distributors with optional regional filtering
+      operationId: listDistributors
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+        - name: region
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated list returned successfully
+
+  /distributors/{id}:
+    get:
+      summary: Get details of a single distributor
+      operationId: getDistributor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Distributor details
+        '404':
+          description: Not found
+
+    put:
+      summary: Update distributor details
+      operationId: updateDistributor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - version
+              properties:
+                name:
+                  type: string
+                region:
+                  type: string
+                creditLimit:
+                  type: integer
+                version:
+                  type: integer
+      responses:
+        '200':
+          description: Updated successfully
+        '409':
+          description: Version locking concurrency conflict
+
+    delete:
+      summary: Remove a distributor
+      operationId: deleteDistributor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Deleted successfully
+
+  /distributor-hierarchies:
+    post:
+      summary: Create parent-child distributor hierarchy mapping
+      operationId: createDistributorHierarchy
+      responses:
+        '201':
+          description: Hierarchy mapping created
+    get:
+      summary: List distributor hierarchies
+      operationId: listDistributorHierarchies
+      responses:
+        '200':
+          description: Hierarchy list returned
+
+  /kyc-documents:
+    post:
+      summary: Register/Upload a distributor KYC document
+      operationId: createKYCDocument
+      responses:
+        '201':
+          description: KYC Document uploaded
+        '409':
+          description: Duplicate document conflict
+    get:
+      summary: List distributor KYC verification documents
+      operationId: listKYCDocuments
+      responses:
+        '200':
+          description: Paginated KYC documents list
+
+  /credit-limits:
+    post:
+      summary: Configure distributor credit limit
+      operationId: createCreditLimit
+      responses:
+        '201':
+          description: Credit limit configured
+        '409':
+          description: Duplicate credit limit record
+    get:
+      summary: List distributor credit limits and credit hold statuses
+      operationId: listCreditLimits
+      responses:
+        '200':
+          description: Paginated credit limits list
+
+  /outlets:
+    post:
+      summary: Register a retail outlet with GPS geofence bounds
+      operationId: createOutlet
+      responses:
+        '201':
+          description: Outlet created successfully
+    get:
+      summary: List retail outlets with channel and status filtering
+      operationId: listOutlets
+      responses:
+        '200':
+          description: Paginated outlets list
+
+  /products:
+    post:
+      summary: Create a product SKU entry
+      operationId: createProduct
+      responses:
+        '201':
+          description: Product created successfully
+        '409':
+          description: Duplicate SKU conflict
+    get:
+      summary: List product catalog with category and status filters
+      operationId: listProducts
+      responses:
+        '200':
+          description: Paginated product catalog list
+
+  /product-categories:
+    post:
+      summary: Create a product category entry
+      operationId: createProductCategory
+      responses:
+        '201':
+          description: ProductCategory created successfully
+        '409':
+          description: Duplicate Category Code conflict
+    get:
+      summary: List product categories with status filter
+      operationId: listProductCategories
+      responses:
+        '200':
+          description: Paginated product categories list
+
+  /skus:
+    post:
+      summary: Create a SKU entry
+      operationId: createSku
+      responses:
+        '201':
+          description: SKU created successfully
+        '409':
+          description: Duplicate SKU Code conflict
+    get:
+      summary: List SKUs with product and status filters
+      operationId: listSkus
+      responses:
+        '200':
+          description: Paginated SKUs list
+
+  /inventories:
+    post:
+      summary: Create an inventory stock record
+      operationId: createInventory
+      responses:
+        '201':
+          description: Inventory record created successfully
+        '409':
+          description: Duplicate warehouse and SKU inventory conflict
+    get:
+      summary: List inventory stock levels with warehouse and status filters
+      operationId: listInventories
+      responses:
+        '200':
+          description: Paginated inventory list
+
+  /batches:
+    post:
+      summary: Create a product inventory batch
+      operationId: createBatch
+      responses:
+        '201':
+          description: Batch created successfully
+    get:
+      summary: List product batches with filters
+      operationId: listBatches
+      responses:
+        '200':
+          description: Paginated batch list
+
+  /stock-ledgers:
+    post:
+      summary: Record a stock ledger transaction entry
+      operationId: createStockLedger
+      responses:
+        '201':
+          description: StockLedger entry recorded successfully
+    get:
+      summary: List stock ledger entries with filters
+      operationId: listStockLedgers
+      responses:
+        '200':
+          description: Paginated stock ledger list
+
+  /stock-transfers:
+    post:
+      summary: Request an inter-warehouse stock transfer
+      operationId: createStockTransfer
+      responses:
+        '201':
+          description: Stock transfer requested successfully
+        '409':
+          description: Duplicate transfer number conflict
+    get:
+      summary: List stock transfer requests with status and warehouse filters
+      operationId: listStockTransfers
+      responses:
+        '200':
+          description: Paginated stock transfers list
+
+  /goods-receipts:
+    post:
+      summary: Record an incoming inventory goods receipt from a purchase order
+      operationId: createGoodsReceipt
+      responses:
+        '201':
+          description: Goods receipt recorded successfully
+        '409':
+          description: Duplicate receipt number conflict
+    get:
+      summary: List goods receipts with status, PO, and warehouse filters
+      operationId: listGoodsReceipts
+      responses:
+        '200':
+          description: Paginated goods receipts list
+
+  /purchase-orders:
+    post:
+      summary: Create a supplier replenishment purchase order
+      operationId: createPurchaseOrder
+      responses:
+        '201':
+          description: Purchase order created successfully
+        '409':
+          description: Duplicate PO number conflict
+    get:
+      summary: List purchase orders with status, supplier, and warehouse filters
+      operationId: listPurchaseOrders
+      responses:
+        '200':
+          description: Paginated purchase orders list
+
+  /returns:
+    post:
+      summary: Request an outlet stock return to warehouse
+      operationId: createReturn
+      responses:
+        '201':
+          description: Stock return requested successfully
+        '409':
+          description: Duplicate return number conflict
+    get:
+      summary: List stock returns with status, outlet, and warehouse filters
+      operationId: listReturns
+      responses:
+        '200':
+          description: Paginated returns list
+
+  /replacements:
+    post:
+      summary: Request an inventory stock replacement for returned items
+      operationId: createReplacement
+      responses:
+        '201':
+          description: Replacement request created successfully
+        '409':
+          description: Duplicate replacement number conflict
+    get:
+      summary: List replacements with status, returnId, and warehouse filters
+      operationId: listReplacements
+      responses:
+        '200':
+          description: Paginated replacements list
+
+  /primary-sales:
+    post:
+      summary: Record a manufacturer-to-distributor primary sale invoice
+      operationId: createPrimarySale
+      responses:
+        '201':
+          description: Primary sale invoice recorded successfully
+        '409':
+          description: Duplicate invoice number conflict
+    get:
+      summary: List primary sales with status, distributor, and warehouse filters
+      operationId: listPrimarySales
+      responses:
+        '200':
+          description: Paginated primary sales list
+
+  /secondary-sales:
+    post:
+      summary: Record a distributor-to-retailer secondary sale invoice
+      operationId: createSecondarySale
+      responses:
+        '201':
+          description: Secondary sale invoice recorded successfully
+        '409':
+          description: Duplicate invoice number conflict
+    get:
+      summary: List secondary sales with status, outlet, and warehouse filters
+      operationId: listSecondarySales
+      responses:
+        '200':
+          description: Paginated secondary sales list
+
+  /tertiary-sales:
+    post:
+      summary: Record a retailer-to-consumer tertiary sale invoice
+      operationId: createTertiarySale
+      responses:
+        '201':
+          description: Tertiary sale invoice recorded successfully
+        '409':
+          description: Duplicate invoice number conflict
+    get:
+      summary: List tertiary sales with status, consumer, and outlet filters
+      operationId: listTertiarySales
+      responses:
+        '200':
+          description: Paginated tertiary sales list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

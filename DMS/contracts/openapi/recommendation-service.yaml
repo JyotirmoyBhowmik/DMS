@@ -1,0 +1,425 @@
+openapi: 3.0.3
+info:
+  title: Recommendation Service API
+  version: 1.0.0
+  description: Multi-tenant Recommendation Engine Service for generating personalized cross-sell, up-sell, and inventory replenishment recommendations.
+paths:
+  /api/v1/recommendations:
+    post:
+      summary: Create Recommendation
+      operationId: createRecommendation
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRecommendationRequest'
+      responses:
+        '201':
+          description: Recommendation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResponse'
+        '400':
+          description: Invalid input or domain validation failure
+        '409':
+          description: Idempotency or duplicate title conflict
+    get:
+      summary: List Recommendations with pagination and filters
+      operationId: listRecommendations
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: title
+          schema:
+            type: string
+        - in: query
+          name: targetType
+          schema:
+            type: string
+            enum: [OUTLET, PRODUCT, DISTRIBUTOR]
+        - in: query
+          name: targetId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: recommendationType
+          schema:
+            type: string
+            enum: [CROSS_SELL, UP_SELL, INVENTORY_REPLENISHMENT, PRICE_OPTIMIZATION]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, ACTIVE, APPLIED, DISMISSED, EXPIRED]
+      responses:
+        '200':
+          description: Paginated list of Recommendations
+
+  /api/v1/recommendations/{id}:
+    get:
+      summary: Get Recommendation details by ID
+      operationId: getRecommendation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Recommendation details
+        '404':
+          description: Recommendation not found
+    put:
+      summary: Update Recommendation status
+      operationId: updateRecommendation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRecommendationRequest'
+      responses:
+        '200':
+          description: Recommendation updated successfully
+        '409':
+          description: Optimistic locking conflict
+    delete:
+      summary: Delete Recommendation by ID
+      operationId: deleteRecommendation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Recommendation deleted successfully
+
+  /api/v1/recommendations/{id}/approve:
+    post:
+      summary: Approve Recommendation
+      operationId: approveRecommendation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Recommendation approved successfully
+
+  /api/v1/recommendation-models:
+    post:
+      summary: Create RecommendationModel
+      operationId: createRecommendationModel
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRecommendationModelRequest'
+      responses:
+        '201':
+          description: RecommendationModel created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationModelResponse'
+        '400':
+          description: Invalid input or domain validation failure
+        '409':
+          description: Idempotency or duplicate name conflict
+    get:
+      summary: List RecommendationModels with pagination and filters
+      operationId: listRecommendationModels
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: modelName
+          schema:
+            type: string
+        - in: query
+          name: modelType
+          schema:
+            type: string
+            enum: [COLLABORATIVE_FILTERING, CONTENT_BASED, RULE_BASED, HYBRID]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, TRAINING, ACTIVE, RETIRED]
+      responses:
+        '200':
+          description: Paginated list of RecommendationModels
+
+  /api/v1/recommendation-models/{id}:
+    get:
+      summary: Get RecommendationModel details by ID
+      operationId: getRecommendationModel
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: RecommendationModel details
+        '404':
+          description: RecommendationModel not found
+    put:
+      summary: Update RecommendationModel state
+      operationId: updateRecommendationModel
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRecommendationModelRequest'
+      responses:
+        '200':
+          description: RecommendationModel updated successfully
+        '409':
+          description: Optimistic locking conflict
+    delete:
+      summary: Delete RecommendationModel by ID
+      operationId: deleteRecommendationModel
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: RecommendationModel deleted successfully
+
+  /api/v1/recommendation-models/{id}/approve:
+    post:
+      summary: Approve RecommendationModel
+      operationId: approveRecommendationModel
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: RecommendationModel approved successfully
+
+components:
+  schemas:
+    CreateRecommendationRequest:
+      type: object
+      required:
+        - title
+        - targetId
+      properties:
+        title:
+          type: string
+        targetType:
+          type: string
+          enum: [OUTLET, PRODUCT, DISTRIBUTOR]
+        targetId:
+          type: string
+          format: uuid
+        recommendationType:
+          type: string
+          enum: [CROSS_SELL, UP_SELL, INVENTORY_REPLENISHMENT, PRICE_OPTIMIZATION]
+        score:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        payload:
+          type: object
+
+    UpdateRecommendationRequest:
+      type: object
+      required:
+        - expectedVersion
+      properties:
+        action:
+          type: string
+          enum: [activate, apply, dismiss, expire]
+        expectedVersion:
+          type: integer
+          minimum: 1
+
+    RecommendationResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - title
+        - targetType
+        - targetId
+        - recommendationType
+        - score
+        - status
+        - payload
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        targetType:
+          type: string
+          enum: [OUTLET, PRODUCT, DISTRIBUTOR]
+        targetId:
+          type: string
+          format: uuid
+        recommendationType:
+          type: string
+          enum: [CROSS_SELL, UP_SELL, INVENTORY_REPLENISHMENT, PRICE_OPTIMIZATION]
+        score:
+          type: number
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, APPLIED, DISMISSED, EXPIRED]
+        payload:
+          type: object
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateRecommendationModelRequest:
+      type: object
+      required:
+        - modelName
+      properties:
+        modelName:
+          type: string
+        modelType:
+          type: string
+          enum: [COLLABORATIVE_FILTERING, CONTENT_BASED, RULE_BASED, HYBRID]
+        hyperparameters:
+          type: object
+
+    UpdateRecommendationModelRequest:
+      type: object
+      required:
+        - expectedVersion
+      properties:
+        action:
+          type: string
+          enum: [train, activate, retire]
+        precisionAtK:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        recallAtK:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        expectedVersion:
+          type: integer
+          minimum: 1
+
+    RecommendationModelResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - modelName
+        - modelType
+        - status
+        - hyperparameters
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        modelName:
+          type: string
+        modelType:
+          type: string
+          enum: [COLLABORATIVE_FILTERING, CONTENT_BASED, RULE_BASED, HYBRID]
+        precisionAtK:
+          type: number
+        recallAtK:
+          type: number
+        status:
+          type: string
+          enum: [DRAFT, TRAINING, ACTIVE, RETIRED]
+        hyperparameters:
+          type: object
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

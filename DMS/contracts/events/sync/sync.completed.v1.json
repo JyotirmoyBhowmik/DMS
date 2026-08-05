@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dms.enterprise/events/sync/sync.completed.v1",
+  "title": "SyncCompletedV1",
+  "description": "Emitted when a client device completes a sync cycle (pull + push).",
+  "type": "object",
+  "required": [
+    "syncId",
+    "deviceId",
+    "agentId",
+    "tenantId",
+    "direction",
+    "entitiesSynced",
+    "recordCount",
+    "conflictCount",
+    "durationMs",
+    "completedAt"
+  ],
+  "properties": {
+    "syncId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique sync session identifier."
+    },
+    "deviceId": {
+      "type": "string",
+      "description": "Identifier of the syncing device."
+    },
+    "agentId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Agent performing the sync."
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Tenant context."
+    },
+    "direction": {
+      "type": "string",
+      "enum": ["PULL", "PUSH", "BIDIRECTIONAL"],
+      "description": "Sync direction."
+    },
+    "entitiesSynced": {
+      "type": "array",
+      "description": "Entity types included in this sync.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recordCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of records transferred."
+    },
+    "conflictCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of conflicts encountered."
+    },
+    "cursor": {
+      "type": "string",
+      "description": "Server cursor after sync for next delta pull."
+    },
+    "durationMs": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Sync duration in milliseconds."
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp when sync completed."
+    }
+  },
+  "additionalProperties": false
+}

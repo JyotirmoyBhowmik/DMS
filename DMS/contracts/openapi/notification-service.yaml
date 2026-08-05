@@ -1,0 +1,352 @@
+openapi: 3.0.3
+info:
+  title: Notification Service API
+  version: 1.0.0
+  description: Multi-channel notifications routing engine API.
+paths:
+  /notifications/send:
+    post:
+      summary: Send push, SMS, or email notification
+      operationId: sendNotification
+      responses:
+        '202':
+          description: Notification queued successfully
+
+  /api/v1/notifications:
+    post:
+      summary: Create Notification
+      operationId: createNotification
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationRequest'
+      responses:
+        '201':
+          description: Notification created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        '400':
+          description: Invalid input or domain validation failure
+        '409':
+          description: Conflict or idempotency failure
+    get:
+      summary: List Notifications with pagination and filtering
+      operationId: listNotifications
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: channel
+          schema:
+            type: string
+            enum: [EMAIL, SMS, PUSH, WHATSAPP]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [QUEUED, PROCESSING, SENT, FAILED, CANCELLED]
+      responses:
+        '200':
+          description: Paginated list of Notifications
+
+  /api/v1/notifications/{id}:
+    get:
+      summary: Get Notification by ID
+      operationId: getNotification
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification details
+        '404':
+          description: Notification not found
+    put:
+      summary: Update Notification payload
+      operationId: updateNotification
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNotificationRequest'
+      responses:
+        '200':
+          description: Notification updated successfully
+        '409':
+          description: Optimistic lock failure
+
+  /api/v1/notification-templates:
+    post:
+      summary: Create NotificationTemplate
+      operationId: createNotificationTemplate
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationTemplateRequest'
+      responses:
+        '201':
+          description: NotificationTemplate created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTemplateResponse'
+        '400':
+          description: Invalid input or domain validation failure
+        '409':
+          description: Template code conflict or idempotency failure
+    get:
+      summary: List NotificationTemplates with pagination
+      operationId: listNotificationTemplates
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: channel
+          schema:
+            type: string
+            enum: [EMAIL, SMS, PUSH, WHATSAPP]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE, ARCHIVED]
+      responses:
+        '200':
+          description: List of NotificationTemplates
+
+  /api/v1/notification-templates/{id}:
+    get:
+      summary: Get NotificationTemplate by ID
+      operationId: getNotificationTemplate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: NotificationTemplate details
+        '404':
+          description: NotificationTemplate not found
+    put:
+      summary: Update NotificationTemplate
+      operationId: updateNotificationTemplate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNotificationTemplateRequest'
+      responses:
+        '200':
+          description: NotificationTemplate updated successfully
+        '409':
+          description: Optimistic lock failure
+
+components:
+  schemas:
+    CreateNotificationRequest:
+      type: object
+      required:
+        - recipient
+        - channel
+      properties:
+        recipient:
+          type: string
+        channel:
+          type: string
+          enum: [EMAIL, SMS, PUSH, WHATSAPP]
+        templateId:
+          type: string
+          format: uuid
+        payload:
+          type: object
+
+    UpdateNotificationRequest:
+      type: object
+      required:
+        - version
+      properties:
+        payload:
+          type: object
+        version:
+          type: integer
+          minimum: 1
+
+    NotificationResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - recipient
+        - channel
+        - status
+        - payload
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        templateId:
+          type: string
+          format: uuid
+        recipient:
+          type: string
+        channel:
+          type: string
+          enum: [EMAIL, SMS, PUSH, WHATSAPP]
+        status:
+          type: string
+          enum: [QUEUED, PROCESSING, SENT, FAILED, CANCELLED]
+        payload:
+          type: object
+        errorMessage:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateNotificationTemplateRequest:
+      type: object
+      required:
+        - code
+        - name
+        - channel
+        - bodyTemplate
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        channel:
+          type: string
+          enum: [EMAIL, SMS, PUSH, WHATSAPP]
+        subject:
+          type: string
+        bodyTemplate:
+          type: string
+
+    UpdateNotificationTemplateRequest:
+      type: object
+      required:
+        - version
+      properties:
+        name:
+          type: string
+        subject:
+          type: string
+        bodyTemplate:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+
+    NotificationTemplateResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - code
+        - name
+        - channel
+        - bodyTemplate
+        - status
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        channel:
+          type: string
+          enum: [EMAIL, SMS, PUSH, WHATSAPP]
+        subject:
+          type: string
+        bodyTemplate:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, ARCHIVED]
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

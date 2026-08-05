@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package dms.identity;
+
+option go_package = "github.com/JyotirmoyBhowmik/DMS/contracts/proto/identity;identity";
+option java_multiple_files = true;
+option java_package = "com.dms.identity";
+
+service TokenService {
+  rpc IssueToken (IssueTokenRequest) returns (IssueTokenResponse);
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc VerifyToken (VerifyTokenRequest) returns (VerifyTokenResponse);
+}
+
+message IssueTokenRequest {
+  string email = 1;
+  string password = 2;
+  string device_id = 3;
+}
+
+message IssueTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_in = 3;
+  string token_type = 4;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+  string device_id = 2;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_in = 3;
+}
+
+message VerifyTokenRequest {
+  string access_token = 1;
+}
+
+message VerifyTokenResponse {
+  bool valid = 1;
+  string principal_id = 2;
+  string tenant_id = 3;
+  repeated string roles = 4;
+  repeated string permissions = 5;
+}

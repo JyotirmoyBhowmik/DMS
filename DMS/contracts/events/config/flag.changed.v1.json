@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dms.enterprise/events/config/flag.changed.v1",
+  "title": "FlagChangedV1",
+  "description": "Emitted when a feature flag configuration is created, updated, or toggled.",
+  "type": "object",
+  "required": [
+    "flagKey",
+    "tenantId",
+    "action",
+    "enabled",
+    "changedBy",
+    "changedAt"
+  ],
+  "properties": {
+    "flagKey": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]{2,63}$",
+      "description": "Unique feature flag key."
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Tenant context (global flags use the system tenant)."
+    },
+    "action": {
+      "type": "string",
+      "enum": ["CREATED", "UPDATED", "TOGGLED", "DELETED"],
+      "description": "Type of change."
+    },
+    "enabled": {
+      "type": "boolean",
+      "description": "Whether the flag is now enabled."
+    },
+    "previousValue": {
+      "description": "Previous flag value or state, if applicable."
+    },
+    "newValue": {
+      "description": "New flag value or state."
+    },
+    "targetingRules": {
+      "type": "array",
+      "description": "Updated targeting rules, if applicable.",
+      "items": {
+        "type": "object",
+        "required": ["attribute", "operator", "value"],
+        "properties": {
+          "attribute": {
+            "type": "string",
+            "description": "Targeting attribute (e.g. region, role, distributorId)."
+          },
+          "operator": {
+            "type": "string",
+            "enum": ["EQ", "NEQ", "IN", "NOT_IN", "CONTAINS", "GT", "LT"],
+            "description": "Comparison operator."
+          },
+          "value": {
+            "description": "Target value(s) for comparison."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "changedBy": {
+      "type": "string",
+      "format": "uuid",
+      "description": "User who made the change."
+    },
+    "changedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of the change."
+    }
+  },
+  "additionalProperties": false
+}

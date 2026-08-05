@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package dms.sync;
+
+service SyncService {
+  rpc PullChanges (PullRequest) returns (PullResponse);
+  rpc PushChanges (PushRequest) returns (PushResponse);
+}
+
+message PullRequest {
+  string tenant_id = 1;
+  string last_synced_timestamp = 2;
+}
+
+message PullResponse {
+  string current_timestamp = 1;
+  repeated string mutated_records_json = 2;
+}
+
+message PushRequest {
+  string tenant_id = 1;
+  repeated string pending_mutations_json = 2;
+}
+
+message PushResponse {
+  bool success = 1;
+  repeated string conflict_ids = 2;
+}

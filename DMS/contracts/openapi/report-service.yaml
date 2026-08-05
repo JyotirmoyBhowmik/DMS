@@ -1,0 +1,286 @@
+openapi: 3.0.3
+info:
+  title: Report Service API
+  version: 1.0.0
+  description: Multi-tenant Report generation, scheduling and analytics reporting engine.
+paths:
+  /api/v1/reports:
+    post:
+      summary: Create Report
+      operationId: createReport
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportRequest'
+      responses:
+        '201':
+          description: Report created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+        '400':
+          description: Invalid input or domain validation failure
+        '409':
+          description: Idempotency conflict
+    get:
+      summary: List Reports with pagination and filters
+      operationId: listReports
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: name
+          schema:
+            type: string
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [SALES, INVENTORY, FINANCIAL, AUDIT, CUSTOM]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, GENERATING, COMPLETED, FAILED]
+      responses:
+        '200':
+          description: Paginated list of Reports
+
+  /api/v1/reports/{id}:
+    get:
+      summary: Get Report details by ID
+      operationId: getReport
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Report details
+        '404':
+          description: Report not found
+    put:
+      summary: Update Report status or parameters
+      operationId: updateReport
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReportRequest'
+      responses:
+        '200':
+          description: Report updated successfully
+        '409':
+          description: Optimistic locking conflict
+
+  /api/v1/report-schedules:
+    post:
+      summary: Create Report Schedule
+      operationId: createReportSchedule
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportScheduleRequest'
+      responses:
+        '201':
+          description: ReportSchedule created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportScheduleResponse'
+        '400':
+          description: Invalid input or domain validation failure
+        '409':
+          description: Idempotency conflict
+    get:
+      summary: List Report Schedules with pagination and filters
+      operationId: listReportSchedules
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: reportName
+          schema:
+            type: string
+        - in: query
+          name: frequency
+          schema:
+            type: string
+            enum: [DAILY, WEEKLY, MONTHLY, CRON]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE, PAUSED]
+      responses:
+        '200':
+          description: Paginated list of ReportSchedules
+
+components:
+  schemas:
+    CreateReportRequest:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [SALES, INVENTORY, FINANCIAL, AUDIT, CUSTOM]
+        parameters:
+          type: object
+
+    UpdateReportRequest:
+      type: object
+      required:
+        - expectedVersion
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, GENERATING, COMPLETED, FAILED]
+        downloadUrl:
+          type: string
+        expectedVersion:
+          type: integer
+          minimum: 1
+
+    ReportResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - name
+        - type
+        - parameters
+        - status
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+          enum: [SALES, INVENTORY, FINANCIAL, AUDIT, CUSTOM]
+        parameters:
+          type: object
+        status:
+          type: string
+          enum: [DRAFT, GENERATING, COMPLETED, FAILED]
+        downloadUrl:
+          type: string
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateReportScheduleRequest:
+      type: object
+      required:
+        - reportName
+        - cronExpression
+      properties:
+        reportName:
+          type: string
+        cronExpression:
+          type: string
+        frequency:
+          type: string
+          enum: [DAILY, WEEKLY, MONTHLY, CRON]
+
+    ReportScheduleResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - reportName
+        - cronExpression
+        - frequency
+        - status
+        - version
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        reportName:
+          type: string
+        cronExpression:
+          type: string
+        frequency:
+          type: string
+          enum: [DAILY, WEEKLY, MONTHLY, CRON]
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, PAUSED]
+        nextRunAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

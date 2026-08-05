@@ -1,0 +1,552 @@
+#!/usr/bin/env python3
+"""
+OCI and Vercel Connection Orchestrator for Google Colab
+------------------------------------------------------
+This script provides a secure, fully-validated, and resilient integration 
+between Oracle Cloud Infrastructure (OCI) and Vercel.
+
+To run this in Google Colab, copy-paste this code into a cell and execute.
+Make sure to install the required libraries first:
+>>> !pip install oci oracle-oracledb requests
+"""
+
+import os
+import sys
+import json
+import time
+import random
+import re
+import datetime
+import dataclasses
+import tempfile
+import contextlib
+import urllib.parse
+import getpass
+from typing import List, Dict, Any, Optional
+
+# ==============================================================================
+# 1. DEPENDENCY CHECKS & IMPORTS
+# ==============================================================================
+try:
+    import oci
+except ImportError:
+    print("WARNING: 'oci' SDK is not installed. Run: pip install oci", file=sys.stderr)
+
+try:
+    import oracledb
+except ImportError:
+    print("WARNING: 'oracle-oracledb' is not installed. Run: pip install oracle-oracledb", file=sys.stderr)
+
+try:
+    import requests
+except ImportError:
+    print("WARNING: 'requests' is not installed. Run: pip install requests", file=sys.stderr)
+
+
+# ==============================================================================
+# 2. STRUCTURED LOGGING & SECURITY (Rule 4.1, 4.3)
+# ==============================================================================
+class StructuredLogger:
+    """Enterprise JSON structured logger with automatic PII and secret redaction."""
+    
+    def __init__(self, service_name: str = "OCI-Vercel-Colab"):
+        self.service_name = service_name
+        self.redact_keys = {"token", "key", "password", "secret", "auth", "fingerprint", "private_key"}
+
+    def _redact_value(self, key: str, value: Any) -> Any:
+        if not isinstance(key, str):
+            return value
+        if any(redact_k in key.lower() for redact_k in self.redact_keys):
+            return "[REDACTED]"
+        return value
+
+    def _redact_dict(self, d: dict) -> dict:
+        if not isinstance(d, dict):
+            return d
+        return {k: (self._redact_dict(v) if isinstance(v, dict) else self._redact_value(k, v)) for k, v in d.items()}
+
+    def _log(self, level: str, message: str, extra: Optional[dict] = None, exc_info: Optional[Exception] = None):
+        log_data = {
+            "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+            "level": level,
+            "service_name": self.service_name,
+            "message": message,
+        }
+        if extra:
+            log_data["extra"] = self._redact_dict(extra)
+        
+        if exc_info:
+            log_data["error"] = {
+                "type": type(exc_info).__name__,
+                "message": str(exc_info)
+            }
+            
+        print(json.dumps(log_data), file=sys.stdout)
+        sys.stdout.flush()
+
+    def info(self, message: str, extra: Optional[dict] = None):
+        self._log("INFO", message, extra)
+
+    def warn(self, message: str, extra: Optional[dict] = None):
+        self._log("WARN", message, extra)
+
+    def error(self, message: str, exc_info: Optional[Exception] = None, extra: Optional[dict] = None):
+        self._log("ERROR", message, extra, exc_info)
+
+logger = StructuredLogger()
+
+
+# ==============================================================================
+# 3. DOMAIN EXCEPTIONS (Rule 2.2)
+# ==============================================================================
+class AppError(Exception):
+    """Base application exception."""
+    def __init__(self, message: str, details: Optional[dict] = None):
+        super().__init__(message)
+        self.message = message
+        self.details = details or {}
+        self.timestamp = datetime.datetime.utcnow().isoformat() + "Z"
+
+class ValidationError(AppError):
+    """Raised when configuration or input boundary checks fail."""
+    pass
+
+class OciConnectionError(AppError):
+    """Raised when OCI SDK operations fail."""
+    pass
+
+class VercelApiError(AppError):
+    """Raised when Vercel REST API requests fail."""
+    pass
+
+
+# ==============================================================================
+# 4. CONFIGURATION SCHEMAS & INPUT VALIDATION (Rule 1.1, 1.2, 1.3)
+# ==============================================================================
+@dataclasses.dataclass
+class OciConfig:
+    tenancy: str
+    user: str
+    fingerprint: str
+    private_key_content: str
+    region: str
+
+    def validate(self):
+        """Strict validation of OCI configuration attributes."""
+        if not self.tenancy or not self.tenancy.startswith("ocid1.tenancy."):
+            raise ValidationError("Invalid OCI Tenancy OCID format. Must start with 'ocid1.tenancy.'")
+        if not self.user or not self.user.startswith("ocid1.user."):
+            raise ValidationError("Invalid OCI User OCID format. Must start with 'ocid1.user.'")
+        if not self.fingerprint or not re.match(r"^([0-9a-fA-F]{2}:){15}[0-9a-fA-F]{2}$", self.fingerprint):
+            raise ValidationError("Invalid OCI Fingerprint format. Must be a colon-separated 16-pair hex string.")
+        if not self.private_key_content or "PRIVATE KEY" not in self.private_key_content:
+            raise ValidationError("Invalid OCI Private Key format. Must be standard PEM block format.")
+        if not self.region or len(self.region.strip()) < 3:
+            raise ValidationError("Invalid OCI Region specification.")
+
+@dataclasses.dataclass
+class VercelConfig:
+    token: str
+    project_id: str
+    team_id: Optional[str] = None
+
+    def validate(self):
+        """Strict validation of Vercel API credentials."""
+        if not self.token or len(self.token.strip()) < 10:
+            raise ValidationError("Invalid Vercel API token. Must be a non-empty string of suitable length.")
+        if not self.project_id or len(self.project_id.strip()) < 3:
+            raise ValidationError("Invalid Vercel Project ID or Slug.")
+
+
+# ==============================================================================
+# 5. TRANSIENT FAULT TOLERANCE (Rule 3.2, 3.3)
+# ==============================================================================
+def retry_with_backoff(max_retries: int = 3, initial_delay: float = 1.0, factor: float = 2.0, jitter: bool = True):
+    """Resilient wrapper applying Exponential Backoff with Jitter for transient errors."""
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            delay = initial_delay
+            last_exception = None
+            for attempt in range(1, max_retries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    last_exception = e
+                    # Avoid retrying validation errors or strict credential issues
+                    if isinstance(e, ValidationError):
+                        raise e
+                    
+                    if attempt == max_retries:
+                        break
+                    
+                    sleep_time = delay
+                    if jitter:
+                        sleep_time += random.uniform(0, 0.5 * delay)
+                        
+                    logger.warn(
+                        f"Transient fault detected in {func.__name__}. Retrying in {sleep_time:.2f}s...",
+                        extra={"attempt": attempt, "max_retries": max_retries, "error": str(e)}
+                    )
+                    time.sleep(sleep_time)
+                    delay *= factor
+            raise last_exception
+        return wrapper
+    return decorator
+
+
+# ==============================================================================
+# 6. OCI SERVICE INTEGRATIONS (Rule 5.1, 5.3)
+# ==============================================================================
+@contextlib.contextmanager
+def oci_config_manager(oci_cfg: OciConfig):
+    """Context manager for secure, deterministic generation and cleanup of OCI key files."""
+    temp_key_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    try:
+        temp_key_file.write(oci_cfg.private_key_content.strip() + "\n")
+        temp_key_file.close()
+        
+        config = {
+            "user": oci_cfg.user,
+            "key_file": temp_key_file.name,
+            "fingerprint": oci_cfg.fingerprint,
+            "tenancy": oci_cfg.tenancy,
+            "region": oci_cfg.region
+        }
+        
+        # Verify schema internally via OCI SDK
+        oci.config.validate_config_dict(config)
+        yield config
+    except Exception as e:
+        raise OciConnectionError("Could not initialize OCI credentials structure", details={"original_error": str(e)})
+    finally:
+        # Deterministic deletion of secret PEM file
+        if os.path.exists(temp_key_file.name):
+            try:
+                os.remove(temp_key_file.name)
+            except Exception as e:
+                # Fail-safe print in case file removal fails
+                print(f"FAILED TO REMOVE TEMP KEY FILE {temp_key_file.name}: {e}", file=sys.stderr)
+
+
+class OciObjectStorageClient:
+    """Client helper for OCI Object Storage operations."""
+    
+    def __init__(self, config: dict):
+        self.config = config
+        try:
+            self.client = oci.object_storage.ObjectStorageClient(config)
+        except Exception as e:
+            raise OciConnectionError("Failed to initialize Object Storage SDK Client", details={"original_error": str(e)})
+
+    @retry_with_backoff(max_retries=3)
+    def list_buckets(self, compartment_id: str) -> List[str]:
+        """Lists bucket names inside a compartment."""
+        if not compartment_id or not compartment_id.startswith("ocid1.compartment."):
+            raise ValidationError("Invalid Compartment OCID format.")
+        try:
+            namespace = self.client.get_namespace().data
+            buckets = self.client.list_buckets(namespace, compartment_id).data
+            return [b.name for b in buckets]
+        except Exception as e:
+            raise OciConnectionError(f"Failed to list buckets in compartment {compartment_id}", details={"original_error": str(e)})
+
+    @retry_with_backoff(max_retries=3)
+    def download_object(self, bucket_name: str, object_name: str, dest_path: str):
+        """Downloads an object from the bucket with strict block management."""
+        if not bucket_name or not object_name:
+            raise ValidationError("Bucket and Object names are required inputs.")
+        try:
+            namespace = self.client.get_namespace().data
+            response = self.client.get_object(namespace, bucket_name, object_name)
+            
+            with open(dest_path, "wb") as f:
+                for chunk in response.data.raw.stream(1024 * 1024, decode_content=False):
+                    f.write(chunk)
+        except Exception as e:
+            raise OciConnectionError(f"Object download failed: {object_name} from {bucket_name}", details={"original_error": str(e)})
+
+
+class OracleDbClient:
+    """Oracle Database client operating in thin mode (requires zero local instant client binaries)."""
+    
+    def __init__(self, user: str, password: str, dsn: str):
+        if not user or not password or not dsn:
+            raise ValidationError("Database username, password, and connection string (DSN) are mandatory.")
+        self.user = user
+        self.password = password
+        self.dsn = dsn
+
+    @retry_with_backoff(max_retries=3)
+    def query_records(self, query: str, params: Optional[dict] = None, limit: int = 100) -> List[Dict[str, Any]]:
+        """Executes a secure SELECT query with pagination enforcement (Rule 5.2)."""
+        if not query.strip().upper().startswith("SELECT"):
+            raise ValidationError("Only read-only SELECT statements are supported by this client handler.")
+        
+        connection = None
+        cursor = None
+        try:
+            # Thin mode execution is native to oracle-oracledb
+            connection = oracledb.connect(user=self.user, password=self.password, dsn=self.dsn)
+            cursor = connection.cursor()
+            
+            # Bound parameter execution prevents SQL Injection (Rule 1.4)
+            cursor.execute(query, params or {})
+            columns = [col[0] for col in cursor.description]
+            
+            # Fetch up to the specified safety boundary limit
+            rows = cursor.fetchmany(limit)
+            return [dict(zip(columns, row)) for row in rows]
+        except Exception as e:
+            raise OciConnectionError("Database query failed to execute", details={"original_error": str(e)})
+        finally:
+            # Deterministic connection cleanup (Rule 5.1)
+            if cursor:
+                try:
+                    cursor.close()
+                except Exception:
+                    pass
+            if connection:
+                try:
+                    connection.close()
+                except Exception:
+                    pass
+
+
+# ==============================================================================
+# 7. VERCEL REST API INTEGRATION (Rule 3.1)
+# ==============================================================================
+class VercelApiClient:
+    """Client for triggering deployments and managing Environment Variables on Vercel."""
+    
+    def __init__(self, config: VercelConfig):
+        self.config = config
+        self.base_url = "https://api.vercel.com"
+        self.headers = {
+            "Authorization": f"Bearer {config.token}",
+            "Content-Type": "application/json"
+        }
+        self.timeout = (5.0, 20.0)  # 5s connect, 20s read timeout (Rule 3.1)
+
+    @retry_with_backoff(max_retries=3)
+    def _api_request(self, method: str, endpoint: str, body: Optional[dict] = None, params: Optional[dict] = None) -> dict:
+        url = f"{self.base_url}{endpoint}"
+        query_params = params or {}
+        if self.config.team_id:
+            query_params["teamId"] = self.config.team_id
+
+        try:
+            response = requests.request(
+                method=method,
+                url=url,
+                headers=self.headers,
+                json=body,
+                params=query_params,
+                timeout=self.timeout
+            )
+            
+            # Capture error details securely without leaking core stack traces (Rule 2.4)
+            if response.status_code >= 400:
+                err_msg = f"HTTP Error {response.status_code}: {response.text}"
+                try:
+                    data = response.json()
+                    err_msg = data.get("error", {}).get("message", err_msg)
+                except Exception:
+                    pass
+                raise VercelApiError(err_msg, details={"status_code": response.status_code})
+                
+            return response.json() if response.content else {}
+        except requests.exceptions.RequestException as e:
+            raise VercelApiError(f"HTTP request to Vercel API failed: {endpoint}", details={"error": str(e)})
+
+    def get_project_details(self) -> dict:
+        """Retrieves info on the target Vercel project."""
+        return self._api_request("GET", f"/v9/projects/{self.config.project_id}")
+
+    def list_env_variables(self) -> List[dict]:
+        """Lists active Environment Variables for the configured project."""
+        res = self._api_request("GET", f"/v9/projects/{self.config.project_id}/env")
+        return res.get("envs", [])
+
+    def upsert_env_variable(self, key: str, value: str, target: Optional[List[str]] = None) -> dict:
+        """Creates or updates a Vercel project environment variable."""
+        if not key or not re.match(r"^[A-Z_][A-Z0-9_]*$", key):
+            raise ValidationError(f"Invalid environment variable naming syntax: {key}")
+        if target is None:
+            target = ["production", "preview", "development"]
+
+        envs = self.list_env_variables()
+        matched_env = next((e for e in envs if e.get("key") == key), None)
+
+        body = {
+            "key": key,
+            "value": value,
+            "type": "secret" if any(k in key.lower() for k in ["secret", "password", "token", "key"]) else "plain",
+            "target": target
+        }
+
+        if matched_env:
+            env_id = matched_env["id"]
+            logger.info(f"Environment variable '{key}' already exists. Patching value...")
+            return self._api_request("PATCH", f"/v9/projects/{self.config.project_id}/env/{env_id}", body=body)
+        else:
+            logger.info(f"Creating new environment variable '{key}'...")
+            return self._api_request("POST", f"/v9/projects/{self.config.project_id}/env", body=body)
+
+    @retry_with_backoff(max_retries=3)
+    def trigger_deploy_hook(self, hook_url: str) -> dict:
+        """Triggers a project rebuild via a Vercel Deploy Hook."""
+        parsed = urllib.parse.urlparse(hook_url)
+        if parsed.scheme != "https" or "vercel.com" not in parsed.netloc:
+            raise ValidationError("Invalid Deploy Hook URL. Must be an https URL targeting vercel.com.")
+            
+        try:
+            logger.info("Triggering Vercel deployment rebuild...")
+            response = requests.post(hook_url, timeout=self.timeout)
+            if response.status_code >= 400:
+                raise VercelApiError(f"Deploy hook returned error: {response.status_code}", details={"body": response.text})
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise VercelApiError("Failed to trigger Vercel deployment hook", details={"error": str(e)})
+
+
+# ==============================================================================
+# 8. ORCHESTRATION PIPELINE
+# ==============================================================================
+def run_orchestrated_pipeline(
+    oci_config: OciConfig, 
+    vercel_config: VercelConfig,
+    oci_compartment_id: str,
+    db_credentials: Optional[dict] = None,
+    deploy_hook_url: Optional[str] = None
+):
+    """
+    Coordinates data fetched from OCI, pushes state updates to Vercel env vars,
+    and runs a project redeployment trigger.
+    """
+    logger.info("Initializing connection and boundary validations...")
+    oci_config.validate()
+    vercel_config.validate()
+    
+    # 1. Access OCI Resources safely
+    logger.info("Accessing Oracle Cloud Infrastructure...")
+    with oci_config_manager(oci_config) as raw_oci_cfg:
+        storage_client = OciObjectStorageClient(raw_oci_cfg)
+        
+        # Test basic Object Storage connectivity
+        buckets = storage_client.list_buckets(oci_compartment_id)
+        logger.info(f"Successfully connected to OCI Object Storage. Compartment contains {len(buckets)} buckets.", extra={"buckets": buckets})
+
+    # 2. Query DB if details are provided
+    if db_credentials:
+        logger.info("Connecting to Oracle Database in Thin Mode...")
+        db_client = OracleDbClient(
+            user=db_credentials["user"],
+            password=db_credentials["password"],
+            dsn=db_credentials["dsn"]
+        )
+        # Execute query safely limiting row returns
+        query = "SELECT COUNT(*) AS total_rows FROM user_tables"
+        results = db_client.query_records(query, limit=5)
+        logger.info("Successfully fetched database metadata from Oracle Cloud.", extra={"results": results})
+        
+        # Prepare mock string from results to feed into Vercel config
+        db_metadata_val = f"TotalTables={results[0].get('TOTAL_ROWS', 0)}"
+    else:
+        db_metadata_val = "NotConfigured"
+
+    # 3. Synchronize Vercel parameters
+    logger.info("Connecting to Vercel API...")
+    vercel_client = VercelApiClient(vercel_config)
+    
+    # Verify project exists
+    details = vercel_client.get_project_details()
+    logger.info(f"Verified Vercel project: {details.get('name')} (id: {details.get('id')})")
+    
+    # Upsert a state config variable
+    sync_key = "OCI_SYNC_STATUS"
+    sync_val = f"last_updated={datetime.datetime.utcnow().isoformat()};{db_metadata_val}"
+    vercel_client.upsert_env_variable(sync_key, sync_val)
+    logger.info(f"Successfully upserted environment variable '{sync_key}' on Vercel.")
+
+    # 4. Trigger deployment build hook if configured
+    if deploy_hook_url:
+        hook_response = vercel_client.trigger_deploy_hook(deploy_hook_url)
+        logger.info("Vercel deployment successfully triggered.", extra={"job": hook_response.get("job")})
+        
+    logger.info("OCI-Vercel orchestration pipeline completed successfully!")
+
+
+# ==============================================================================
+# 9. INTERACTIVE PROMPTING FOR GOOGLE COLAB
+# ==============================================================================
+def prompt_credentials_and_run():
+    """Interactively prompts the user in Google Colab for configuration details to execute."""
+    print("=== OCI & Vercel Integration Setup ===")
+    print("Please input credentials below. Press Enter to skip optional parameters.\n")
+    
+    # 1. OCI Credentials
+    print("--- OCI Configuration ---")
+    tenancy = input("Enter OCI Tenancy OCID (e.g. ocid1.tenancy.oc1...): ").strip()
+    user = input("Enter OCI User OCID (e.g. ocid1.user.oc1...): ").strip()
+    fingerprint = input("Enter OCI Fingerprint: ").strip()
+    region = input("Enter OCI Region (e.g. us-ashburn-1): ").strip()
+    compartment_id = input("Enter Compartment OCID (for testing bucket listing): ").strip()
+    
+    print("Enter OCI Private Key content (press Enter twice on empty line to finish):")
+    private_key_lines = []
+    while True:
+        line = input()
+        if not line and (not private_key_lines or not private_key_lines[-1]):
+            break
+        private_key_lines.append(line)
+    private_key_content = "\n".join(private_key_lines).strip()
+    
+    # 2. Oracle Database (Optional)
+    print("\n--- Oracle DB configuration (Optional) ---")
+    db_user = input("Enter Database User: ").strip()
+    db_password = getpass.getpass("Enter Database Password: ") if db_user else ""
+    db_dsn = input("Enter DSN (Connection String): ").strip() if db_user else ""
+    
+    db_creds = None
+    if db_user and db_password and db_dsn:
+        db_creds = {"user": db_user, "password": db_password, "dsn": db_dsn}
+
+    # 3. Vercel Credentials
+    print("\n--- Vercel Configuration ---")
+    vercel_token = getpass.getpass("Enter Vercel Personal API Token: ").strip()
+    vercel_project = input("Enter Vercel Project ID or Slug: ").strip()
+    vercel_team = input("Enter Vercel Team ID (Optional): ").strip() or None
+    deploy_hook = input("Enter Vercel Deploy Hook URL (Optional): ").strip() or None
+
+    try:
+        oci_cfg = OciConfig(
+            tenancy=tenancy,
+            user=user,
+            fingerprint=fingerprint,
+            private_key_content=private_key_content,
+            region=region
+        )
+        vercel_cfg = VercelConfig(
+            token=vercel_token,
+            project_id=vercel_project,
+            team_id=vercel_team
+        )
+        
+        run_orchestrated_pipeline(
+            oci_config=oci_cfg,
+            vercel_config=vercel_cfg,
+            oci_compartment_id=compartment_id,
+            db_credentials=db_creds,
+            deploy_hook_url=deploy_hook
+        )
+    except AppError as ae:
+        logger.error(f"Pipeline Execution Failed: {ae.message}", exc_info=ae, extra=ae.details)
+    except Exception as e:
+        logger.error("An unexpected system exception occurred during execution", exc_info=e)
+
+
+if __name__ == "__main__":
+    # If running directly inside a Google Colab notebook cell or local terminal:
+    # prompt_credentials_and_run()
+    # Or import the modules into your specific notebook workflow.
+    print("OCI-Vercel Orchestration Module loaded. Call 'run_orchestrated_pipeline()' to execute.")

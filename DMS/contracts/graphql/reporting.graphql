@@ -1,0 +1,31 @@
+directive @auth(requires: [String!]!) on FIELD_DEFINITION
+
+type Query {
+  salesDashboard(distributorId: ID!): SalesDashboard! @auth(requires: ["reports:read"])
+  inventoryAnalysis(tenantId: ID!): [InventoryProjection!]! @auth(requires: ["reports:read"])
+  auditLedger(blockNumber: Int): [AuditBlock!]! @auth(requires: ["audit:read"])
+}
+
+type SalesDashboard {
+  totalSalesAmount: Float!
+  totalOrdersCount: Int!
+  activeAgentsCount: Int!
+  currency: String!
+}
+
+type InventoryProjection {
+  skuId: ID!
+  skuName: String!
+  currentStock: Int!
+  forecastedDemand: Int!
+  safetyStock: Int!
+  suggestedReplenishment: Int!
+}
+
+type AuditBlock {
+  blockNumber: Int!
+  previousHash: String!
+  hash: String!
+  timestamp: String!
+  eventPayload: String!
+}

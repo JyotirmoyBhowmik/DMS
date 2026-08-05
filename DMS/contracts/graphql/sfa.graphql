@@ -1,0 +1,58 @@
+directive @auth(requires: [String!]!) on FIELD_DEFINITION
+
+type Query {
+  journeyPlan(id: ID!): JourneyPlan @auth(requires: ["journey_plan:read"])
+  activeVisit(id: ID!): Visit @auth(requires: ["visit:read"])
+  agentOrders(agentId: ID!): [Order!]! @auth(requires: ["order:read"])
+}
+
+type Mutation {
+  checkIn(visitId: ID!, latitude: Float!, longitude: Float!): Visit! @auth(requires: ["visit:write"])
+  checkOut(visitId: ID!, latitude: Float!, longitude: Float!): Visit! @auth(requires: ["visit:write"])
+  placeOrder(input: PlaceOrderInput!): Order! @auth(requires: ["order:write"])
+}
+
+type JourneyPlan {
+  id: ID!
+  agentId: ID!
+  date: String!
+  outlets: [Outlet!]!
+}
+
+type Outlet {
+  id: ID!
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  radius: Int!
+}
+
+type Visit {
+  id: ID!
+  agentId: ID!
+  outletId: ID!
+  checkInTime: String
+  checkOutTime: String
+  status: String!
+}
+
+type Order {
+  id: ID!
+  outletId: ID!
+  agentId: ID!
+  amount: Float!
+  currency: String!
+  status: String!
+}
+
+input PlaceOrderInput {
+  outletId: ID!
+  items: [OrderItemInput!]!
+  notes: String
+}
+
+input OrderItemInput {
+  skuId: ID!
+  quantity: Int!
+  price: Float!
+}

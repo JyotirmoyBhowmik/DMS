@@ -1,0 +1,575 @@
+openapi: 3.0.3
+info:
+  title: Identity Service API
+  version: 1.0.0
+  description: Authentication and identity management API.
+paths:
+  /auth/login:
+    post:
+      summary: Login and issue JWT access/refresh tokens
+      operationId: login
+      responses:
+        '200':
+          description: Login successful
+  /auth/refresh:
+    post:
+      summary: Refresh JWT token
+      operationId: refreshToken
+      responses:
+        '200':
+          description: Token refreshed
+
+  /api/v1/users:
+    post:
+      summary: Create new User
+      operationId: createUser
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: User email conflict
+    get:
+      summary: List Users with pagination and filters
+      operationId: listUsers
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE, SUSPENDED, LOCKED]
+      responses:
+        '200':
+          description: List of Users
+
+  /api/v1/users/{id}:
+    get:
+      summary: Get User detail by ID
+      operationId: getUser
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User detail
+        '404':
+          description: User not found
+    put:
+      summary: Update User status/profile (with optimistic concurrency version check)
+      operationId: updateUser
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated
+        '409':
+          description: Version conflict
+
+  /api/v1/roles:
+    post:
+      summary: Create new Role
+      operationId: createRole
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleRequest'
+      responses:
+        '201':
+          description: Role created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '400':
+          description: Validation error
+        '409':
+          description: Role name conflict
+    get:
+      summary: List Roles with pagination
+      operationId: listRoles
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE, ARCHIVED]
+      responses:
+        '200':
+          description: List of Roles
+
+  /api/v1/roles/{id}:
+    get:
+      summary: Get Role detail by ID
+      operationId: getRole
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Role detail
+        '404':
+          description: Role not found
+    put:
+      summary: Update Role status/profile (with optimistic concurrency version check)
+      operationId: updateRole
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoleRequest'
+      responses:
+        '200':
+          description: Role updated
+        '409':
+          description: Version conflict
+
+  /api/v1/permissions:
+    post:
+      summary: Create new Permission
+      operationId: createPermission
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePermissionRequest'
+      responses:
+        '201':
+          description: Permission created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionResponse'
+        '400':
+          description: Validation error
+        '409':
+          description: Permission name conflict
+    get:
+      summary: List Permissions with pagination
+      operationId: listPermissions
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE, DEPRECATED]
+      responses:
+        '200':
+          description: List of Permissions
+
+  /api/v1/permissions/{id}:
+    get:
+      summary: Get Permission detail by ID
+      operationId: getPermission
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Permission detail
+        '404':
+          description: Permission not found
+    put:
+      summary: Update Permission status/profile (with optimistic concurrency version check)
+      operationId: updatePermission
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePermissionRequest'
+      responses:
+        '200':
+          description: Permission updated
+        '409':
+          description: Version conflict
+
+components:
+  schemas:
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - passwordHash
+      properties:
+        email:
+          type: string
+          format: email
+        passwordHash:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+    UpdateUserRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, SUSPENDED, LOCKED]
+        roles:
+          type: array
+          items:
+            type: string
+        version:
+          type: integer
+          minimum: 1
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+        version:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    CreateRoleRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        isSystem:
+          type: boolean
+    UpdateRoleRequest:
+      type: object
+      required:
+        - version
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, ARCHIVED]
+        version:
+          type: integer
+          minimum: 1
+    RoleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        isSystem:
+          type: boolean
+        status:
+          type: string
+        version:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    CreatePermissionRequest:
+      type: object
+      required:
+        - name
+        - resource
+        - action
+      properties:
+        name:
+          type: string
+        resource:
+          type: string
+        action:
+          type: string
+        description:
+          type: string
+    UpdatePermissionRequest:
+      type: object
+      required:
+        - version
+      properties:
+        name:
+          type: string
+        resource:
+          type: string
+        action:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, DEPRECATED]
+        version:
+          type: integer
+          minimum: 1
+    PermissionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        resource:
+          type: string
+        action:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        version:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+    CreateTenantRequest:
+      type: object
+      required:
+        - name
+        - code
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+        domain:
+          type: string
+          maxLength: 128
+        idempotencyKey:
+          type: string
+    UpdateTenantRequest:
+      type: object
+      required:
+        - version
+      properties:
+        name:
+          type: string
+        domain:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, SUSPENDED]
+        version:
+          type: integer
+          minimum: 1
+    TenantResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+        domain:
+          type: string
+        status:
+          type: string
+        version:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    CreateMFADeviceRequest:
+      type: object
+      required:
+        - userId
+        - type
+        - secretEncrypted
+      properties:
+        userId:
+          type: string
+        type:
+          type: string
+          enum: [TOTP, SMS, EMAIL, SECURITY_KEY]
+        secretEncrypted:
+          type: string
+        isActive:
+          type: boolean
+          default: true
+    UpdateMFADeviceRequest:
+      type: object
+      required:
+        - version
+      properties:
+        secretEncrypted:
+          type: string
+        isActive:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+    MFADeviceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        type:
+          type: string
+          enum: [TOTP, SMS, EMAIL, SECURITY_KEY]
+        secretEncrypted:
+          type: string
+        isActive:
+          type: boolean
+        lastUsedAt:
+          type: string
+          nullable: true
+        version:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+

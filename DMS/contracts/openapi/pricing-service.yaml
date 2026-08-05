@@ -1,0 +1,106 @@
+openapi: 3.0.3
+info:
+  title: Pricing Service API
+  version: 1.0.0
+  description: Production OpenAPI contract for PriceLists, discount structures, and promotional pricing schemes.
+paths:
+  /price-lists:
+    post:
+      summary: Create a product pricing list
+      operationId: createPriceList
+      responses:
+        '201':
+          description: Price list created successfully
+        '409':
+          description: Duplicate price list code conflict
+    get:
+      summary: List price lists with status and currency filters
+      operationId: listPriceLists
+      responses:
+        '200':
+          description: Paginated price lists
+
+  /price-slabs:
+    post:
+      summary: Create a quantity tier pricing slab rule
+      operationId: createPriceSlab
+      responses:
+        '201':
+          description: Price slab rule created successfully
+        '400':
+          description: Invalid quantity tier bounds
+    get:
+      summary: List price slabs with status, priceListId, and skuId filters
+      operationId: listPriceSlabs
+      responses:
+        '200':
+          description: Paginated price slabs list
+
+  /geo-price-rules:
+    post:
+      summary: Create a region-specific geographic pricing rule
+      operationId: createGeoPriceRule
+      responses:
+        '201':
+          description: Geo price rule created successfully
+        '409':
+          description: Duplicate region code conflict
+    get:
+      summary: List geo price rules with status, priceListId, and regionCode filters
+      operationId: listGeoPriceRules
+      responses:
+        '200':
+          description: Paginated geo price rules list
+
+  /channel-price-rules:
+    post:
+      summary: Create a trade channel pricing rule (GT/MT/ECOM/INSTITUTIONAL)
+      operationId: createChannelPriceRule
+      responses:
+        '201':
+          description: Channel price rule created successfully
+        '409':
+          description: Duplicate channel code conflict
+    get:
+      summary: List channel price rules with status, priceListId, and channelCode filters
+      operationId: listChannelPriceRules
+      responses:
+        '200':
+          description: Paginated channel price rules list
+
+  /discounts:
+    post:
+      summary: Create a promotional discount rule
+      operationId: createDiscount
+      responses:
+        '201':
+          description: Discount created successfully
+        '409':
+          description: Duplicate discount code conflict
+    get:
+      summary: List discounts with status, discountType, and code filters
+      operationId: listDiscounts
+      responses:
+        '200':
+          description: Paginated discounts list
+
+  /tax-rules:
+    post:
+      summary: Create a statutory tax rule (GST/VAT)
+      operationId: createTaxRule
+      responses:
+        '201':
+          description: Tax rule created successfully
+        '409':
+          description: Duplicate tax code conflict
+    get:
+      summary: List tax rules with status and taxCode filters
+      operationId: listTaxRules
+      responses:
+        '200':
+          description: Paginated tax rules list
+
+
+
+
+

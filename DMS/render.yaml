@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: dms-api-gateway
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: npm install -g pnpm@8.15.4 && pnpm install && pnpm build
+    startCommand: node services/api-gateway/dist/index.js
+    healthCheckPath: /health
+    customDomains:
+      - api.dms.jyotirmoyb.com
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGIN
+        value: https://dms.jyotirmoyb.com
+      - key: JWT_ISSUER
+        value: dms-identity-service
+      - key: JWT_AUDIENCE
+        value: dms-enterprise
+      - key: LOG_LEVEL
+        value: INFO
+      - key: SEED_MOCK_DATA
+        value: "false"
+      - key: DB_SSL
+        value: "true"
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true

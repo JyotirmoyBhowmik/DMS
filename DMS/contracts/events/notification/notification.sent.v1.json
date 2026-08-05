@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dms.enterprise/events/notification/notification.sent.v1",
+  "title": "NotificationSentV1",
+  "description": "Emitted when a notification is dispatched to one or more channels.",
+  "type": "object",
+  "required": [
+    "notificationId",
+    "tenantId",
+    "recipientId",
+    "channel",
+    "templateId",
+    "status",
+    "sentAt"
+  ],
+  "properties": {
+    "notificationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique notification identifier."
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Tenant context."
+    },
+    "recipientId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Target user ID."
+    },
+    "channel": {
+      "type": "string",
+      "enum": ["PUSH", "SMS", "EMAIL", "IN_APP", "WHATSAPP"],
+      "description": "Delivery channel."
+    },
+    "templateId": {
+      "type": "string",
+      "description": "Notification template identifier."
+    },
+    "subject": {
+      "type": "string",
+      "description": "Notification subject or title."
+    },
+    "body": {
+      "type": "string",
+      "description": "Rendered notification body."
+    },
+    "data": {
+      "type": "object",
+      "description": "Template variable values used for rendering.",
+      "additionalProperties": true
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["LOW", "NORMAL", "HIGH", "CRITICAL"],
+      "description": "Notification priority."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["SENT", "DELIVERED", "FAILED", "BOUNCED"],
+      "description": "Delivery status."
+    },
+    "failureReason": {
+      "type": "string",
+      "description": "Reason for failure, if status is FAILED or BOUNCED."
+    },
+    "providerMessageId": {
+      "type": "string",
+      "description": "Message ID from the delivery provider."
+    },
+    "sentAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp when the notification was sent."
+    }
+  },
+  "additionalProperties": false
+}

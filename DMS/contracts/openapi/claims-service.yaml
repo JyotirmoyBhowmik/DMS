@@ -1,0 +1,73 @@
+openapi: 3.0.3
+info:
+  title: Claims Service API
+  version: 1.0.0
+  description: OpenAPI 3.0 spec for DMS Claims Service managing distributor scheme claim submissions and approvals.
+
+paths:
+  /claims:
+    post:
+      summary: Submit a scheme claim request
+      operationId: createClaim
+      responses:
+        '201':
+          description: Claim submitted successfully
+        '409':
+          description: Duplicate claim code conflict
+    get:
+      summary: List claims with status, distributorId, schemeId, and claimCode filters
+      operationId: listClaims
+      responses:
+        '200':
+          description: Paginated claims list
+
+  /scheme-claims:
+    post:
+      summary: Create a scheme claim
+      operationId: createSchemeClaim
+      responses:
+        '201':
+          description: Scheme claim created successfully
+        '409':
+          description: Duplicate claim code conflict
+    get:
+      summary: List scheme claims with filters and pagination
+      operationId: listSchemeClaims
+      responses:
+        '200':
+          description: Paginated scheme claims list
+
+  /claim-reconciliations:
+    post:
+      summary: Create a claim reconciliation
+      operationId: createClaimReconciliation
+      responses:
+        '201':
+          description: Claim reconciliation created successfully
+        '409':
+          description: Duplicate reconciliation code conflict
+    get:
+      summary: List claim reconciliations with filters and pagination
+      operationId: listClaimReconciliations
+      responses:
+        '200':
+          description: Paginated claim reconciliations list
+
+  /settlements:
+    post:
+      summary: Create a settlement
+      operationId: createSettlement
+      responses:
+        '201':
+          description: Settlement created successfully
+        '409':
+          description: Duplicate settlement code conflict
+    get:
+      summary: List settlements with filters and pagination
+      operationId: listSettlements
+      responses:
+        '200':
+          description: Paginated settlements list
+
+
+

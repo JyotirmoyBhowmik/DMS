@@ -1,0 +1,1354 @@
+openapi: 3.1.0
+info:
+  title: Finance Service API
+  version: 1.0.0
+  description: Multi-tenant double-entry ledger accounting and GST-compliant invoicing API for DMS.
+paths:
+  /api/v1/invoices:
+    post:
+      summary: Create new tax invoice
+      operationId: createInvoice
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRequest'
+      responses:
+        '201':
+          description: Invoice created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden - insufficient permissions
+        '409':
+          description: Conflict - invoice number already exists
+    get:
+      summary: List invoices with pagination and filters
+      operationId: listInvoices
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, ISSUED, PAID, CANCELLED, CREDIT_NOTE]
+        - in: query
+          name: distributorId
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of invoices
+  /api/v1/invoices/{id}:
+    get:
+      summary: Get invoice detail by ID
+      operationId: getInvoice
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Invoice detail
+        '404':
+          description: Invoice not found
+    put:
+      summary: Update invoice status (with optimistic concurrency version check)
+      operationId: updateInvoice
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInvoiceRequest'
+      responses:
+        '200':
+          description: Invoice updated
+        '409':
+          description: Version conflict
+
+  /api/v1/credit-notes:
+    post:
+      summary: Create new credit note
+      operationId: createCreditNote
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCreditNoteRequest'
+      responses:
+        '201':
+          description: Credit note created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditNoteResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List credit notes with pagination and filters
+      operationId: listCreditNotes
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, APPROVED, APPLIED, CANCELLED]
+      responses:
+        '200':
+          description: List of credit notes
+
+  /api/v1/credit-notes/{id}:
+    get:
+      summary: Get credit note detail by ID
+      operationId: getCreditNote
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Credit note detail
+        '404':
+          description: Credit note not found
+    put:
+      summary: Update credit note status (with optimistic concurrency version check)
+      operationId: updateCreditNote
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCreditNoteRequest'
+      responses:
+        '200':
+          description: Credit note updated
+        '409':
+          description: Version conflict
+
+  /api/v1/debit-notes:
+    post:
+      summary: Create new debit note
+      operationId: createDebitNote
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDebitNoteRequest'
+      responses:
+        '201':
+          description: Debit note created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebitNoteResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List debit notes with pagination and filters
+      operationId: listDebitNotes
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, APPROVED, APPLIED, CANCELLED]
+      responses:
+        '200':
+          description: List of debit notes
+
+  /api/v1/debit-notes/{id}:
+    get:
+      summary: Get debit note detail by ID
+      operationId: getDebitNote
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Debit note detail
+        '404':
+          description: Debit note not found
+    put:
+      summary: Update debit note status (with optimistic concurrency version check)
+      operationId: updateDebitNote
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDebitNoteRequest'
+      responses:
+        '200':
+          description: Debit note updated
+        '409':
+          description: Version conflict
+
+  /api/v1/payments:
+    post:
+      summary: Create new payment record
+      operationId: createPayment
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+      responses:
+        '201':
+          description: Payment record created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List payments with pagination and filters
+      operationId: listPayments
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, PROCESSING, COMPLETED, FAILED, REFUNDED]
+      responses:
+        '200':
+          description: List of payment records
+
+  /api/v1/payments/{id}:
+    get:
+      summary: Get payment detail by ID
+      operationId: getPayment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Payment detail
+        '404':
+          description: Payment not found
+    put:
+      summary: Update payment status (with optimistic concurrency version check)
+      operationId: updatePayment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePaymentRequest'
+      responses:
+        '200':
+          description: Payment updated
+        '409':
+          description: Version conflict
+
+  /api/v1/collections:
+    post:
+      summary: Create new collection record
+      operationId: createCollection
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCollectionRequest'
+      responses:
+        '201':
+          description: Collection record created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List collections with pagination and filters
+      operationId: listCollections
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, PENDING, COLLECTED, FAILED, CANCELLED]
+      responses:
+        '200':
+          description: List of collection records
+
+  /api/v1/collections/{id}:
+    get:
+      summary: Get collection detail by ID
+      operationId: getCollection
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Collection detail
+        '404':
+          description: Collection not found
+    put:
+      summary: Update collection status (with optimistic concurrency version check)
+      operationId: updateCollection
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCollectionRequest'
+      responses:
+        '200':
+          description: Collection updated
+        '409':
+          description: Version conflict
+
+  /api/v1/outstandings:
+    post:
+      summary: Create new outstanding record
+      operationId: createOutstanding
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOutstandingRequest'
+      responses:
+        '201':
+          description: Outstanding record created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutstandingResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List outstandings with pagination and filters
+      operationId: listOutstandings
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [OPEN, PARTIAL, PAID, OVERDUE, WRITTEN_OFF]
+      responses:
+        '200':
+          description: List of outstanding records
+
+  /api/v1/outstandings/{id}:
+    get:
+      summary: Get outstanding detail by ID
+      operationId: getOutstanding
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Outstanding detail
+        '404':
+          description: Outstanding not found
+    put:
+      summary: Update outstanding status (with optimistic concurrency version check)
+      operationId: updateOutstanding
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOutstandingRequest'
+      responses:
+        '200':
+          description: Outstanding updated
+        '409':
+          description: Version conflict
+
+  /api/v1/ageing-reports:
+    post:
+      summary: Create new ageing report
+      operationId: createAgeingReport
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgeingReportRequest'
+      responses:
+        '201':
+          description: Ageing report created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgeingReportResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List ageing reports with pagination and filters
+      operationId: listAgeingReports
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [GENERATED, VERIFIED, RECONCILED, ARCHIVED]
+      responses:
+        '200':
+          description: List of ageing reports
+
+  /api/v1/ageing-reports/{id}:
+    get:
+      summary: Get ageing report detail by ID
+      operationId: getAgeingReport
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ageing report detail
+        '404':
+          description: Ageing report not found
+    put:
+      summary: Update ageing report status (with optimistic concurrency version check)
+      operationId: updateAgeingReport
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAgeingReportRequest'
+      responses:
+        '200':
+          description: Ageing report updated
+        '409':
+          description: Version conflict
+
+  /api/v1/einvoices:
+    post:
+      summary: Create new eInvoice
+      operationId: createEInvoice
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEInvoiceRequest'
+      responses:
+        '201':
+          description: eInvoice created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EInvoiceResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List eInvoices with pagination and filters
+      operationId: listEInvoices
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [PENDING, GENERATED, CANCELLED, FAILED]
+      responses:
+        '200':
+          description: List of eInvoices
+
+  /api/v1/einvoices/{id}:
+    get:
+      summary: Get eInvoice detail by ID
+      operationId: getEInvoice
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: eInvoice detail
+        '404':
+          description: eInvoice not found
+    put:
+      summary: Update eInvoice status (with optimistic concurrency version check)
+      operationId: updateEInvoice
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEInvoiceRequest'
+      responses:
+        '200':
+          description: eInvoice updated
+        '409':
+          description: Version conflict
+
+  /api/v1/ewaybills:
+    post:
+      summary: Create new eWayBill
+      operationId: createEWayBill
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEWayBillRequest'
+      responses:
+        '201':
+          description: eWayBill created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EWayBillResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List eWayBills with pagination and filters
+      operationId: listEWayBills
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [GENERATED, ACTIVE, CANCELLED, EXPIRED]
+      responses:
+        '200':
+          description: List of eWayBills
+
+  /api/v1/ewaybills/{id}:
+    get:
+      summary: Get eWayBill detail by ID
+      operationId: getEWayBill
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: eWayBill detail
+        '404':
+          description: eWayBill not found
+    put:
+      summary: Update eWayBill status (with optimistic concurrency version check)
+      operationId: updateEWayBill
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEWayBillRequest'
+      responses:
+        '200':
+          description: eWayBill updated
+        '409':
+          description: Version conflict
+
+  /api/v1/tax-filings:
+    post:
+      summary: Create new TaxFiling
+      operationId: createTaxFiling
+      parameters:
+        - in: header
+          name: X-Idempotency-Key
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaxFilingRequest'
+      responses:
+        '201':
+          description: TaxFiling created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxFilingResponse'
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '409':
+          description: Conflict
+    get:
+      summary: List TaxFilings with pagination and filters
+      operationId: listTaxFilings
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, FILED, ACCEPTED, REJECTED]
+      responses:
+        '200':
+          description: List of TaxFilings
+
+  /api/v1/tax-filings/{id}:
+    get:
+      summary: Get TaxFiling detail by ID
+      operationId: getTaxFiling
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: TaxFiling detail
+        '404':
+          description: TaxFiling not found
+    put:
+      summary: Update TaxFiling status (with optimistic concurrency version check)
+      operationId: updateTaxFiling
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaxFilingRequest'
+      responses:
+        '200':
+          description: TaxFiling updated
+        '409':
+          description: Version conflict
+
+components:
+  schemas:
+    CreateInvoiceRequest:
+      type: object
+      required:
+        - distributorId
+        - invoiceNumber
+        - dueDate
+      properties:
+        distributorId:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        invoiceNumber:
+          type: string
+        grossAmountCents:
+          type: integer
+          minimum: 0
+        discountAmountCents:
+          type: integer
+          minimum: 0
+        taxAmountCents:
+          type: integer
+          minimum: 0
+        netAmountCents:
+          type: integer
+          minimum: 0
+        dueDate:
+          type: string
+          format: date
+    UpdateInvoiceRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [DRAFT, ISSUED, PAID, CANCELLED, CREDIT_NOTE]
+        version:
+          type: integer
+          minimum: 1
+    InvoiceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        invoiceNumber:
+          type: string
+        status:
+          type: string
+        netAmountCents:
+          type: integer
+        version:
+          type: integer
+
+    CreateCreditNoteRequest:
+      type: object
+      required:
+        - distributorId
+        - creditNoteNumber
+        - amountCents
+        - reason
+      properties:
+        distributorId:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        creditNoteNumber:
+          type: string
+        amountCents:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+    UpdateCreditNoteRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [DRAFT, APPROVED, APPLIED, CANCELLED]
+        version:
+          type: integer
+          minimum: 1
+    CreditNoteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        creditNoteNumber:
+          type: string
+        status:
+          type: string
+        amountCents:
+          type: integer
+        version:
+          type: integer
+
+    CreateDebitNoteRequest:
+      type: object
+      required:
+        - distributorId
+        - debitNoteNumber
+        - amountCents
+        - reason
+      properties:
+        distributorId:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        debitNoteNumber:
+          type: string
+        amountCents:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+    UpdateDebitNoteRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [DRAFT, APPROVED, APPLIED, CANCELLED]
+        version:
+          type: integer
+          minimum: 1
+    DebitNoteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        debitNoteNumber:
+          type: string
+        status:
+          type: string
+        amountCents:
+          type: integer
+        version:
+          type: integer
+
+    CreatePaymentRequest:
+      type: object
+      required:
+        - distributorId
+        - paymentReference
+        - amountCents
+      properties:
+        distributorId:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        paymentReference:
+          type: string
+        amountCents:
+          type: integer
+          minimum: 1
+        paymentMethod:
+          type: string
+    UpdatePaymentRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [DRAFT, PROCESSING, COMPLETED, FAILED, REFUNDED]
+        version:
+          type: integer
+          minimum: 1
+    PaymentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        paymentReference:
+          type: string
+        status:
+          type: string
+        amountCents:
+          type: integer
+        version:
+          type: integer
+
+    CreateCollectionRequest:
+      type: object
+      required:
+        - distributorId
+        - collectionReference
+        - amountCents
+      properties:
+        distributorId:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        collectionReference:
+          type: string
+        amountCents:
+          type: integer
+          minimum: 1
+        collectionMode:
+          type: string
+    UpdateCollectionRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [DRAFT, PENDING, COLLECTED, FAILED, CANCELLED]
+        version:
+          type: integer
+          minimum: 1
+    CollectionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        collectionReference:
+          type: string
+        status:
+          type: string
+        amountCents:
+          type: integer
+        version:
+          type: integer
+
+    CreateAgeingReportRequest:
+      type: object
+      required:
+        - distributorId
+        - asOfDate
+      properties:
+        distributorId:
+          type: string
+        asOfDate:
+          type: string
+          format: date
+        currentBucketCents:
+          type: integer
+          minimum: 0
+        bucket1To30Cents:
+          type: integer
+          minimum: 0
+        bucket31To60Cents:
+          type: integer
+          minimum: 0
+        bucket61To90Cents:
+          type: integer
+          minimum: 0
+        bucket90PlusCents:
+          type: integer
+          minimum: 0
+    UpdateAgeingReportRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [GENERATED, VERIFIED, RECONCILED, ARCHIVED]
+        version:
+          type: integer
+          minimum: 1
+    AgeingReportResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        distributorId:
+          type: string
+        asOfDate:
+          type: string
+        totalOutstandingCents:
+          type: integer
+        status:
+          type: string
+        version:
+          type: integer
+
+    CreateEInvoiceRequest:
+      type: object
+      required:
+        - invoiceId
+        - irn
+      properties:
+        invoiceId:
+          type: string
+          format: uuid
+        irn:
+          type: string
+        qrCode:
+          type: string
+        acknowledgementNumber:
+          type: string
+        taxAmountCents:
+          type: integer
+          minimum: 0
+        totalAmountCents:
+          type: integer
+          minimum: 0
+    UpdateEInvoiceRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [PENDING, GENERATED, CANCELLED, FAILED]
+        version:
+          type: integer
+          minimum: 1
+    EInvoiceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        irn:
+          type: string
+        status:
+          type: string
+        totalAmountCents:
+          type: integer
+        version:
+          type: integer
+
+    CreateEWayBillRequest:
+      type: object
+      required:
+        - invoiceId
+        - ewayBillNumber
+      properties:
+        invoiceId:
+          type: string
+          format: uuid
+        ewayBillNumber:
+          type: string
+        validUntil:
+          type: string
+        vehicleNumber:
+          type: string
+        transporterId:
+          type: string
+        distanceKm:
+          type: integer
+          minimum: 0
+    UpdateEWayBillRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [GENERATED, ACTIVE, CANCELLED, EXPIRED]
+        version:
+          type: integer
+          minimum: 1
+    EWayBillResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        ewayBillNumber:
+          type: string
+        status:
+          type: string
+        distanceKm:
+          type: integer
+        version:
+          type: integer
+
+    CreateTaxFilingRequest:
+      type: object
+      required:
+        - period
+        - taxType
+      properties:
+        period:
+          type: string
+        taxType:
+          type: string
+        taxableAmountCents:
+          type: integer
+          minimum: 0
+        taxAmountCents:
+          type: integer
+          minimum: 0
+        acknowledgementNumber:
+          type: string
+    UpdateTaxFilingRequest:
+      type: object
+      required:
+        - version
+      properties:
+        status:
+          type: string
+          enum: [DRAFT, FILED, ACCEPTED, REJECTED]
+        acknowledgementNumber:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+    TaxFilingResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        period:
+          type: string
+        taxType:
+          type: string
+        status:
+          type: string
+        taxAmountCents:
+          type: integer
+        version:
+          type: integer

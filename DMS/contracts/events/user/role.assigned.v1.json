@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dms.enterprise/events/user/role.assigned.v1",
+  "title": "RoleAssignedV1",
+  "description": "Emitted when a role is assigned to or removed from a user.",
+  "type": "object",
+  "required": [
+    "userId",
+    "tenantId",
+    "roleId",
+    "roleName",
+    "action",
+    "assignedBy",
+    "assignedAt"
+  ],
+  "properties": {
+    "userId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "User whose role was changed."
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Tenant context."
+    },
+    "roleId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier of the role."
+    },
+    "roleName": {
+      "type": "string",
+      "description": "Human-readable role name."
+    },
+    "action": {
+      "type": "string",
+      "enum": ["ASSIGNED", "REVOKED"],
+      "description": "Whether the role was assigned or revoked."
+    },
+    "permissions": {
+      "type": "array",
+      "description": "Permissions granted by this role.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "distributorIds": {
+          "type": "array",
+          "items": { "type": "string", "format": "uuid" },
+          "description": "Distributor scope, if role is scoped."
+        },
+        "regionIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Region scope, if role is scoped."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Optional scope restrictions for the role."
+    },
+    "assignedBy": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Admin user who performed the assignment."
+    },
+    "assignedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of the role change."
+    }
+  },
+  "additionalProperties": false
+}

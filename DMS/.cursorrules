@@ -1,0 +1,20 @@
+# Codebase Context & Interaction Rules
+
+## Project Overview
+- Purpose: Enterprise Distributor Management System (DMS) and Sales Force Automation (SFA) for FMCG distribution — multi-tenant, event-driven TypeScript monorepo for inventory, orders, pricing, schemes, claims, finance, field sales, and compliance.
+- Core Tech Stack: TypeScript 5.3, Node.js ≥18, pnpm 8 workspaces, Turborepo, PostgreSQL, RabbitMQ, Redis; REST/gRPC/GraphQL microservices in `services/`; shared packages in `packages/`; SQL migrations in `db/migrations/`; OpenAPI in `contracts/openapi/`; apps in `apps/` (web-admin React, mobile-flutter, mobile-rn).
+
+## Efficiency Rules (Token Management)
+- NEVER scan or read the entire repository unless explicitly asked to do structural refactoring.
+- If context is missing, ask me to provide specific filenames or paths instead of guessing.
+- Keep context lean: only focus on the target file and its immediate dependencies.
+
+## Output and Update Format
+- When a change is required, you must output the solution in a standard, parseable format so the system can automatically update the source files.
+- ALWAYS use the specific code-block file path convention:
+
+```typescript filename="path/to/file.ext"
+// Code goes here
+```
+
+- For modifications to existing files, prioritize precise multi-line search-and-replace blocks rather than rewriting the entire file.
