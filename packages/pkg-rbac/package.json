@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"dist/*.test.js\""
+    "test": "node --test \"dist/**/*.test.js\""
   },
   "dependencies": {
     "reflect-metadata": "^0.2.1"

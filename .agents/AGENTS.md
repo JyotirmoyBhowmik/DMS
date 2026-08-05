@@ -1,7 +1,5 @@
 # Workspace Production Engineering & Coding Standards
 
-> **Architecture Reference**: See [`CLAUDE.md`](../CLAUDE.md) for the full project topology, data flow, routing conventions, and file ownership rules. See [`.cursorrules`](../.cursorrules) for the condensed Cursor AI quick-reference.
-
 ## 1. Input Validation & Data Integrity Rules
 - **Rule 1.1 (Boundary Validation)**: Validate all incoming data (API payloads, query parameters, environmental variables, message queues) at the entry point before passing it to business logic.
 - **Rule 1.2 (Schema Enforcement)**: Use strict type definitions and schema validators (e.g., Zod, DTOs, Dataclasses). Do not allow loose dict or untyped any objects.

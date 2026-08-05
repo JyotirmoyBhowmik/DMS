@@ -1,20 +1,9 @@
-// ── DMS & SFA Platform — Entry Point ──
-// All application logic lives in App.tsx and its child components.
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { App } from './App';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import App from './App';
 
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error('Root element not found. Ensure index.html contains <div id="root"></div>.');
-}
-
-ReactDOM.createRoot(rootElement).render(
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </React.StrictMode>,
+    <App />
+  </React.StrictMode>
 );
