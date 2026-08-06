@@ -10,10 +10,12 @@ export { ProcessedEventModel } from './models/processed-event.entity.js';
 export type { ProcessedEvent } from './models/processed-event.entity.js';
 export { InMemoryUnitOfWork } from './unit-of-work/uow.js';
 export type { Transaction, UnitOfWork } from './unit-of-work/uow.js';
-export { PostgresDatabaseClient, InMemoryDriver, PgDriver } from './postgres/client.js';
+export { PostgresDatabaseClient, InMemoryDriver, PgDriver, NeonDriver, getNeonConnectionString } from './postgres/client.js';
 export type { DatabaseConfig, IDatabaseDriver, IConnectionClient, QueryResult, PoolMetrics } from './postgres/client.js';
 export { BasePostgresRepository } from './repositories/base.repository.js';
 export type { BaseRow, FindAllOptions, PaginationOptions, PaginatedResult } from './repositories/base.repository.js';
 export { MigrationRunner } from './migrations/runner.js';
 export { DatabaseError, EntityNotFoundError, ConcurrencyError } from './errors.js';
+export { InMemoryCacheClient } from './cache/cache-client.js';
+export type { ICacheClient, CacheOptions } from './cache/cache-client.js';
 //# sourceMappingURL=index.d.ts.map

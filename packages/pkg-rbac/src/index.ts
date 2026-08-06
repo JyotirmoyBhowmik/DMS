@@ -213,6 +213,8 @@ export class RbacGuard {
       'settlement:update',
       'settlement:delete',
       'settlement:approve',
+      'sku_mapping:manage',
+      'sku_mapping:read',
     ],
 
 

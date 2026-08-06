@@ -59,16 +59,24 @@ export const Invoices: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {invoices.map((inv, idx) => (
-              <tr key={inv.id} style={{ borderBottom: idx === invoices.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
-                <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{inv.id}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textMain }}>{inv.customer}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 700 }}>{inv.amount}</td>
-                <td style={{ padding: '12px 16px', color: tokens.colors.textMuted }}>{inv.taxAmount}</td>
-                <td style={{ padding: '12px 16px' }}><StatusBadge status={inv.status} /></td>
-                <td style={{ padding: '12px 16px', color: tokens.colors.textMuted, fontSize: '12px' }}>{inv.dueDate}</td>
+            {invoices.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: tokens.colors.textMuted, fontSize: '14px' }}>
+                  No billing invoices found in database
+                </td>
               </tr>
-            ))}
+            ) : (
+              invoices.map((inv, idx) => (
+                <tr key={inv.id} style={{ borderBottom: idx === invoices.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
+                  <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{inv.id}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textMain }}>{inv.customer}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 700 }}>{inv.amount}</td>
+                  <td style={{ padding: '12px 16px', color: tokens.colors.textMuted }}>{inv.taxAmount}</td>
+                  <td style={{ padding: '12px 16px' }}><StatusBadge status={inv.status} /></td>
+                  <td style={{ padding: '12px 16px', color: tokens.colors.textMuted, fontSize: '12px' }}>{inv.dueDate}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

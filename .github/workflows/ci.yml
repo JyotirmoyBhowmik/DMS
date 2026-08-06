@@ -19,7 +19,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 8
+          version: 8.15.4
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -29,6 +29,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Check for hardcoded domain leaks
+        run: node scripts/check-domain-leak.js
 
       - name: Build
         run: pnpm run build

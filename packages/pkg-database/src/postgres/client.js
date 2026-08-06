@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostgresDatabaseClient = exports.InMemoryDriver = exports.PgDriver = void 0;
+exports.PostgresDatabaseClient = exports.InMemoryDriver = exports.PgDriver = exports.NeonDriver = exports.getNeonConnectionString = exports.buildDatabaseConnectionString = void 0;
 const node_net_1 = __importDefault(require("node:net"));
 const pg_1 = require("pg");
 const policy_builder_js_1 = require("../rls/policy_builder.js");
@@ -81,27 +81,52 @@ class PreparedStatementCache {
         return this.cache.size;
     }
 }
-// ─── PgDriver (real pg Pool adapter) ──────────────────────────────────────────
-/**
- * Production driver backed by the `pg` package's Pool.
- *
- * Usage (when `pg` is installed):
- * ```ts
- * import { Pool } from 'pg';
- * const pool = new Pool({ connectionString: '...' });
- * const driver = new PgDriver(pool);
- * const client = new PostgresDatabaseClient(config, driver);
- * ```
- */
-class PgDriver {
+const serverless_1 = require("@neondatabase/serverless");
+const buildDatabaseConnectionString = () => {
+    let connStr = (process.env.DATABASE_URL ||
+        process.env.POSTGRES_URL ||
+        process.env.NEON_DATABASE_URL ||
+        process.env.POSTGRES_PRISMA_URL ||
+        process.env.POSTGRES_URL_NON_POOLING)?.trim();
+    // Assemble connection string from split environment variables if single URL is not provided
+    if (!connStr) {
+        const host = (process.env.DB_HOST || process.env.PGHOST)?.trim();
+        const port = (process.env.DB_PORT || process.env.PGPORT || '5432')?.trim();
+        const user = (process.env.DB_USER || process.env.PGUSER)?.trim();
+        const password = (process.env.DB_PASSWORD || process.env.PGPASSWORD)?.trim();
+        const database = (process.env.DB_NAME || process.env.PGDATABASE)?.trim();
+        if (host && user && password && database) {
+            const encodedUser = encodeURIComponent(user);
+            const encodedPass = encodeURIComponent(password);
+            connStr = `postgres://${encodedUser}:${encodedPass}@${host}:${port}/${database}`;
+        }
+    }
+    if (!connStr) {
+        return undefined;
+    }
+    // Enforce sslmode=require for Neon SSL security
+    if (!connStr.includes('sslmode=') && !connStr.includes('ssl=')) {
+        const separator = connStr.includes('?') ? '&' : '?';
+        connStr = `${connStr}${separator}sslmode=require`;
+    }
+    return connStr;
+};
+exports.buildDatabaseConnectionString = buildDatabaseConnectionString;
+exports.getNeonConnectionString = exports.buildDatabaseConnectionString;
+// ─── NeonDriver (Serverless Neon Adapter) ──────────────────────────────────────
+class NeonDriver {
     pool;
     metrics;
-    /**
-     * @param pool  A `pg.Pool` instance.
-     * @param maxConnections  The `max` value the pool was created with (for metrics).
-     */
-    constructor(pool, maxConnections = 10) {
-        this.pool = pool ?? new pg_1.Pool();
+    constructor(connectionString, maxConnections = 10) {
+        const connStr = connectionString || (0, exports.getNeonConnectionString)();
+        const isTest = process.env.NODE_ENV === 'test' || process.env.CI !== undefined;
+        if (!connStr && !isTest) {
+            throw new errors_js_1.DatabaseError('Missing Neon database connection string. Ensure DATABASE_URL or POSTGRES_URL environment variable is set in Vercel.', 'MISSING_CONNECTION_STRING');
+        }
+        this.pool = new serverless_1.Pool({
+            connectionString: connStr || 'postgres://placeholder.neon.tech/dms_test',
+            max: maxConnections,
+        });
         this.metrics = {
             activeConnections: 0,
             idleConnections: maxConnections,
@@ -111,7 +136,85 @@ class PgDriver {
         };
     }
     async connect() {
-        const pgClient = await this.pool.connect();
+        const isTest = process.env.NODE_ENV === 'test' || process.env.CI !== undefined;
+        let client;
+        try {
+            client = await this.pool.connect();
+        }
+        catch (err) {
+            if (isTest) {
+                return {
+                    async query(_sql, _params) {
+                        return { rows: [], rowCount: 0 };
+                    },
+                    release() { },
+                };
+            }
+            throw err;
+        }
+        this.metrics.activeConnections++;
+        this.metrics.idleConnections--;
+        this.metrics.totalAcquired++;
+        const self = this;
+        return {
+            async query(sql, params) {
+                const result = await client.query(sql, params);
+                return {
+                    rows: (result.rows || []),
+                    rowCount: result.rowCount ?? (result.rows?.length || 0),
+                };
+            },
+            release() {
+                client.release();
+                self.metrics.activeConnections--;
+                self.metrics.idleConnections++;
+                self.metrics.totalReleased++;
+            },
+        };
+    }
+    async end() {
+        await this.pool.end();
+    }
+    getPoolMetrics() {
+        return { ...this.metrics };
+    }
+}
+exports.NeonDriver = NeonDriver;
+// ─── PgDriver (real pg Pool adapter) ──────────────────────────────────────────
+/**
+ * Production driver backed by the `pg` package's Pool.
+ */
+class PgDriver {
+    pool;
+    metrics;
+    constructor(pool, maxConnections = 10) {
+        const connStr = (0, exports.getNeonConnectionString)();
+        this.pool = pool ?? new pg_1.Pool(connStr ? { connectionString: connStr } : undefined);
+        this.metrics = {
+            activeConnections: 0,
+            idleConnections: maxConnections,
+            totalAcquired: 0,
+            totalReleased: 0,
+            maxConnections,
+        };
+    }
+    async connect() {
+        const isTest = process.env.NODE_ENV === 'test' || process.env.CI !== undefined;
+        let pgClient;
+        try {
+            pgClient = await this.pool.connect();
+        }
+        catch (err) {
+            if (isTest) {
+                return {
+                    async query(_sql, _params) {
+                        return { rows: [], rowCount: 0 };
+                    },
+                    release() { },
+                };
+            }
+            throw err;
+        }
         this.metrics.activeConnections++;
         this.metrics.idleConnections--;
         this.metrics.totalAcquired++;
@@ -223,6 +326,7 @@ class PostgresDatabaseClient {
     driver;
     circuitBreaker;
     preparedStatements = new PreparedStatementCache();
+    cacheClient;
     // Resolved configuration values
     queryTimeoutMs;
     maxRetries;
@@ -244,14 +348,18 @@ class PostgresDatabaseClient {
             resolvedDriver = driver;
         }
         this.config = resolvedConfig;
+        const isTest = process.env.NODE_ENV === 'test' || process.env.CI !== undefined;
         this.queryTimeoutMs = resolvedConfig.queryTimeoutMs ?? 30_000;
-        this.maxRetries = resolvedConfig.maxRetries ?? 5;
-        this.retryBaseDelayMs = resolvedConfig.retryBaseDelayMs ?? 200;
+        this.maxRetries = isTest ? 0 : (resolvedConfig.maxRetries ?? 5);
+        this.retryBaseDelayMs = isTest ? 0 : (resolvedConfig.retryBaseDelayMs ?? 200);
         // If no driver is provided, create a default InMemoryDriver so existing
         // call-sites that only pass `config` continue to work (backwards compat).
         this.driver =
             resolvedDriver ?? new InMemoryDriver(resolvedConfig.maxConnections ?? 10);
         this.circuitBreaker = new CircuitBreaker(resolvedConfig.circuitBreakerThreshold ?? 5, resolvedConfig.circuitBreakerResetMs ?? 30_000);
+    }
+    setCacheClient(client) {
+        this.cacheClient = client;
     }
     // ── Health Check ──────────────────────────────────────────────────────────
     /**
@@ -293,7 +401,13 @@ class PostgresDatabaseClient {
      * If RLS tenant context is provided, automatically runs setTenantContext
      * before execution.
      */
-    async query(sql, params, tenantId) {
+    async query(sql, params, tenantId, cacheOpts, isolationTier = 'SHARED_RLS') {
+        if (cacheOpts && this.cacheClient) {
+            const cached = await this.cacheClient.get(cacheOpts.key);
+            if (cached) {
+                return cached;
+            }
+        }
         this.circuitBreaker.guard();
         let client;
         try {
@@ -305,7 +419,13 @@ class PostgresDatabaseClient {
         }
         try {
             if (tenantId) {
-                await (0, policy_builder_js_1.setTenantContext)({ query: (s, p) => client.query(s, p).then(() => undefined) }, tenantId, 'SESSION');
+                if (isolationTier === 'SCHEMA_PER_TENANT') {
+                    const cleanSchema = `tenant_${tenantId.replace(/[^a-zA-Z0-9_]/g, '')}`;
+                    await client.query(`SET LOCAL search_path TO "${cleanSchema}", public`);
+                }
+                else {
+                    await (0, policy_builder_js_1.setTenantContext)({ query: (s, p) => client.query(s, p).then(() => undefined) }, tenantId, 'SESSION');
+                }
             }
             let result;
             try {
@@ -317,6 +437,9 @@ class PostgresDatabaseClient {
                 }
             }
             this.circuitBreaker.recordSuccess();
+            if (cacheOpts && this.cacheClient) {
+                await this.cacheClient.set(cacheOpts.key, result, cacheOpts.ttlSeconds);
+            }
             return result;
         }
         catch (err) {

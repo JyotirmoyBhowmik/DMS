@@ -52,22 +52,30 @@ export const OutletRegistry: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {outlets.map((out, idx) => (
-              <tr key={out.id} style={{ borderBottom: idx === outlets.length - 1 ? 'none' : '1px solid #E2E8F0' }}>
-                <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0F172A' }}>{out.name}</td>
-                <td style={{ padding: '12px 16px' }}>
-                  <span style={{ backgroundColor: '#F1F5F9', color: '#475569', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-                    {out.type}
-                  </span>
-                </td>
-                <td style={{ padding: '12px 16px', color: '#64748B' }}>{out.address}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 700, color: '#15803D' }}>${out.creditLimit.toLocaleString()}</td>
-                <td style={{ padding: '12px 16px', color: '#64748B' }}>{out.assignedAgent}</td>
-                <td style={{ padding: '12px 16px' }}>
-                  <StatusBadge status={out.status} />
+            {outlets.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#64748B', fontSize: '14px' }}>
+                  No registered outlets found in database
                 </td>
               </tr>
-            ))}
+            ) : (
+              outlets.map((out, idx) => (
+                <tr key={out.id} style={{ borderBottom: idx === outlets.length - 1 ? 'none' : '1px solid #E2E8F0' }}>
+                  <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0F172A' }}>{out.name}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span style={{ backgroundColor: '#F1F5F9', color: '#475569', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      {out.type}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px 16px', color: '#64748B' }}>{out.address}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 700, color: '#15803D' }}>${out.creditLimit.toLocaleString()}</td>
+                  <td style={{ padding: '12px 16px', color: '#64748B' }}>{out.assignedAgent}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <StatusBadge status={out.status} />
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

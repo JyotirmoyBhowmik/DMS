@@ -5,8 +5,8 @@ import { tokens } from '../../theme/tokens';
 
 export const AiForecast: React.FC<{ role: UserRole }> = ({ role }) => {
   const { inventory, salesOrders } = useData();
-  const [selectedSku, setSelectedSku] = useState(inventory[0]?.sku || 'SKU-OIL-1L');
-  const [prompt, setPrompt] = useState(`Forecast demand and reorder parameters for ${selectedSku} across upcoming quarter...`);
+  const [selectedSku, setSelectedSku] = useState(inventory[0]?.sku || '');
+  const [prompt, setPrompt] = useState(inventory[0]?.sku ? `Forecast demand and reorder parameters for ${inventory[0].sku} across upcoming quarter...` : '');
   const [loading, setLoading] = useState(false);
   const [forecastResult, setForecastResult] = useState<{
     volume: string;
@@ -31,23 +31,20 @@ export const AiForecast: React.FC<{ role: UserRole }> = ({ role }) => {
   }, [inventory, selectedSku]);
 
   const handleRunForecast = () => {
+    if (!activeSkuItem) return;
     setLoading(true);
     setForecastResult(null);
 
-    setTimeout(() => {
-      if (activeSkuItem) {
-        const predictedVal = Math.round(activeSkuItem.stock * 1.35 + salesOrders.length * 50);
-        const bufferVal = Math.round(activeSkuItem.minThreshold * 1.5);
-        setForecastResult({
-          volume: `${predictedVal.toLocaleString()} Units`,
-          growth: `+${(12 + (salesOrders.length % 5) * 1.8).toFixed(1)}%`,
-          confidence: `${(94.2 + (inventory.length % 4) * 1.1).toFixed(1)}%`,
-          buffer: `${bufferVal.toLocaleString()} Units`,
-          insight: `Based on current stock level (${activeSkuItem.stock} units of ${activeSkuItem.name}) and recent field velocity across ${salesOrders.length} orders, high demand is predicted. We recommend increasing distributor safety stock by ${bufferVal} units prior to next week's replenishment cycle.`,
-        });
-      }
-      setLoading(false);
-    }, 1200);
+    const predictedVal = Math.round(activeSkuItem.stock * 1.35 + salesOrders.length * 50);
+    const bufferVal = Math.round(activeSkuItem.minThreshold * 1.5);
+    setForecastResult({
+      volume: `${predictedVal.toLocaleString()} Units`,
+      growth: `+${(12 + (salesOrders.length % 5) * 1.8).toFixed(1)}%`,
+      confidence: `${(94.2 + (inventory.length % 4) * 1.1).toFixed(1)}%`,
+      buffer: `${bufferVal.toLocaleString()} Units`,
+      insight: `Based on current stock level (${activeSkuItem.stock} units of ${activeSkuItem.name}) and recent field velocity across ${salesOrders.length} orders, high demand is predicted. We recommend increasing distributor safety stock by ${bufferVal} units prior to next week's replenishment cycle.`,
+    });
+    setLoading(false);
   };
 
   return (
@@ -61,53 +58,59 @@ export const AiForecast: React.FC<{ role: UserRole }> = ({ role }) => {
         </div>
       </div>
 
-      <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: `1px solid ${tokens.colors.border}`, marginBottom: '24px', boxShadow: tokens.shadows.sm }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '16px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '13px', color: tokens.colors.textBody }}>
-              Target Stock Keeping Unit (SKU)
-            </label>
-            <select
-              value={selectedSku}
-              onChange={(e) => {
-                setSelectedSku(e.target.value);
-                setPrompt(`Forecast demand and reorder parameters for ${e.target.value} across upcoming quarter...`);
-              }}
-              style={tokens.presets.input}
-            >
-              {inventory.map(sku => (
-                <option key={sku.sku} value={sku.sku}>
-                  {sku.sku} — {sku.name} ({sku.stock} in stock)
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '13px', color: tokens.colors.textBody }}>
-              Forecasting Model Prompt & Context Parameters
-            </label>
-            <input
-              type="text"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              style={tokens.presets.input}
-            />
-          </div>
+      {inventory.length === 0 ? (
+        <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: `1px solid ${tokens.colors.border}`, marginBottom: '24px' }}>
+          <p style={{ color: tokens.colors.textMuted, fontSize: '14px', margin: 0 }}>No SKU inventory records available in database to perform forecast.</p>
         </div>
+      ) : (
+        <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: `1px solid ${tokens.colors.border}`, marginBottom: '24px', boxShadow: tokens.shadows.sm }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '13px', color: tokens.colors.textBody }}>
+                Target Stock Keeping Unit (SKU)
+              </label>
+              <select
+                value={selectedSku}
+                onChange={(e) => {
+                  setSelectedSku(e.target.value);
+                  setPrompt(`Forecast demand and reorder parameters for ${e.target.value} across upcoming quarter...`);
+                }}
+                style={tokens.presets.input}
+              >
+                {inventory.map(sku => (
+                  <option key={sku.sku} value={sku.sku}>
+                    {sku.sku} — {sku.name} ({sku.stock} in stock)
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <button
-          onClick={handleRunForecast}
-          disabled={loading}
-          style={{
-            ...tokens.presets.buttonPrimary,
-            opacity: loading ? 0.7 : 1,
-            cursor: loading ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {loading ? '⚡ Running ML Model & Analyzing Sales Velocity...' : '⚡ Run AI Demand Forecast'}
-        </button>
-      </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '13px', color: tokens.colors.textBody }}>
+                Forecasting Model Prompt & Context Parameters
+              </label>
+              <input
+                type="text"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                style={tokens.presets.input}
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={handleRunForecast}
+            disabled={loading || !activeSkuItem}
+            style={{
+              ...tokens.presets.buttonPrimary,
+              opacity: loading || !activeSkuItem ? 0.7 : 1,
+              cursor: loading || !activeSkuItem ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {loading ? '⚡ Running ML Model & Analyzing Sales Velocity...' : '⚡ Run AI Demand Forecast'}
+          </button>
+        </div>
+      )}
 
       {forecastResult && (
         <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: `1px solid ${tokens.colors.border}`, boxShadow: tokens.shadows.sm }}>

@@ -30,15 +30,23 @@ export const FieldVisits: React.FC<{ role: UserRole }> = ({ role: _role }) => {
             </tr>
           </thead>
           <tbody>
-            {fieldVisits.map((v, idx) => (
-              <tr key={v.id} style={{ borderBottom: idx === fieldVisits.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
-                <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{v.id}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textMain }}>{v.agent}</td>
-                <td style={{ padding: '12px 16px', color: tokens.colors.brand }}>{v.outlet}</td>
-                <td style={{ padding: '12px 16px', color: tokens.colors.textMuted }}>{v.time}</td>
-                <td style={{ padding: '12px 16px' }}><StatusBadge status={v.status} /></td>
+            {fieldVisits.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: tokens.colors.textMuted, fontSize: '14px' }}>
+                  No GPS field visits recorded in database
+                </td>
               </tr>
-            ))}
+            ) : (
+              fieldVisits.map((v, idx) => (
+                <tr key={v.id} style={{ borderBottom: idx === fieldVisits.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
+                  <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{v.id}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textMain }}>{v.agent}</td>
+                  <td style={{ padding: '12px 16px', color: tokens.colors.brand }}>{v.outlet}</td>
+                  <td style={{ padding: '12px 16px', color: tokens.colors.textMuted }}>{v.time}</td>
+                  <td style={{ padding: '12px 16px' }}><StatusBadge status={v.status} /></td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

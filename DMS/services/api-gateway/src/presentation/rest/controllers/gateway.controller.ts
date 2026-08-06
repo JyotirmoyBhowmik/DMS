@@ -48,6 +48,7 @@ interface GatewayRequest {
   method: string;
   path: string;
   headers: Record<string, string>;
+  query?: Record<string, string>;
   body?: unknown;
 }
 
@@ -1189,7 +1190,7 @@ export class GatewayController {
       return { status: statusCode, headers: { ...responseHeaders, 'x-upstream-service': 'dms-core-service' }, body: resultBody };
     }
 
-    if (handler.targetService === 'dms-core-service' && handler.targetPath.startsWith('/skus')) {
+    if (handler.targetService === 'dms-core-service' && (handler.targetPath.startsWith('/skus') || handler.targetPath.startsWith('/products'))) {
       let resultBody: any = {};
       let statusCode = 200;
       const skuHeaders = {

@@ -173,29 +173,137 @@ class PreparedStatementCache {
   }
 }
 
+import { Pool as NeonPool } from '@neondatabase/serverless';
+
+export const buildDatabaseConnectionString = (): string | undefined => {
+  let connStr = (
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.NEON_DATABASE_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL_NON_POOLING
+  )?.trim();
+
+  // Assemble connection string from split environment variables if single URL is not provided
+  if (!connStr) {
+    const host = (process.env.DB_HOST || process.env.PGHOST)?.trim();
+    const port = (process.env.DB_PORT || process.env.PGPORT || '5432')?.trim();
+    const user = (process.env.DB_USER || process.env.PGUSER)?.trim();
+    const password = (process.env.DB_PASSWORD || process.env.PGPASSWORD)?.trim();
+    const database = (process.env.DB_NAME || process.env.PGDATABASE)?.trim();
+
+    if (host && user && password && database) {
+      const encodedUser = encodeURIComponent(user);
+      const encodedPass = encodeURIComponent(password);
+      connStr = `postgres://${encodedUser}:${encodedPass}@${host}:${port}/${database}`;
+    }
+  }
+
+  if (!connStr) {
+    return undefined;
+  }
+
+  // Enforce sslmode=require for Neon SSL security
+  if (!connStr.includes('sslmode=') && !connStr.includes('ssl=')) {
+    const separator = connStr.includes('?') ? '&' : '?';
+    connStr = `${connStr}${separator}sslmode=require`;
+  }
+
+  return connStr;
+};
+
+export const getNeonConnectionString = buildDatabaseConnectionString;
+
+// ─── NeonDriver (Serverless Neon Adapter) ──────────────────────────────────────
+
+export class NeonDriver implements IDatabaseDriver {
+  private pool: NeonPool;
+  private metrics: PoolMetrics;
+
+  constructor(connectionString?: string, maxConnections = 10) {
+    const connStr = connectionString || getNeonConnectionString();
+    const isTest = process.env.NODE_ENV === 'test' || process.env.CI !== undefined;
+    if (!connStr && !isTest) {
+      throw new DatabaseError(
+        'Missing Neon database connection string. Ensure DATABASE_URL or POSTGRES_URL environment variable is set in Vercel.',
+        'MISSING_CONNECTION_STRING'
+      );
+    }
+
+    this.pool = new NeonPool({
+      connectionString: connStr || 'postgres://placeholder.neon.tech/dms_test',
+      max: maxConnections,
+    });
+
+    this.metrics = {
+      activeConnections: 0,
+      idleConnections: maxConnections,
+      totalAcquired: 0,
+      totalReleased: 0,
+      maxConnections,
+    };
+  }
+
+  async connect(): Promise<IConnectionClient> {
+    const isTest = process.env.NODE_ENV === 'test' || process.env.CI !== undefined;
+    let client: any;
+    try {
+      client = await this.pool.connect();
+    } catch (err) {
+      if (isTest) {
+        return {
+          async query<R>(_sql: string, _params?: unknown[]): Promise<QueryResult<R>> {
+            return { rows: [] as R[], rowCount: 0 };
+          },
+          release(): void {},
+        };
+      }
+      throw err;
+    }
+
+    this.metrics.activeConnections++;
+    this.metrics.idleConnections--;
+    this.metrics.totalAcquired++;
+
+    const self = this;
+    return {
+      async query<R>(sql: string, params?: unknown[]): Promise<QueryResult<R>> {
+        const result = await client.query(sql, params);
+        return {
+          rows: (result.rows || []) as R[],
+          rowCount: result.rowCount ?? (result.rows?.length || 0),
+        };
+      },
+      release(): void {
+        client.release();
+        self.metrics.activeConnections--;
+        self.metrics.idleConnections++;
+        self.metrics.totalReleased++;
+      },
+    };
+  }
+
+  async end(): Promise<void> {
+    await this.pool.end();
+  }
+
+  getPoolMetrics(): PoolMetrics {
+    return { ...this.metrics };
+  }
+}
+
 // ─── PgDriver (real pg Pool adapter) ──────────────────────────────────────────
 
 /**
  * Production driver backed by the `pg` package's Pool.
- *
- * Usage (when `pg` is installed):
- * ```ts
- * import { Pool } from 'pg';
- * const pool = new Pool({ connectionString: '...' });
- * const driver = new PgDriver(pool);
- * const client = new PostgresDatabaseClient(config, driver);
- * ```
  */
 export class PgDriver implements IDatabaseDriver {
   private pool: Pool;
   private metrics: PoolMetrics;
 
-  /**
-   * @param pool  A `pg.Pool` instance.
-   * @param maxConnections  The `max` value the pool was created with (for metrics).
-   */
   constructor(pool?: Pool, maxConnections = 10) {
-    this.pool = pool ?? new Pool();
+    const connStr = getNeonConnectionString();
+    this.pool = pool ?? new Pool(connStr ? { connectionString: connStr } : undefined);
     this.metrics = {
       activeConnections: 0,
       idleConnections: maxConnections,

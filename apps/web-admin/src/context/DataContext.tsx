@@ -202,19 +202,32 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // ── Reactive Persistent Mutations ──
 
-  const addSku = (item: Omit<SkuItem, 'sku'>) => {
-    const nextNum = inventory.length + Date.now().toString().slice(-3);
-    const newSku: SkuItem = {
-      sku: `SKU-FMCG-${String(nextNum).padStart(3, '0')}`,
-      ...item,
+  const addSku = async (item: Partial<SkuItem> & { name: string; category: string; price: number; stock: number; minThreshold: number; distributor: string }) => {
+    const customCode = item.sku?.trim();
+    const generatedCode = `SKU-FMCG-${String(inventory.length + 1).padStart(3, '0')}`;
+    const targetCode = customCode || generatedCode;
+
+    const skuPayload: SkuItem = {
+      sku: targetCode,
+      name: item.name,
+      category: item.category,
+      price: item.price,
+      stock: item.stock,
+      minThreshold: item.minThreshold,
+      distributor: item.distributor,
     };
-    dbService.postSku(newSku); // Send to dms-core-service DB API endpoint
+
+    const res = await dbService.postSku(skuPayload);
+    const createdItem: SkuItem = (res as any)?.data || (res as any) || skuPayload;
+
     setInventory((prev) => {
-      const exists = prev.some((s) => s.sku === newSku.sku || s.name === newSku.name);
-      const updated = exists ? prev : [newSku, ...prev];
+      const exists = prev.some((s) => s.sku.toLowerCase() === createdItem.sku.toLowerCase());
+      const updated = exists ? prev : [createdItem, ...prev];
       setStored(LS_KEYS.INVENTORY, updated);
       return updated;
     });
+
+    return createdItem;
   };
 
   const addOutlet = (outlet: Omit<Outlet, 'id' | 'status'>) => {

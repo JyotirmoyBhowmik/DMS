@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConcurrencyError = exports.EntityNotFoundError = exports.DatabaseError = exports.MigrationRunner = exports.BasePostgresRepository = exports.PgDriver = exports.InMemoryDriver = exports.PostgresDatabaseClient = exports.InMemoryUnitOfWork = exports.ProcessedEventModel = exports.OutboxEntryModel = exports.BaseEntityModel = exports.RlsPolicyBuilder = exports.clearTenantContext = exports.setTenantContext = exports.buildTenantRlsPolicy = exports.getTenantField = exports.isTenantColumn = exports.Tenant = exports.createEncryptedTransformer = exports.unpackEncrypted = exports.packEncrypted = exports.getEncryptedFields = exports.isEncrypted = exports.Encrypted = exports.getPIIFields = exports.isPII = exports.PII = void 0;
+exports.InMemoryCacheClient = exports.ConcurrencyError = exports.EntityNotFoundError = exports.DatabaseError = exports.MigrationRunner = exports.BasePostgresRepository = exports.getNeonConnectionString = exports.NeonDriver = exports.PgDriver = exports.InMemoryDriver = exports.PostgresDatabaseClient = exports.InMemoryUnitOfWork = exports.ProcessedEventModel = exports.OutboxEntryModel = exports.BaseEntityModel = exports.RlsPolicyBuilder = exports.clearTenantContext = exports.setTenantContext = exports.buildTenantRlsPolicy = exports.getTenantField = exports.isTenantColumn = exports.Tenant = exports.createEncryptedTransformer = exports.unpackEncrypted = exports.packEncrypted = exports.getEncryptedFields = exports.isEncrypted = exports.Encrypted = exports.getPIIFields = exports.isPII = exports.PII = void 0;
 // Annotations
 var pii_js_1 = require("./annotations/pii.js");
 Object.defineProperty(exports, "PII", { enumerable: true, get: function () { return pii_js_1.PII; } });
@@ -38,6 +38,8 @@ var client_js_1 = require("./postgres/client.js");
 Object.defineProperty(exports, "PostgresDatabaseClient", { enumerable: true, get: function () { return client_js_1.PostgresDatabaseClient; } });
 Object.defineProperty(exports, "InMemoryDriver", { enumerable: true, get: function () { return client_js_1.InMemoryDriver; } });
 Object.defineProperty(exports, "PgDriver", { enumerable: true, get: function () { return client_js_1.PgDriver; } });
+Object.defineProperty(exports, "NeonDriver", { enumerable: true, get: function () { return client_js_1.NeonDriver; } });
+Object.defineProperty(exports, "getNeonConnectionString", { enumerable: true, get: function () { return client_js_1.getNeonConnectionString; } });
 // Repositories
 var base_repository_js_1 = require("./repositories/base.repository.js");
 Object.defineProperty(exports, "BasePostgresRepository", { enumerable: true, get: function () { return base_repository_js_1.BasePostgresRepository; } });
@@ -49,4 +51,7 @@ var errors_js_1 = require("./errors.js");
 Object.defineProperty(exports, "DatabaseError", { enumerable: true, get: function () { return errors_js_1.DatabaseError; } });
 Object.defineProperty(exports, "EntityNotFoundError", { enumerable: true, get: function () { return errors_js_1.EntityNotFoundError; } });
 Object.defineProperty(exports, "ConcurrencyError", { enumerable: true, get: function () { return errors_js_1.ConcurrencyError; } });
+// Caching
+var cache_client_js_1 = require("./cache/cache-client.js");
+Object.defineProperty(exports, "InMemoryCacheClient", { enumerable: true, get: function () { return cache_client_js_1.InMemoryCacheClient; } });
 //# sourceMappingURL=index.js.map

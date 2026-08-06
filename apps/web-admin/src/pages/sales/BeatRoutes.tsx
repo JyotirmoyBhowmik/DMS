@@ -58,16 +58,24 @@ export const BeatRoutes: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {beatRoutes.map((b, idx) => (
-              <tr key={b.id} style={{ borderBottom: idx === beatRoutes.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
-                <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{b.code}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textMain }}>{b.name}</td>
-                <td style={{ padding: '12px 16px', color: tokens.colors.textMuted }}>{b.agent}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 600 }}>{b.outletsCount} stores</td>
-                <td style={{ padding: '12px 16px', color: tokens.colors.brand }}>{b.radiusKm}</td>
-                <td style={{ padding: '12px 16px' }}><StatusBadge status={b.status} /></td>
+            {beatRoutes.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: tokens.colors.textMuted, fontSize: '14px' }}>
+                  No beat routes configured in database
+                </td>
               </tr>
-            ))}
+            ) : (
+              beatRoutes.map((b, idx) => (
+                <tr key={b.id} style={{ borderBottom: idx === beatRoutes.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
+                  <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{b.code}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textMain }}>{b.name}</td>
+                  <td style={{ padding: '12px 16px', color: tokens.colors.textMuted }}>{b.agent}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600 }}>{b.outletsCount} stores</td>
+                  <td style={{ padding: '12px 16px', color: tokens.colors.brand }}>{b.radiusKm}</td>
+                  <td style={{ padding: '12px 16px' }}><StatusBadge status={b.status} /></td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

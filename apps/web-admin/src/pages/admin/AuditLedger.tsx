@@ -11,10 +11,8 @@ export const AuditLedger: React.FC<{ role: UserRole }> = ({ role: _role }) => {
   const handleVerify = () => {
     setVerifying(true);
     setVerified(false);
-    setTimeout(() => {
-      setVerifying(false);
-      setVerified(true);
-    }, 1500);
+    setVerifying(false);
+    setVerified(true);
   };
 
   return (
@@ -34,7 +32,7 @@ export const AuditLedger: React.FC<{ role: UserRole }> = ({ role: _role }) => {
               opacity: verifying ? 0.7 : 1,
             }}
             onClick={handleVerify}
-            disabled={verifying}
+            disabled={verifying || auditChain.length === 0}
           >
             {verifying ? 'Verifying...' : 'Verify Block Signatures'}
           </button>
@@ -53,15 +51,23 @@ export const AuditLedger: React.FC<{ role: UserRole }> = ({ role: _role }) => {
             </tr>
           </thead>
           <tbody>
-            {auditChain.map((b: AuditBlock, idx: number) => (
-              <tr key={b.block} style={{ borderBottom: idx === auditChain.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
-                <td style={{ padding: '12px 16px', fontWeight: 600 }}>{b.block}</td>
-                <td style={{ padding: '12px 16px' }}>{b.action}</td>
-                <td style={{ padding: '12px 16px' }}>{b.user}</td>
-                <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: tokens.colors.textMuted, fontSize: '13px' }}>{b.hash}</td>
-                <td style={{ padding: '12px 16px', color: tokens.colors.textMuted }}>{b.timestamp}</td>
+            {auditChain.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: tokens.colors.textMuted, fontSize: '14px' }}>
+                  No audit blocks recorded in database ledger yet
+                </td>
               </tr>
-            ))}
+            ) : (
+              auditChain.map((b: AuditBlock, idx: number) => (
+                <tr key={b.block} style={{ borderBottom: idx === auditChain.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
+                  <td style={{ padding: '12px 16px', fontWeight: 600 }}>{b.block}</td>
+                  <td style={{ padding: '12px 16px' }}>{b.action}</td>
+                  <td style={{ padding: '12px 16px' }}>{b.user}</td>
+                  <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: tokens.colors.textMuted, fontSize: '13px' }}>{b.hash}</td>
+                  <td style={{ padding: '12px 16px', color: tokens.colors.textMuted }}>{b.timestamp}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

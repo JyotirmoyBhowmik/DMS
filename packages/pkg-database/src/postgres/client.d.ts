@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { ICacheClient, CacheOptions } from '../cache/cache-client.js';
 export interface DatabaseConfig {
     connectionString?: string;
     host?: string;
@@ -64,24 +65,22 @@ export interface IDatabaseDriver {
      */
     getPoolMetrics(): PoolMetrics;
 }
+export declare const buildDatabaseConnectionString: () => string | undefined;
+export declare const getNeonConnectionString: () => string | undefined;
+export declare class NeonDriver implements IDatabaseDriver {
+    private pool;
+    private metrics;
+    constructor(connectionString?: string, maxConnections?: number);
+    connect(): Promise<IConnectionClient>;
+    end(): Promise<void>;
+    getPoolMetrics(): PoolMetrics;
+}
 /**
  * Production driver backed by the `pg` package's Pool.
- *
- * Usage (when `pg` is installed):
- * ```ts
- * import { Pool } from 'pg';
- * const pool = new Pool({ connectionString: '...' });
- * const driver = new PgDriver(pool);
- * const client = new PostgresDatabaseClient(config, driver);
- * ```
  */
 export declare class PgDriver implements IDatabaseDriver {
     private pool;
     private metrics;
-    /**
-     * @param pool  A `pg.Pool` instance.
-     * @param maxConnections  The `max` value the pool was created with (for metrics).
-     */
     constructor(pool?: Pool, maxConnections?: number);
     connect(): Promise<IConnectionClient>;
     end(): Promise<void>;
@@ -110,10 +109,12 @@ export declare class PostgresDatabaseClient {
     private readonly driver;
     private readonly circuitBreaker;
     private readonly preparedStatements;
+    private cacheClient?;
     private readonly queryTimeoutMs;
     private readonly maxRetries;
     private readonly retryBaseDelayMs;
     constructor(configOrDriver?: DatabaseConfig | IDatabaseDriver, driver?: IDatabaseDriver);
+    setCacheClient(client: ICacheClient): void;
     /**
      * Performs a health check by attempting to reach the database host and port
      * via a TCP socket.
@@ -130,7 +131,7 @@ export declare class PostgresDatabaseClient {
      * If RLS tenant context is provided, automatically runs setTenantContext
      * before execution.
      */
-    query<T = unknown>(sql: string, params?: unknown[], tenantId?: string): Promise<QueryResult<T>>;
+    query<T = unknown>(sql: string, params?: unknown[], tenantId?: string, cacheOpts?: CacheOptions, isolationTier?: 'SHARED_RLS' | 'SCHEMA_PER_TENANT' | 'DEDICATED_CLUSTER'): Promise<QueryResult<T>>;
     /**
      * Executes database operations inside a managed SQL transaction.
      */

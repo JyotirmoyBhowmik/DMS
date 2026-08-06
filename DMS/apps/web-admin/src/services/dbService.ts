@@ -133,6 +133,10 @@ class DatabaseClient {
     return this.queryDb<SkuItem[]>('/api/v1/dms/inventory', fallback);
   }
 
+  public async getProducts(): Promise<SkuItem[]> {
+    return this.queryDb<SkuItem[]>('/api/v1/products', []);
+  }
+
   public async postSku(sku: SkuItem): Promise<SkuItem | null> {
     try {
       const skuPayload = {
@@ -145,6 +149,10 @@ class DatabaseClient {
       console.warn('[DbService] Posting to /api/v1/skus endpoint failed:', err);
     }
     return this.postDb<SkuItem>('/api/v1/dms/inventory', sku);
+  }
+
+  public async postProduct(productPayload: any): Promise<any | null> {
+    return this.postDb('/api/v1/products', productPayload);
   }
 
   public async getOutlets(): Promise<Outlet[]> {

@@ -55,28 +55,34 @@ export const SalesOrders: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {salesOrders.map((ord, idx) => (
-              <tr key={ord.id} style={{ borderBottom: idx === salesOrders.length - 1 ? 'none' : '1px solid #E2E8F0' }}>
-                <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{ord.id}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0F172A' }}>{ord.outlet}</td>
-                <td style={{ padding: '12px 16px', color: '#64748B' }}>{ord.agent}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 700 }}>{ord.totalAmount}</td>
-                <td style={{ padding: '12px 16px' }}>{ord.items} units</td>
-                <td style={{ padding: '12px 16px' }}>
-                  <StatusBadge status={ord.status} />
+            {salesOrders.length === 0 ? (
+              <tr>
+                <td colSpan={canApprove ? 8 : 7} style={{ padding: '24px', textAlign: 'center', color: '#64748B', fontSize: '14px' }}>
+                  No field sales orders found in database
                 </td>
-                <td style={{ padding: '12px 16px', color: '#64748B', fontSize: '12px' }}>{ord.date}</td>
-                {canApprove && (
+              </tr>
+            ) : (
+              salesOrders.map((ord, idx) => (
+                <tr key={ord.id} style={{ borderBottom: idx === salesOrders.length - 1 ? 'none' : '1px solid #E2E8F0' }}>
+                  <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{ord.id}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0F172A' }}>{ord.outlet}</td>
+                  <td style={{ padding: '12px 16px', color: '#64748B' }}>{ord.agent}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 700 }}>{ord.totalAmount}</td>
+                  <td style={{ padding: '12px 16px' }}>{ord.items} units</td>
                   <td style={{ padding: '12px 16px' }}>
-                    {ord.status === 'PENDING_APPROVAL' ? (
-                      <div style={{ display: 'flex', gap: '6px' }}>
+                    <StatusBadge status={ord.status} />
+                  </td>
+                  <td style={{ padding: '12px 16px', color: '#64748B', fontSize: '12px' }}>{ord.date}</td>
+                  {canApprove && (
+                    <td style={{ padding: '12px 16px' }}>
+                      {ord.status === 'PENDING_APPROVAL' ? (
                         <button
                           onClick={() => approveSalesOrder(ord.id)}
                           style={{
                             padding: '4px 10px',
                             backgroundColor: '#DCFCE7',
                             color: '#15803D',
-                            border: '1px solid #BBF7D0',
+                            border: '1px solid #86EFAC',
                             borderRadius: '4px',
                             cursor: 'pointer',
                             fontSize: '11px',
@@ -85,29 +91,14 @@ export const SalesOrders: React.FC<{ role: UserRole }> = ({ role }) => {
                         >
                           ✓ Approve
                         </button>
-                        <button
-                          onClick={() => rejectSalesOrder(ord.id)}
-                          style={{
-                            padding: '4px 10px',
-                            backgroundColor: '#FEE2E2',
-                            color: '#B91C1C',
-                            border: '1px solid #FCA5A5',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                          }}
-                        >
-                          ✕ Reject
-                        </button>
-                      </div>
-                    ) : (
-                      <span style={{ fontSize: '12px', color: '#94A3B8' }}>—</span>
-                    )}
-                  </td>
-                )}
-              </tr>
-            ))}
+                      ) : (
+                        <span style={{ fontSize: '12px', color: '#94A3B8' }}>Approved</span>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

@@ -46,14 +46,22 @@ export const VanSales: React.FC<{ role: UserRole }> = ({ role: _role }) => {
             </tr>
           </thead>
           <tbody>
-            {vanSales.map((v: VanSale, idx: number) => (
-              <tr key={v.id} style={{ borderBottom: idx === vanSales.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
-                <td style={{ padding: '12px 16px', fontWeight: '600', fontFamily: 'monospace' }}>{v.vanId}</td>
-                <td style={{ padding: '12px 16px', fontWeight: '700', color: tokens.colors.textMain }}>{v.orderValue.startsWith('$') ? v.orderValue : `$${v.orderValue}`}</td>
-                <td style={{ padding: '12px 16px', color: tokens.colors.textMuted }}>{v.itemsCount} SKUs</td>
-                <td style={{ padding: '12px 16px' }}><StatusBadge status={v.status} /></td>
+            {vanSales.length === 0 ? (
+              <tr>
+                <td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: tokens.colors.textMuted, fontSize: '14px' }}>
+                  No van sales transactions recorded in database
+                </td>
               </tr>
-            ))}
+            ) : (
+              vanSales.map((v: VanSale, idx: number) => (
+                <tr key={v.id} style={{ borderBottom: idx === vanSales.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
+                  <td style={{ padding: '12px 16px', fontWeight: '600', fontFamily: 'monospace' }}>{v.vanId}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: '700', color: tokens.colors.textMain }}>{v.orderValue.startsWith('$') ? v.orderValue : `$${v.orderValue}`}</td>
+                  <td style={{ padding: '12px 16px', color: tokens.colors.textMuted }}>{v.itemsCount} SKUs</td>
+                  <td style={{ padding: '12px 16px' }}><StatusBadge status={v.status} /></td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

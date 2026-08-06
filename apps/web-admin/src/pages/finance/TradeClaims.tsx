@@ -58,38 +58,46 @@ export const TradeClaims: React.FC<{ role: UserRole }> = ({ role }) => {
             </tr>
           </thead>
           <tbody>
-            {tradeClaims.map((clm, idx) => (
-              <tr key={clm.id} style={{ borderBottom: idx === tradeClaims.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
-                <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{clm.id}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textMain }}>{clm.distributor}</td>
-                <td style={{ padding: '12px 16px', color: tokens.colors.brand }}>{clm.scheme}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 700 }}>{clm.amount}</td>
-                <td style={{ padding: '12px 16px' }}><StatusBadge status={clm.status} /></td>
-                {canApprove && (
-                  <td style={{ padding: '12px 16px' }}>
-                    {clm.status === 'PENDING_APPROVAL' ? (
-                      <button
-                        onClick={() => approveTradeClaim(clm.id)}
-                        style={{
-                          padding: '4px 10px',
-                          backgroundColor: tokens.colors.successBg,
-                          color: tokens.colors.success,
-                          border: `1px solid ${tokens.colors.successBorder}`,
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                        }}
-                      >
-                        ✓ Authorize Payout
-                      </button>
-                    ) : (
-                      <span style={{ fontSize: '12px', color: tokens.colors.textMuted }}>Settled</span>
-                    )}
-                  </td>
-                )}
+            {tradeClaims.length === 0 ? (
+              <tr>
+                <td colSpan={canApprove ? 6 : 5} style={{ padding: '24px', textAlign: 'center', color: tokens.colors.textMuted, fontSize: '14px' }}>
+                  No trade claims recorded in database
+                </td>
               </tr>
-            ))}
+            ) : (
+              tradeClaims.map((clm, idx) => (
+                <tr key={clm.id} style={{ borderBottom: idx === tradeClaims.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
+                  <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{clm.id}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textMain }}>{clm.distributor}</td>
+                  <td style={{ padding: '12px 16px', color: tokens.colors.brand }}>{clm.scheme}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 700 }}>{clm.amount}</td>
+                  <td style={{ padding: '12px 16px' }}><StatusBadge status={clm.status} /></td>
+                  {canApprove && (
+                    <td style={{ padding: '12px 16px' }}>
+                      {clm.status === 'PENDING_APPROVAL' ? (
+                        <button
+                          onClick={() => approveTradeClaim(clm.id)}
+                          style={{
+                            padding: '4px 10px',
+                            backgroundColor: tokens.colors.successBg,
+                            color: tokens.colors.success,
+                            border: `1px solid ${tokens.colors.successBorder}`,
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Approve Claim
+                        </button>
+                      ) : (
+                        <span style={{ color: tokens.colors.textMuted, fontSize: '12px' }}>Settled</span>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

@@ -7,6 +7,7 @@ import { StockLedger } from '../pages/inventory/StockLedger';
 import { OutletRegistry } from '../pages/inventory/OutletRegistry';
 import { Invoices } from '../pages/finance/Invoices';
 import { PricingSchemes } from '../pages/finance/PricingSchemes';
+import { DistributorHierarchy } from '../pages/inventory/DistributorHierarchy';
 
 interface DmsFrameProps {
   role: UserRole;
@@ -19,6 +20,7 @@ export const DmsFrame: React.FC<DmsFrameProps> = ({ role, initialTab = 'sku-cata
 
   const tabs = [
     { id: 'sku-catalog', label: 'SKU Master Catalog', icon: '📦' },
+    { id: 'distributor-hierarchy', label: 'Distributor Tree', icon: '🌳' },
     { id: 'stock-ledger', label: 'Stock & Warehouse Ledger', icon: '📋' },
     { id: 'outlet-registry', label: 'Retailers & Credit Limits', icon: '🏪' },
     { id: 'invoices', label: 'Billing & Invoices', icon: '📄' },
@@ -54,6 +56,7 @@ export const DmsFrame: React.FC<DmsFrameProps> = ({ role, initialTab = 'sku-cata
       {/* Frame Content View */}
       <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '24px' }}>
         {activeTab === 'sku-catalog' && <SkuCatalog role={role} />}
+        {activeTab === 'distributor-hierarchy' && <DistributorHierarchy role={role} />}
         {activeTab === 'stock-ledger' && <StockLedger role={role} />}
         {activeTab === 'outlet-registry' && <OutletRegistry role={role} />}
         {activeTab === 'invoices' && <Invoices role={role} />}

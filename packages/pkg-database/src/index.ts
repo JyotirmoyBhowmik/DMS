@@ -21,7 +21,7 @@ export { InMemoryUnitOfWork } from './unit-of-work/uow.js';
 export type { Transaction, UnitOfWork } from './unit-of-work/uow.js';
 
 // Postgres Client Pool
-export { PostgresDatabaseClient, InMemoryDriver, PgDriver } from './postgres/client.js';
+export { PostgresDatabaseClient, InMemoryDriver, PgDriver, NeonDriver, getNeonConnectionString } from './postgres/client.js';
 export type { DatabaseConfig, IDatabaseDriver, IConnectionClient, QueryResult, PoolMetrics } from './postgres/client.js';
 
 // Repositories

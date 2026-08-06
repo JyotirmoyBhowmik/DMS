@@ -9,6 +9,10 @@ export const SyncQueue: React.FC<{ role: UserRole }> = () => {
   const [items, setItems] = React.useState(syncQueue);
   const [selectedError, setSelectedError] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    setItems(syncQueue);
+  }, [syncQueue]);
+
   const totalSynced = items.filter((q: SyncTask) => q.status === 'SYNCHRONIZED').length;
   const processing = items.filter((q: SyncTask) => q.status === 'PROCESSING').length;
   const failed = items.filter((q: SyncTask) => q.status === 'FAILED').length;
@@ -91,41 +95,49 @@ export const SyncQueue: React.FC<{ role: UserRole }> = () => {
             </tr>
           </thead>
           <tbody>
-            {items.map((task: SyncTask, idx: number) => (
-              <tr key={task.id} style={{ borderBottom: idx === items.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
-                <td style={{ padding: '12px 16px', fontWeight: 600, fontFamily: 'monospace' }}>{task.id}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textMain }}>{task.source}</td>
-                <td style={{ padding: '12px 16px' }}>
-                  <code style={{ backgroundColor: tokens.colors.bgSubtle, padding: '3px 8px', borderRadius: '4px', fontSize: '12px', color: tokens.colors.brand }}>
-                    {task.event}
-                  </code>
-                </td>
-                <td style={{ padding: '12px 16px' }}>
-                  <StatusBadge status={task.status} />
-                </td>
-                <td style={{ padding: '12px 16px', color: tokens.colors.textMuted, fontSize: '13px' }}>{task.latency}</td>
-                <td style={{ padding: '12px 16px' }}>
-                  {task.status === 'FAILED' ? (
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => handleRetryTask(task.id)}
-                        style={{ background: '#2563EB', color: '#FFF', border: 'none', borderRadius: '4px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
-                      >
-                        Retry Job
-                      </button>
-                      <button
-                        onClick={() => setSelectedError(`[ERP_FIELD_MISMATCH] Field 'RATE' in Tally XML payload missing required decimal precision on line 14.`)}
-                        style={{ background: '#DC2626', color: '#FFF', border: 'none', borderRadius: '4px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
-                      >
-                        Inspect Error
-                      </button>
-                    </div>
-                  ) : (
-                    <span style={{ color: '#166534', fontSize: '12px', fontWeight: 600 }}>✓ Verified</span>
-                  )}
+            {items.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: tokens.colors.textMuted, fontSize: '14px' }}>
+                  No integration sync tasks recorded in database
                 </td>
               </tr>
-            ))}
+            ) : (
+              items.map((task: SyncTask, idx: number) => (
+                <tr key={task.id} style={{ borderBottom: idx === items.length - 1 ? 'none' : `1px solid ${tokens.colors.border}` }}>
+                  <td style={{ padding: '12px 16px', fontWeight: 600, fontFamily: 'monospace' }}>{task.id}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600, color: tokens.colors.textMain }}>{task.source}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <code style={{ backgroundColor: tokens.colors.bgSubtle, padding: '3px 8px', borderRadius: '4px', fontSize: '12px', color: tokens.colors.brand }}>
+                      {task.event}
+                    </code>
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <StatusBadge status={task.status} />
+                  </td>
+                  <td style={{ padding: '12px 16px', color: tokens.colors.textMuted, fontSize: '13px' }}>{task.latency}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    {task.status === 'FAILED' ? (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => handleRetryTask(task.id)}
+                          style={{ background: '#2563EB', color: '#FFF', border: 'none', borderRadius: '4px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Retry Job
+                        </button>
+                        <button
+                          onClick={() => setSelectedError(`[ERP_FIELD_MISMATCH] Field 'RATE' in Tally XML payload missing required decimal precision on line 14.`)}
+                          style={{ background: '#DC2626', color: '#FFF', border: 'none', borderRadius: '4px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Inspect Error
+                        </button>
+                      </div>
+                    ) : (
+                      <span style={{ color: '#166534', fontSize: '12px', fontWeight: 600 }}>✓ Verified</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
