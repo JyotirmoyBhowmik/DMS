@@ -1,0 +1,3 @@
+## 2024-08-09 - [Hoisting invariant loop conditions in React]
+**Learning:** Found an `O(N)` loop filtering logic in `SkuCatalog.tsx` that performed `.toLowerCase()` 3 times on the search input *per iteration* (i.e., `O(3*N)` operations on an invariant value). In JavaScript React apps, this pattern often gets repeated causing unnecessary string allocation and performance degradation.
+**Action:** When inspecting loops (e.g. `Array.filter` or `Array.map`) inside React components, check for loop invariants (like transforming an external state variable) and hoist them outside the loop. Use `useMemo` to cache the derived array if the underlying data or search input hasn't changed.

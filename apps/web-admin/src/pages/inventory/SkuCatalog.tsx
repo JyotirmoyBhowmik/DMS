@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { UserRole } from '../../types';
 import { useData } from '../../context/DataContext';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -9,20 +9,38 @@ export const SkuCatalog: React.FC<{ role: UserRole }> = ({ role }) => {
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const filteredInventory = inventory.filter(
-    (item) =>
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      item.sku.toLowerCase().includes(search.toLowerCase()) ||
-      item.category.toLowerCase().includes(search.toLowerCase())
-  );
+  // ⚡ Bolt Performance Optimization:
+  // 1. Memoized `filteredInventory` to prevent re-calculating the filter on unrelated state changes (like showAddModal toggles).
+  // 2. Hoisted `search.toLowerCase()` outside the loop.
+  // Impact: Reduces redundant string allocations and O(N*3) redundant `.toLowerCase()` calls during render.
+  const filteredInventory = useMemo(() => {
+    const searchLower = search.toLowerCase();
+    return inventory.filter(
+      (item) =>
+        item.name.toLowerCase().includes(searchLower) ||
+        item.sku.toLowerCase().includes(searchLower) ||
+        item.category.toLowerCase().includes(searchLower),
+    );
+  }, [inventory, search]);
 
   const canAdd = role === 'admin' || role === 'distributor';
 
   return (
-    <div style={{ padding: '24px', backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#334155' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+    <div
+      style={{ padding: '24px', backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#334155' }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '24px',
+        }}
+      >
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#0F172A', margin: 0 }}>SKU Master Catalog</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#0F172A', margin: 0 }}>
+            SKU Master Catalog
+          </h1>
           <p style={{ color: '#64748B', margin: '4px 0 0', fontSize: '14px' }}>
             Managed master inventory records across distributor networks
           </p>
@@ -67,32 +85,119 @@ export const SkuCatalog: React.FC<{ role: UserRole }> = ({ role }) => {
       </div>
 
       {/* SKU Table */}
-      <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden' }}>
+      <div
+        style={{
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '8px',
+          overflow: 'hidden',
+        }}
+      >
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
-              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', fontSize: '13px' }}>SKU Code</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', fontSize: '13px' }}>Product Description</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', fontSize: '13px' }}>Category</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', fontSize: '13px' }}>Distributor</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', fontSize: '13px' }}>Stock Qty</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', fontSize: '13px' }}>Unit Price</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#475569', fontSize: '13px' }}>Stock Alert</th>
+              <th
+                style={{
+                  padding: '12px 16px',
+                  fontWeight: 600,
+                  color: '#475569',
+                  fontSize: '13px',
+                }}
+              >
+                SKU Code
+              </th>
+              <th
+                style={{
+                  padding: '12px 16px',
+                  fontWeight: 600,
+                  color: '#475569',
+                  fontSize: '13px',
+                }}
+              >
+                Product Description
+              </th>
+              <th
+                style={{
+                  padding: '12px 16px',
+                  fontWeight: 600,
+                  color: '#475569',
+                  fontSize: '13px',
+                }}
+              >
+                Category
+              </th>
+              <th
+                style={{
+                  padding: '12px 16px',
+                  fontWeight: 600,
+                  color: '#475569',
+                  fontSize: '13px',
+                }}
+              >
+                Distributor
+              </th>
+              <th
+                style={{
+                  padding: '12px 16px',
+                  fontWeight: 600,
+                  color: '#475569',
+                  fontSize: '13px',
+                }}
+              >
+                Stock Qty
+              </th>
+              <th
+                style={{
+                  padding: '12px 16px',
+                  fontWeight: 600,
+                  color: '#475569',
+                  fontSize: '13px',
+                }}
+              >
+                Unit Price
+              </th>
+              <th
+                style={{
+                  padding: '12px 16px',
+                  fontWeight: 600,
+                  color: '#475569',
+                  fontSize: '13px',
+                }}
+              >
+                Stock Alert
+              </th>
             </tr>
           </thead>
           <tbody>
             {filteredInventory.map((item, idx) => {
               const isLowStock = item.stock <= item.minThreshold;
               return (
-                <tr key={item.sku} style={{ borderBottom: idx === filteredInventory.length - 1 ? 'none' : '1px solid #E2E8F0' }}>
-                  <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>{item.sku}</td>
-                  <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0F172A' }}>{item.name}</td>
+                <tr
+                  key={item.sku}
+                  style={{
+                    borderBottom:
+                      idx === filteredInventory.length - 1 ? 'none' : '1px solid #E2E8F0',
+                  }}
+                >
+                  <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600 }}>
+                    {item.sku}
+                  </td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0F172A' }}>
+                    {item.name}
+                  </td>
                   <td style={{ padding: '12px 16px' }}>{item.category}</td>
                   <td style={{ padding: '12px 16px', color: '#64748B' }}>{item.distributor}</td>
-                  <td style={{ padding: '12px 16px', fontWeight: 700 }}>{item.stock.toLocaleString()}</td>
-                  <td style={{ padding: '12px 16px', fontWeight: 600 }}>${item.price.toFixed(2)}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 700 }}>
+                    {item.stock.toLocaleString()}
+                  </td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600 }}>
+                    ${item.price.toFixed(2)}
+                  </td>
                   <td style={{ padding: '12px 16px' }}>
-                    <StatusBadge status={isLowStock ? 'LOW_STOCK' : 'OPTIMAL'} variant={isLowStock ? 'danger' : 'success'} />
+                    <StatusBadge
+                      status={isLowStock ? 'LOW_STOCK' : 'OPTIMAL'}
+                      variant={isLowStock ? 'danger' : 'success'}
+                    />
                   </td>
                 </tr>
               );
