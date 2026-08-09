@@ -121,7 +121,7 @@ describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () 
       );
 
       assert.throws(
-        () => validateUpdateTenantInput({ name: 'Updated' }),
+        () => validateUpdateTenantInput({ name: 'Updated', invalidField: true } as any),
         { name: 'TenantValidationError' }
       );
 
