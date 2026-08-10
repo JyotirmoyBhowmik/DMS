@@ -57,7 +57,9 @@ export function validateUpdateMFADeviceInput(input: any): UpdateMFADeviceInputDT
 
   const errors: Record<string, string> = {};
 
-  if (input.version !== undefined && (typeof input.version !== 'number' || input.version < 1)) {
+  if (input.version === undefined) {
+    errors.version = 'version is required for optimistic locking';
+  } else if (typeof input.version !== 'number' || input.version < 1) {
     errors.version = 'version must be a positive integer >= 1';
   }
 
