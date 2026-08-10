@@ -1,4 +1,5 @@
 import net from 'node:net';
+import { randomBytes } from 'node:crypto';
 import amqp from 'amqplib';
 
 export interface BrokerConfig {
@@ -151,7 +152,7 @@ export class MessageBrokerClient {
     }
 
     const exchange = options?.exchangeName || this.config.exchange || 'dms.events';
-    const msgId = 'msg-' + Math.random().toString(36).substring(2, 15);
+    const msgId = 'msg-' + randomBytes(16).toString('hex');
 
     // Ensure exchange is asserted
     await this.channel.assertExchange(exchange, 'topic', { durable: true });
