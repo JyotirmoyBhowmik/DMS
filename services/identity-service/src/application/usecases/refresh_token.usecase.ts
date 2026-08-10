@@ -1,4 +1,4 @@
-import { generateKeyPairSync, createSign } from 'node:crypto';
+import { generateKeyPairSync, createSign, randomBytes } from 'node:crypto';
 import { StructuredLogger } from '@dms/pkg-logger';
 import { TokenPair } from './issue_token.usecase.js';
 import { RefreshTokenRepository } from '../../domain/repositories/refresh_token.repository.js';
@@ -47,7 +47,7 @@ export class RefreshTokenUseCase {
     await this.refreshTokenRepo.update(meta, tenantId);
 
     // Generate new refresh token in the same family
-    const nextRefreshToken = 'rt-' + Math.random().toString(36).substring(2, 15) + '-' + Math.random().toString(36).substring(2, 15);
+    const nextRefreshToken = 'rt-' + randomBytes(16).toString('hex') + '-' + randomBytes(16).toString('hex');
     const expiresAt = Date.now() + 7 * 24 * 3600 * 1000; // 7 days
 
     const newMeta = new RefreshToken();
@@ -74,7 +74,7 @@ export class RefreshTokenUseCase {
       aud: config.security.jwtAudience,
       iat,
       exp,
-      jti: Math.random().toString(36).substring(2, 15),
+      jti: randomBytes(16).toString('hex'),
     })).toString('base64url');
 
     const signatureInput = `${header}.${payload}`;
