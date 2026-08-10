@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { UserRole } from '../../types';
 import { useData } from '../../context/DataContext';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -9,12 +9,19 @@ export const SkuCatalog: React.FC<{ role: UserRole }> = ({ role }) => {
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const filteredInventory = inventory.filter(
-    (item) =>
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      item.sku.toLowerCase().includes(search.toLowerCase()) ||
-      item.category.toLowerCase().includes(search.toLowerCase())
-  );
+  // ⚡ Bolt: Memoized inventory filtering to prevent O(N) recalculation on unrelated re-renders (e.g. modal toggle).
+  // Also hoisted `search.toLowerCase()` outside the loop, saving ~3x string allocations per item.
+  // Expected impact: Eliminates unnecessary CPU cycles and garbage collection overhead during UI updates.
+  const filteredInventory = useMemo(() => {
+    if (!search) return inventory;
+    const searchLower = search.toLowerCase();
+    return inventory.filter(
+      (item) =>
+        item.name.toLowerCase().includes(searchLower) ||
+        item.sku.toLowerCase().includes(searchLower) ||
+        item.category.toLowerCase().includes(searchLower)
+    );
+  }, [inventory, search]);
 
   const canAdd = role === 'admin' || role === 'distributor';
 
