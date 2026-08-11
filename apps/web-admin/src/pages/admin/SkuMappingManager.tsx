@@ -96,27 +96,34 @@ export const SkuMappingManager: React.FC<{ role: UserRole }> = ({ role }) => {
     return ['ALL', ...Array.from(set)];
   }, [inventory]);
 
+  // ⚡ Bolt: Hoisted string transformations outside the loops.
+  // Expected impact: Eliminates O(2*N) redundant string allocations per memoized block.
   // Filter Distributors for Searchable Select (50+ scale)
   const filteredDistributors = useMemo(() => {
-    return distributors.filter(d => d.name.toLowerCase().includes(searchDistributor.toLowerCase()) || d.id.toLowerCase().includes(searchDistributor.toLowerCase()));
+    if (!searchDistributor) return distributors;
+    const searchLower = searchDistributor.toLowerCase();
+    return distributors.filter(d => d.name.toLowerCase().includes(searchLower) || d.id.toLowerCase().includes(searchLower));
   }, [distributors, searchDistributor]);
 
   // Catalog SKUs (Unmapped & Filtered)
   const availableCatalogSkus = useMemo(() => {
     const mappedIds = new Set(mappedSkus.map(m => m.sku || (m as any).code || m.name));
+    const searchLower = searchCatalogSku.toLowerCase();
     return inventory.filter(item => {
       const isMapped = mappedIds.has(item.sku);
       const matchesCat = selectedCategory === 'ALL' || item.category === selectedCategory;
-      const matchesSearch = item.name.toLowerCase().includes(searchCatalogSku.toLowerCase()) || item.sku.toLowerCase().includes(searchCatalogSku.toLowerCase());
+      const matchesSearch = !searchLower || item.name.toLowerCase().includes(searchLower) || item.sku.toLowerCase().includes(searchLower);
       return !isMapped && matchesCat && matchesSearch;
     });
   }, [inventory, mappedSkus, selectedCategory, searchCatalogSku]);
 
   // Filtered Mapped SKUs
   const filteredMappedSkus = useMemo(() => {
+    if (!searchMappedSku) return mappedSkus;
+    const searchLower = searchMappedSku.toLowerCase();
     return mappedSkus.filter(m =>
-      (m.name || '').toLowerCase().includes(searchMappedSku.toLowerCase()) ||
-      (m.sku || (m as any).code || '').toLowerCase().includes(searchMappedSku.toLowerCase())
+      (m.name || '').toLowerCase().includes(searchLower) ||
+      (m.sku || (m as any).code || '').toLowerCase().includes(searchLower)
     );
   }, [mappedSkus, searchMappedSku]);
 
