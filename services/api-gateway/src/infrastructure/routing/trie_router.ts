@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 
 interface TrieNode {
   children: Map<string, TrieNode>;
@@ -153,11 +153,7 @@ export class ApiKeyValidator {
   verify(rawKey: string, storedHash: string): boolean {
     const hash = this.hashKey(rawKey);
     if (hash.length !== storedHash.length) return false;
-    let result = 0;
-    for (let i = 0; i < hash.length; i++) {
-      result |= hash.charCodeAt(i) ^ storedHash.charCodeAt(i);
-    }
-    return result === 0;
+    return timingSafeEqual(Buffer.from(hash), Buffer.from(storedHash));
   }
 }
 
