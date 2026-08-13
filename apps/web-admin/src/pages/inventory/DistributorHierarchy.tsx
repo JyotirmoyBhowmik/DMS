@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { UserRole } from '../../types';
 import { tokens } from '../../theme/tokens';
 
@@ -12,6 +12,28 @@ export interface DistributorNode {
   createdAt?: string;
   children?: DistributorNode[];
 }
+
+// Move buildTree outside the component to prevent it from being a dependency
+// inside useMemo and causing unnecessary recalculations or lint errors.
+const buildTree = (nodes: DistributorNode[]): DistributorNode[] => {
+  const map = new Map<string, DistributorNode>();
+  const roots: DistributorNode[] = [];
+
+  nodes.forEach(node => {
+    map.set(node.id, { ...node, children: [] });
+  });
+
+  nodes.forEach(node => {
+    const current = map.get(node.id)!;
+    if (node.parentDistributorId && map.has(node.parentDistributorId)) {
+      map.get(node.parentDistributorId)!.children!.push(current);
+    } else {
+      roots.push(current);
+    }
+  });
+
+  return roots;
+};
 
 export const DistributorHierarchy: React.FC<{ role: UserRole }> = ({ role: _role }) => {
   const [distributors, setDistributors] = useState<DistributorNode[]>([]);
@@ -88,28 +110,11 @@ export const DistributorHierarchy: React.FC<{ role: UserRole }> = ({ role: _role
     }
   };
 
-  // Build Tree Data Structure
-  const buildTree = (nodes: DistributorNode[]): DistributorNode[] => {
-    const map = new Map<string, DistributorNode>();
-    const roots: DistributorNode[] = [];
-
-    nodes.forEach(node => {
-      map.set(node.id, { ...node, children: [] });
-    });
-
-    nodes.forEach(node => {
-      const current = map.get(node.id)!;
-      if (node.parentDistributorId && map.has(node.parentDistributorId)) {
-        map.get(node.parentDistributorId)!.children!.push(current);
-      } else {
-        roots.push(current);
-      }
-    });
-
-    return roots;
-  };
-
-  const treeData = buildTree(distributors);
+  // ⚡ Bolt: Memoized tree construction to prevent O(N) recalculation on unrelated re-renders
+  // Specifically, this prevents the entire tree from being rebuilt on every single keystroke
+  // in the controlled "Add Distributor Node" form inputs (e.g. `setName`).
+  // Expected impact: Eliminates input lag and unnecessary CPU cycles when typing in the modal.
+  const treeData = useMemo(() => buildTree(distributors), [distributors]);
 
   const getLevelBadgeColor = (lvl: string) => {
     switch (lvl) {
