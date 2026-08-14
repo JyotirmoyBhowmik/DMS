@@ -16,18 +16,9 @@ export function canonicalRequestString(parts: CanonicalRequestParts): string {
   const method = parts.method.toUpperCase();
   const path = normalizePath(parts.path);
   const query = normalizeQuery(parts.query);
-  const bodyHash = createHmac('sha256', Buffer.alloc(32))
-    .update(parts.body)
-    .digest('hex');
+  const bodyHash = createHmac('sha256', Buffer.alloc(32)).update(parts.body).digest('hex');
 
-  return [
-    method,
-    path,
-    query,
-    bodyHash,
-    parts.timestamp,
-    parts.nonce,
-  ].join('\n');
+  return [method, path, query, bodyHash, parts.timestamp, parts.nonce].join('\n');
 }
 
 function normalizePath(path: string): string {
@@ -53,10 +44,10 @@ function normalizeQuery(query: string): string {
     if (eqIndex === -1) {
       return [decodeURIComponent(p), ''] as [string, string];
     }
-    return [
-      decodeURIComponent(p.slice(0, eqIndex)),
-      decodeURIComponent(p.slice(eqIndex + 1)),
-    ] as [string, string];
+    return [decodeURIComponent(p.slice(0, eqIndex)), decodeURIComponent(p.slice(eqIndex + 1))] as [
+      string,
+      string,
+    ];
   });
 
   pairs.sort((a, b) => {
@@ -65,9 +56,7 @@ function normalizeQuery(query: string): string {
     return a[1].localeCompare(b[1]);
   });
 
-  return pairs
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-    .join('&');
+  return pairs.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
 }
 
 /**

@@ -24,7 +24,7 @@ export class KYCDocumentOfflineCache {
 
     const key = Buffer.from(this.session.clientSecretKeyHex, 'hex');
     const plaintext = Buffer.from(JSON.stringify(doc));
-    
+
     // AES-GCM Encryption
     const sealed = AesGcm.encrypt(plaintext, key);
     const packed = AesGcm.pack(sealed);
@@ -33,7 +33,7 @@ export class KYCDocumentOfflineCache {
     this.offlineStorage.set(doc.id, packed);
 
     // Enqueue FIFO update
-    const existingIndex = this.syncQueue.findIndex(item => item.documentId === doc.id);
+    const existingIndex = this.syncQueue.findIndex((item) => item.documentId === doc.id);
     const queueItem: KYCSyncQueueItem = {
       documentId: doc.id,
       action,
@@ -70,14 +70,16 @@ export class KYCDocumentOfflineCache {
 
   clearDocumentOffline(id: string): void {
     this.offlineStorage.delete(id);
-    this.syncQueue = this.syncQueue.filter(item => item.documentId !== id);
+    this.syncQueue = this.syncQueue.filter((item) => item.documentId !== id);
   }
 
   async syncDocument(
     id: string,
-    apiSyncCall: (doc: any) => Promise<{ success: boolean; conflict?: boolean; serverVersion?: number }>
+    apiSyncCall: (
+      doc: any,
+    ) => Promise<{ success: boolean; conflict?: boolean; serverVersion?: number }>,
   ): Promise<void> {
-    const queueItem = this.syncQueue.find(item => item.documentId === id);
+    const queueItem = this.syncQueue.find((item) => item.documentId === id);
     if (!queueItem) {
       throw new Error(`KYC document with ID ${id} not found in sync queue`);
     }

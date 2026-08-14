@@ -34,11 +34,11 @@ void test('React Native AesGcm AAD verification', () => {
 void test('React Native AesGcm packing and unpacking compatible format', () => {
   const key = Buffer.alloc(32, 'k');
   const plaintext = Buffer.from('Data');
-  
+
   // Encrypt & pack
   const sealed = AesGcm.encrypt(plaintext, key);
   const token = AesGcm.pack(sealed);
-  
+
   assert.ok(token.startsWith('v1.'));
   const parts = token.split('.');
   assert.strictEqual(parts.length, 4);
