@@ -33,7 +33,7 @@ export class OutletOfflineCache {
     this.offlineStorage.set(outlet.id, packed);
 
     // Enqueue FIFO update
-    const existingIndex = this.syncQueue.findIndex(item => item.outletId === outlet.id);
+    const existingIndex = this.syncQueue.findIndex((item) => item.outletId === outlet.id);
     const queueItem: OutletSyncQueueItem = {
       outletId: outlet.id,
       action,
@@ -70,14 +70,16 @@ export class OutletOfflineCache {
 
   clearOutletOffline(id: string): void {
     this.offlineStorage.delete(id);
-    this.syncQueue = this.syncQueue.filter(item => item.outletId !== id);
+    this.syncQueue = this.syncQueue.filter((item) => item.outletId !== id);
   }
 
   async syncOutlet(
     id: string,
-    apiSyncCall: (outlet: any) => Promise<{ success: boolean; conflict?: boolean; serverVersion?: number }>
+    apiSyncCall: (
+      outlet: any,
+    ) => Promise<{ success: boolean; conflict?: boolean; serverVersion?: number }>,
   ): Promise<void> {
-    const queueItem = this.syncQueue.find(item => item.outletId === id);
+    const queueItem = this.syncQueue.find((item) => item.outletId === id);
     if (!queueItem) {
       throw new Error(`Outlet with ID ${id} not found in sync queue`);
     }

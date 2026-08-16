@@ -33,7 +33,7 @@ export class CollectionOfflineCache {
     this.offlineStorage.set(collection.id, packed);
 
     // Update FIFO sync queue (prevent duplicates by updating in-place)
-    const existingIndex = this.syncQueue.findIndex(item => item.collectionId === collection.id);
+    const existingIndex = this.syncQueue.findIndex((item) => item.collectionId === collection.id);
     const queueItem: CollectionSyncQueueItem = {
       collectionId: collection.id,
       action,
@@ -76,7 +76,7 @@ export class CollectionOfflineCache {
    */
   clearCollectionOffline(id: string): void {
     this.offlineStorage.delete(id);
-    this.syncQueue = this.syncQueue.filter(item => item.collectionId !== id);
+    this.syncQueue = this.syncQueue.filter((item) => item.collectionId !== id);
   }
 
   /**
@@ -84,9 +84,11 @@ export class CollectionOfflineCache {
    */
   async syncCollection(
     id: string,
-    apiSyncCall: (collection: any) => Promise<{ success: boolean; conflict?: boolean; serverVersion?: number }>
+    apiSyncCall: (
+      collection: any,
+    ) => Promise<{ success: boolean; conflict?: boolean; serverVersion?: number }>,
   ): Promise<void> {
-    const queueItem = this.syncQueue.find(item => item.collectionId === id);
+    const queueItem = this.syncQueue.find((item) => item.collectionId === id);
     if (!queueItem) {
       throw new Error(`Collection with ID ${id} not found in sync queue`);
     }
@@ -109,7 +111,7 @@ export class CollectionOfflineCache {
   resolveConflict(
     id: string,
     strategy: 'keep_local' | 'keep_server' | 'merge',
-    serverCollection?: any
+    serverCollection?: any,
   ): void {
     const localCollection = this.getCollectionOffline(id);
     if (!localCollection) {
@@ -134,7 +136,7 @@ export class CollectionOfflineCache {
       const packed = AesGcm.pack(sealed);
 
       this.offlineStorage.set(id, packed);
-      this.syncQueue = this.syncQueue.filter(item => item.collectionId !== id);
+      this.syncQueue = this.syncQueue.filter((item) => item.collectionId !== id);
     } else if (strategy === 'merge') {
       if (!serverCollection) {
         throw new Error('Server collection record is required for merge strategy');

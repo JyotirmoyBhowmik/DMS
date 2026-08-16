@@ -1000,7 +1000,7 @@ export class GatewayController {
 
       if (request.method === 'POST') {
         const subPath = request.path.replace('/api/v1/claims', '');
-        const id = params.id;
+        const id = params.id || (subPath.match(/^\/([^\/]+)/) ? subPath.match(/^\/([^\/]+)/)![1] : undefined);
         if (subPath.endsWith('/validate') && id) {
           const res = await this.claimsController.handleValidateClaim(id, request.body, {
             'x-tenant-id': tenantId,

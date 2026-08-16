@@ -22,7 +22,7 @@ void test('SurveyOfflineCache encryption roundtrip', () => {
   };
 
   cache.saveSurveyOffline(survey, 'create');
-  
+
   // Retrieve and decrypt
   const retrieved = cache.getSurveyOffline('srv-001');
   assert.deepStrictEqual(retrieved, survey);
@@ -71,7 +71,7 @@ void test('SurveyOfflineCache sync Survey success and failure handling', async (
         return { success: false, conflict: true };
       });
     },
-    (err: any) => err.message === 'CONCURRENCY_CONFLICT'
+    (err: any) => err.message === 'CONCURRENCY_CONFLICT',
   );
 
   assert.strictEqual(cache.getSyncQueue().length, 1);

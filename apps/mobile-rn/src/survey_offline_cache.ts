@@ -24,7 +24,7 @@ export class SurveyOfflineCache {
 
     const key = Buffer.from(this.session.clientSecretKeyHex, 'hex');
     const plaintext = Buffer.from(JSON.stringify(survey));
-    
+
     // Encrypt using AesGcm
     const sealed = AesGcm.encrypt(plaintext, key);
     const packed = AesGcm.pack(sealed);
@@ -33,7 +33,7 @@ export class SurveyOfflineCache {
     this.offlineStorage.set(survey.id, packed);
 
     // Update sync queue (FIFO order, prevent duplicates by updating in-place)
-    const existingIndex = this.syncQueue.findIndex(item => item.surveyId === survey.id);
+    const existingIndex = this.syncQueue.findIndex((item) => item.surveyId === survey.id);
     const queueItem: SyncQueueItem = {
       surveyId: survey.id,
       action,
@@ -76,7 +76,7 @@ export class SurveyOfflineCache {
    */
   clearSurveyOffline(id: string): void {
     this.offlineStorage.delete(id);
-    this.syncQueue = this.syncQueue.filter(item => item.surveyId !== id);
+    this.syncQueue = this.syncQueue.filter((item) => item.surveyId !== id);
   }
 
   /**
@@ -84,9 +84,11 @@ export class SurveyOfflineCache {
    */
   async syncSurvey(
     id: string,
-    apiSyncCall: (survey: any) => Promise<{ success: boolean; conflict?: boolean; serverVersion?: number }>
+    apiSyncCall: (
+      survey: any,
+    ) => Promise<{ success: boolean; conflict?: boolean; serverVersion?: number }>,
   ): Promise<void> {
-    const queueItem = this.syncQueue.find(item => item.surveyId === id);
+    const queueItem = this.syncQueue.find((item) => item.surveyId === id);
     if (!queueItem) {
       throw new Error(`Survey with ID ${id} not found in sync queue`);
     }
@@ -109,7 +111,7 @@ export class SurveyOfflineCache {
   resolveConflict(
     id: string,
     strategy: 'keep_local' | 'keep_server' | 'merge',
-    serverSurvey?: any
+    serverSurvey?: any,
   ): void {
     const localSurvey = this.getSurveyOffline(id);
     if (!localSurvey) {
@@ -134,9 +136,9 @@ export class SurveyOfflineCache {
       const plaintext = Buffer.from(JSON.stringify(serverSurvey));
       const sealed = AesGcm.encrypt(plaintext, key);
       const packed = AesGcm.pack(sealed);
-      
+
       this.offlineStorage.set(id, packed);
-      this.syncQueue = this.syncQueue.filter(item => item.surveyId !== id);
+      this.syncQueue = this.syncQueue.filter((item) => item.surveyId !== id);
     } else if (strategy === 'merge') {
       if (!serverSurvey) {
         throw new Error('Server survey record is required for merge strategy');

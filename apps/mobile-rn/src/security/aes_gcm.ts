@@ -59,10 +59,7 @@ export class AesGcm {
     decipher.setAuthTag(sealed.authTag);
 
     try {
-      return Buffer.concat([
-        decipher.update(sealed.ciphertext),
-        decipher.final(),
-      ]);
+      return Buffer.concat([decipher.update(sealed.ciphertext), decipher.final()]);
     } catch (err: unknown) {
       throw new Error('AES-GCM decryption failed: authentication tag verification failed');
     }
