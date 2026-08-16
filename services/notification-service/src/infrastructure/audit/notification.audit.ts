@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 export interface AuditLogEntry {
   id: string;
   tenantId: string;
@@ -19,7 +21,7 @@ export class NotificationAuditService {
     details: Record<string, any> = {}
   ): Promise<void> {
     const entry: AuditLogEntry = {
-      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      id: `audit-${Date.now()}-${randomUUID().split('-')[0]}`,
       tenantId,
       action,
       entityId,
