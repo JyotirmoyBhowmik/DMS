@@ -164,7 +164,7 @@ describe('MFADevice Full Vertical Slice QA & Security Suite (Tasks 1525-1543)', 
       assert.strictEqual(valid.isActive, false);
 
       assert.throws(
-        () => validateUpdateMFADeviceInput({ isActive: false }),
+        () => validateUpdateMFADeviceInput({ isActive: 'NOT_BOOLEAN' }),
         /Validation failed for UpdateMFADevice input/
       );
     });
