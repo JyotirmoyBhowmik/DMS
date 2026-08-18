@@ -14,7 +14,8 @@ const changeTypeColors: Record<'positive' | 'neutral' | 'negative', string> = {
   negative: '#B91C1C', // Danger
 };
 
-export const StatCard: React.FC<StatCardProps> = ({
+// Memoize StatCard to prevent unnecessary re-renders of this UI component
+export const StatCard: React.FC<StatCardProps> = React.memo(({
   label,
   value,
   change,
@@ -86,4 +87,4 @@ export const StatCard: React.FC<StatCardProps> = ({
       </div>
     </div>
   );
-};
+});
