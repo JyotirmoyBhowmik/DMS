@@ -337,7 +337,6 @@ export const EnterpriseHierarchy: React.FC<{ role: UserRole }> = ({ role }) => {
               </div>
               <button
                 onClick={() => setSelectedAgent(null)}
-                aria-label="Close agent details"
                 style={{ border: 'none', background: 'transparent', fontSize: '20px', cursor: 'pointer', color: tokens.colors.textMuted }}
               >
                 ✕
