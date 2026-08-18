@@ -86,7 +86,8 @@ describe('Gateway Identity CRUD Integration Tests', () => {
         'x-tenant-id': tenantId,
       },
       body: {
-        status: 'SUSPENDED'
+        status: 'SUSPENDED',
+        version: 1
       }
     });
     assert.strictEqual(updateRes.status, 200);
@@ -215,7 +216,8 @@ describe('Gateway Identity CRUD Integration Tests', () => {
         'x-tenant-id': tenantId,
       },
       body: {
-        status: 'SUSPENDED'
+        status: 'SUSPENDED',
+        version: 1
       }
     });
     assert.strictEqual(updateRes.status, 200);
@@ -333,7 +335,8 @@ describe('Gateway Identity CRUD Integration Tests', () => {
         'x-tenant-id': tenantId,
       },
       body: {
-        isActive: false
+        isActive: false,
+        version: 1
       }
     });
     assert.strictEqual(updateRes.status, 200);
