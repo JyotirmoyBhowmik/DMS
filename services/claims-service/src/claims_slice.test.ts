@@ -161,7 +161,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     await claimRepo.save(entity as any, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(entity.id, tenantA);
+    const saved: any = await claimRepo.findById(tenantA, entity.id);
     assert.strictEqual(saved.id, entity.id);
     assert.strictEqual(saved.version, 1);
 
@@ -241,9 +241,11 @@ describe('Claims Module & E2E Integration Tests', () => {
       },
       body: {
         id: claimId,
+        name: 'API E2E Claim',
+        claimCode: 'E2E-001',
         distributorId,
         schemeId,
-        amount: 8500,
+        claimAmountCents: 8500,
       },
     });
 

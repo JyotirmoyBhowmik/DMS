@@ -8,7 +8,9 @@ export interface DataTableProps<T> {
   emptyMessage?: string;
 }
 
-export function DataTable<T extends Record<string, any>>({
+// Memoize DataTable to prevent unnecessary re-renders of this UI component.
+// Using 'as typeof DataTable' to preserve generic inference.
+const DataTableInternal = function DataTable<T extends Record<string, any>>({
   columns,
   data,
   onRowClick,
@@ -123,4 +125,6 @@ export function DataTable<T extends Record<string, any>>({
       </table>
     </div>
   );
-}
+};
+
+export const DataTable = React.memo(DataTableInternal) as typeof DataTableInternal;
