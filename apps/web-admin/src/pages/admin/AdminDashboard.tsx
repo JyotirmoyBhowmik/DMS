@@ -33,6 +33,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ role }) => {
     return auditChain.length > 0 ? 'VERIFIED' : 'No data yet';
   }, [auditChain]);
 
+  // ⚡ Bolt: Single O(N) pass to pre-calculate order counts per day instead of filtering 7 times inside the map loop.
+  // Reduces time complexity of the chart render from O(7*N) to O(N).
+  const ordersByDay = useMemo(() => {
+    const counts = [0, 0, 0, 0, 0, 0, 0];
+    salesOrders.forEach((_, i) => {
+      counts[i % 7]++;
+    });
+    return counts;
+  }, [salesOrders]);
+
   let headerText = 'Admin Dashboard';
   if (role === 'agent') headerText = 'My Field Operations Target';
   if (role === 'distributor') headerText = 'Distributor Stock & Order Dashboard';
@@ -102,7 +112,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ role }) => {
         ) : (
           <div style={{ display: 'flex', alignItems: 'flex-end', height: '150px', gap: '12px' }}>
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
-              const dayOrders = salesOrders.filter((_, i) => i % 7 === idx).length;
+              const dayOrders = ordersByDay[idx];
               const barHeight = Math.min(100, Math.max(15, dayOrders * 20));
               return (
                 <div key={day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
