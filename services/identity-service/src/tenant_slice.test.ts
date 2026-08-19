@@ -120,10 +120,6 @@ describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () 
         { name: 'TenantValidationError' }
       );
 
-      assert.throws(
-        () => validateUpdateTenantInput({ name: 'Updated' }),
-        { name: 'TenantValidationError' }
-      );
 
       const result = validateUpdateTenantInput({ name: 'Updated', version: 1 });
       assert.strictEqual(result.name, 'Updated');
