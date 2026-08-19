@@ -105,7 +105,11 @@ export class SessionManager {
     }
 
     const timestamp = new Date().toISOString();
-    const nonce = Math.random().toString(36).substring(2, 15);
+    // Use Web Crypto API for secure random values with a fallback to Math.random()
+    // if the crypto API is unavailable in the React Native environment.
+    const nonce = globalThis.crypto?.randomUUID
+      ? globalThis.crypto.randomUUID()
+      : Math.random().toString(36).substring(2, 15);
 
     const parts: CanonicalRequestParts = {
       method,

@@ -165,7 +165,7 @@ describe('MFADevice Full Vertical Slice QA & Security Suite (Tasks 1525-1543)', 
 
       assert.throws(
         () => validateUpdateMFADeviceInput({ isActive: false }),
-        /Validation failed for UpdateMFADevice input/
+        { name: 'MFADeviceValidationError' }
       );
     });
   });

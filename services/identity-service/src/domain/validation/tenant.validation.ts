@@ -68,7 +68,9 @@ export function validateUpdateTenantInput(rawInput: any): UpdateTenantDto {
     }
   }
 
-  if (rawInput.version !== undefined && (typeof rawInput.version !== 'number' || rawInput.version < 1)) {
+  if (rawInput.version === undefined) {
+    errors.version = 'version is required for optimistic locking';
+  } else if (typeof rawInput.version !== 'number' || rawInput.version < 1) {
     errors.version = 'version must be a positive integer >= 1';
   }
 
