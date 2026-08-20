@@ -105,7 +105,11 @@ export class SessionManager {
     }
 
     const timestamp = new Date().toISOString();
-    const nonce = Math.random().toString(36).substring(2, 15);
+
+    // Use Web Crypto for secure random generation, with a fallback for environments missing it
+    const nonce = globalThis.crypto?.randomUUID
+      ? globalThis.crypto.randomUUID().replace(/-/g, '').substring(0, 13)
+      : Math.random().toString(36).substring(2, 15);
 
     const parts: CanonicalRequestParts = {
       method,
