@@ -13,9 +13,23 @@ export const SyncQueue: React.FC<{ role: UserRole }> = () => {
     setItems(syncQueue);
   }, [syncQueue]);
 
-  const totalSynced = items.filter((q: SyncTask) => q.status === 'SYNCHRONIZED').length;
-  const processing = items.filter((q: SyncTask) => q.status === 'PROCESSING').length;
-  const failed = items.filter((q: SyncTask) => q.status === 'FAILED').length;
+  // ⚡ Bolt Performance Optimization:
+  // Combined 3 separate unmemoized loops (O(3n) time complexity) into a single O(n) pass
+  // wrapped in useMemo to prevent unnecessary recalculations on re-renders.
+  const { totalSynced, processing, failed } = React.useMemo(() => {
+    let syncedCount = 0;
+    let processingCount = 0;
+    let failedCount = 0;
+
+    for (let i = 0; i < items.length; i++) {
+      const status = items[i].status;
+      if (status === 'SYNCHRONIZED') syncedCount++;
+      else if (status === 'PROCESSING') processingCount++;
+      else if (status === 'FAILED') failedCount++;
+    }
+
+    return { totalSynced: syncedCount, processing: processingCount, failed: failedCount };
+  }, [items]);
 
   const handleRetryTask = (id: string) => {
     setItems((prev) =>
