@@ -46,7 +46,9 @@ const variantStyles: Record<StatusVariant, { bg: string; text: string; border: s
   neutral: { bg: '#F1F5F9', text: '#64748B', border: '#E2E8F0' },
 };
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, variant }) => {
+// ⚡ Bolt: Wrapped StatusBadge with React.memo to prevent unnecessary re-renders in large tables (like DataTables)
+// Expected impact: Significant reduction in re-renders for table rows containing status badges when row data doesn't change.
+export const StatusBadge: React.FC<StatusBadgeProps> = React.memo(({ status, variant }) => {
   const resolvedVariant = variant || autoDetectVariant(status);
   const style = variantStyles[resolvedVariant] || variantStyles.neutral;
 
@@ -72,4 +74,4 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, variant }) => 
       {status}
     </span>
   );
-};
+});
