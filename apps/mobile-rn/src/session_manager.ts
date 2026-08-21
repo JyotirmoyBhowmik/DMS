@@ -93,7 +93,7 @@ export class SessionManager {
     method: string,
     urlPath: string,
     query: string,
-    body: string
+    body: string,
   ): Promise<Record<string, string>> {
     if (!this.currentSession) {
       throw new Error('Authentication required');
@@ -105,7 +105,17 @@ export class SessionManager {
     }
 
     const timestamp = new Date().toISOString();
-    const nonce = Math.random().toString(36).substring(2, 15);
+    let nonce: string;
+    try {
+      const array = new Uint32Array(4);
+      globalThis.crypto.getRandomValues(array);
+      nonce = Array.from(array, (dec) => dec.toString(36))
+        .join('')
+        .substring(0, 13);
+    } catch {
+      // Fallback for environments lacking crypto API
+      nonce = Math.random().toString(36).substring(2, 15);
+    }
 
     const parts: CanonicalRequestParts = {
       method,
@@ -119,7 +129,7 @@ export class SessionManager {
     const signature = signRequest(parts, this.currentSession.clientSecretKeyHex);
 
     return {
-      'Authorization': `Bearer ${this.currentSession.accessToken}`,
+      Authorization: `Bearer ${this.currentSession.accessToken}`,
       'X-Tenant-Id': this.currentSession.tenantId,
       'X-DMS-Signature': signature,
       'X-DMS-Timestamp': timestamp,
