@@ -26,7 +26,7 @@ export class MFADeviceOfflineCache {
 
   constructor(initialData?: MFADeviceCacheRecord[]) {
     if (initialData) {
-      initialData.forEach(item => this.cache.set(item.id, { ...item }));
+      initialData.forEach((item) => this.cache.set(item.id, { ...item }));
     }
   }
 
@@ -40,7 +40,7 @@ export class MFADeviceOfflineCache {
   }
 
   getDevices(tenantId: string, userId?: string): MFADeviceCacheRecord[] {
-    return Array.from(this.cache.values()).filter(item => {
+    return Array.from(this.cache.values()).filter((item) => {
       if (item.tenantId !== tenantId) return false;
       if (item.isDeleted) return false;
       if (userId && item.userId !== userId) return false;
@@ -54,8 +54,18 @@ export class MFADeviceOfflineCache {
     return record;
   }
 
-  enqueueMutation(deviceId: string, action: 'CREATE' | 'UPDATE' | 'DELETE', payload: Partial<MFADeviceCacheRecord>): PendingMutation {
-    const mutationId = `mut-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  enqueueMutation(
+    deviceId: string,
+    action: 'CREATE' | 'UPDATE' | 'DELETE',
+    payload: Partial<MFADeviceCacheRecord>,
+  ): PendingMutation {
+    let randStr: string;
+    try {
+      randStr = globalThis.crypto.randomUUID().split('-')[0];
+    } catch {
+      randStr = Math.random().toString(36).substring(2, 7);
+    }
+    const mutationId = `mut-${Date.now()}-${randStr}`;
     const mutation: PendingMutation = {
       mutationId,
       deviceId,
@@ -108,7 +118,7 @@ export class MFADeviceOfflineCache {
   }
 
   clearMutation(mutationId: string): void {
-    this.mutationQueue = this.mutationQueue.filter(m => m.mutationId !== mutationId);
+    this.mutationQueue = this.mutationQueue.filter((m) => m.mutationId !== mutationId);
   }
 
   resolveConflict(deviceId: string, serverRecord: MFADeviceCacheRecord): MFADeviceCacheRecord {
