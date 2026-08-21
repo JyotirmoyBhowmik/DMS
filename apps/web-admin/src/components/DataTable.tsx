@@ -8,7 +8,7 @@ export interface DataTableProps<T> {
   emptyMessage?: string;
 }
 
-export function DataTable<T extends Record<string, any>>({
+function DataTableInternal<T extends Record<string, any>>({
   columns,
   data,
   onRowClick,
@@ -124,3 +124,8 @@ export function DataTable<T extends Record<string, any>>({
     </div>
   );
 }
+
+// ⚡ Bolt: Wrapped DataTable with React.memo to prevent unnecessary re-renders of the entire table when parent state updates.
+// Cast as typeof DataTableInternal to preserve the generic typing structure.
+// Expected impact: Substantial performance gain on dashboards and pages displaying large generic data tables.
+export const DataTable = React.memo(DataTableInternal) as typeof DataTableInternal;

@@ -14,7 +14,9 @@ const changeTypeColors: Record<'positive' | 'neutral' | 'negative', string> = {
   negative: '#B91C1C', // Danger
 };
 
-export const StatCard: React.FC<StatCardProps> = ({
+// ⚡ Bolt: Wrapped StatCard with React.memo to prevent unnecessary re-renders when parent state updates
+// Expected impact: Reduces re-renders of stat cards by 100% when global dashboard data updates don't affect this specific card.
+export const StatCard: React.FC<StatCardProps> = React.memo(({
   label,
   value,
   change,
@@ -86,4 +88,4 @@ export const StatCard: React.FC<StatCardProps> = ({
       </div>
     </div>
   );
-};
+});
