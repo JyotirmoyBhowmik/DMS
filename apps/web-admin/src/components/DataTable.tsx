@@ -8,7 +8,11 @@ export interface DataTableProps<T> {
   emptyMessage?: string;
 }
 
-export function DataTable<T extends Record<string, any>>({
+// ⚡ Bolt Optimization:
+// Memoize the DataTable component to prevent unnecessary re-renders
+// when parent components update but the table's props (columns, data) haven't changed.
+// This is especially beneficial for large datasets where re-rendering the whole table is expensive.
+function DataTableInternal<T extends Record<string, any>>({
   columns,
   data,
   onRowClick,
@@ -124,3 +128,6 @@ export function DataTable<T extends Record<string, any>>({
     </div>
   );
 }
+
+// Export the memoized version while preserving generic type inference by casting.
+export const DataTable = React.memo(DataTableInternal) as typeof DataTableInternal;

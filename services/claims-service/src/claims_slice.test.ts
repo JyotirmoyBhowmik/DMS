@@ -160,8 +160,8 @@ describe('Claims Module & E2E Integration Tests', () => {
     // 1. Save
     await claimRepo.save(entity as any, tenantA);
 
-    // 2. Find
-    const saved: any = await claimRepo.findById(entity.id, tenantA);
+    // 2. Find (Note: claimRepo.findById takes tenantId first, then id)
+    const saved: any = await claimRepo.findById(tenantA, entity.id);
     assert.strictEqual(saved.id, entity.id);
     assert.strictEqual(saved.version, 1);
 
@@ -184,14 +184,8 @@ describe('Claims Module & E2E Integration Tests', () => {
     );
 
     // 5. Verify RLS Isolation
-    await assert.rejects(
-      async () => {
-        await claimRepo.findById(entity.id, tenantB);
-      },
-      (err: any) => {
-        return err instanceof EntityNotFoundError;
-      }
-    );
+    const isolated = await claimRepo.findById(tenantB, entity.id);
+    assert.strictEqual(isolated, null);
   });
 
   // ─── 3. E2E HAPPY PATH / API GATEWAY TEST ──────────────────────────────────
@@ -241,9 +235,11 @@ describe('Claims Module & E2E Integration Tests', () => {
       },
       body: {
         id: claimId,
+        name: 'Test Claim',
+        claimCode: 'CLM-001',
         distributorId,
         schemeId,
-        amount: 8500,
+        claimAmountCents: 8500,
       },
     });
 
