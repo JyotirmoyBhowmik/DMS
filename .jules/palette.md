@@ -1,0 +1,3 @@
+## 2024-06-25 - Essential ARIA Attributes and Escape Key Dismissal for Custom Modals
+**Learning:** Found that custom modal components within the application (e.g., in `@dms/web-admin`) lack basic accessibility features such as roles, aria-modal indications, and structural tie-ins to their titles. They also do not support standard Escape key dismissal, hindering keyboard navigation for users.
+**Action:** When creating or updating any custom modal or dialog within the UI codebase, always include `role="dialog"`, `aria-modal="true"`, an appropriate `aria-labelledby` linked to the title `id`, and add a keyboard event listener for Escape key dismissal.
