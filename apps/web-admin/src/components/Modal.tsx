@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 
 export interface ModalProps {
   title: string;
@@ -17,6 +17,22 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   width = '480px',
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -43,6 +59,9 @@ export const Modal: React.FC<ModalProps> = ({
       }}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
         style={{
           backgroundColor: '#FFFFFF',
           borderRadius: '12px',
@@ -68,6 +87,7 @@ export const Modal: React.FC<ModalProps> = ({
         >
           <div>
             <h3
+              id="modal-title"
               style={{
                 fontSize: '18px',
                 fontWeight: 700,
