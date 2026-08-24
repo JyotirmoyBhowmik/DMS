@@ -1,0 +1,870 @@
+
+> @dms/identity-service@1.0.0 test /app/services/identity-service
+> node --test --test-concurrency=1 "dist/**/*.test.js"
+
+TAP version 13
+# (node:458412) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///app/services/identity-service/dist/services/audit-service/src/application/usecases/record_audit.usecase.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /app/services/identity-service/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# {"timestamp":"2026-08-24T19:03:51.254Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":false,"hasMfa":false}
+# {"timestamp":"2026-08-24T19:03:51.428Z","level":"INFO","message":"Token pair generated successfully","service":"IssueTokenUseCase","email":"[REDACTED]"}
+# {"timestamp":"2026-08-24T19:03:51.432Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":false,"hasMfa":false}
+# Subtest: Identity & Auth Verification Tests
+    # Subtest: IssueTokenUseCase should generate standard RS256 JWT and refresh token
+    ok 1 - IssueTokenUseCase should generate standard RS256 JWT and refresh token
+      ---
+      duration_ms: 176.967499
+      type: 'test'
+      ...
+# {"timestamp":"2026-08-24T19:03:51.573Z","level":"INFO","message":"Token pair generated successfully","service":"IssueTokenUseCase","email":"[REDACTED]"}
+# {"timestamp":"2026-08-24T19:03:51.573Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":false,"hasMfa":false}
+# {"timestamp":"2026-08-24T19:03:51.714Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":false,"hasMfa":false}
+# {"timestamp":"2026-08-24T19:03:51.718Z","level":"INFO","message":"Token pair generated successfully","service":"IssueTokenUseCase","email":"[REDACTED]"}
+# {"timestamp":"2026-08-24T19:03:51.720Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":false,"hasMfa":false}
+# {"timestamp":"2026-08-24T19:03:51.723Z","level":"INFO","message":"Token pair generated successfully","service":"IssueTokenUseCase","email":"[REDACTED]"}
+# {"timestamp":"2026-08-24T19:03:51.724Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":false,"hasMfa":false}
+# {"timestamp":"2026-08-24T19:03:51.727Z","level":"INFO","message":"Token pair generated successfully","service":"IssueTokenUseCase","email":"[REDACTED]"}
+# {"timestamp":"2026-08-24T19:03:51.728Z","level":"INFO","message":"Refresh token request received","service":"RefreshTokenUseCase"}
+# {"timestamp":"2026-08-24T19:03:51.731Z","level":"INFO","message":"Token rotated successfully","service":"RefreshTokenUseCase","userId":"[REDACTED]-0000-[REDACTED]"}
+# {"timestamp":"2026-08-24T19:03:51.731Z","level":"INFO","message":"Refresh token request received","service":"RefreshTokenUseCase"}
+# {"timestamp":"2026-08-24T19:03:51.732Z","level":"WARN","message":"Token reuse detected! Revoking entire family.","service":"RefreshTokenUseCase","familyId":"fam-48eb4ae9b6579020a95b4dc7c3790c32"}
+# {"timestamp":"2026-08-24T19:03:51.732Z","level":"INFO","message":"Refresh token request received","service":"RefreshTokenUseCase"}
+# {"timestamp":"2026-08-24T19:03:51.734Z","level":"INFO","message":"Assigning role to user","service":"AssignRoleUseCase","tenantId":"[REDACTED]-0000-[REDACTED]","userId":"agent@enterprise-dms.com","role":"admin"}
+# {"timestamp":"2026-08-24T19:03:51.734Z","level":"INFO","message":"Role assigned and role.assigned.v1 event raised","service":"AssignRoleUseCase","userId":"agent@enterprise-dms.com","role":"admin","eventId":"01a03528-58b6-72f5-a0c9-161eb4a8bf45"}
+# {"timestamp":"2026-08-24T19:03:51.735Z","level":"INFO","message":"gRPC IssueToken request received","service":"TokenServiceGrpc","email":"[REDACTED]"}
+# {"timestamp":"2026-08-24T19:03:51.735Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":false,"hasMfa":false}
+    # Subtest: IssueTokenUseCase should verify credentials using scrypt
+    ok 2 - IssueTokenUseCase should verify credentials using scrypt
+      ---
+      duration_ms: 282.383277
+      type: 'test'
+      ...
+    # Subtest: VerifyTokenUseCase should decode and validate signed RS256 JWT claims
+    ok 3 - VerifyTokenUseCase should decode and validate signed RS256 JWT claims
+      ---
+      duration_ms: 5.913896
+      type: 'test'
+      ...
+    # Subtest: VerifyTokenUseCase should fail for tampered signatures
+    ok 4 - VerifyTokenUseCase should fail for tampered signatures
+      ---
+      duration_ms: 3.939137
+      type: 'test'
+      ...
+    # Subtest: RefreshTokenUseCase should support rotation and reuse detection (revocation)
+    ok 5 - RefreshTokenUseCase should support rotation and reuse detection (revocation)
+      ---
+      duration_ms: 9.376299
+      type: 'test'
+      ...
+    # Subtest: AssignRoleUseCase should raise role.assigned.v1 event
+    ok 6 - AssignRoleUseCase should raise role.assigned.v1 event
+      ---
+      duration_ms: 1.132315
+      type: 'test'
+      ...
+# (node:458412) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+# In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+# To prepare for this change:
+# - If you want the current behavior, explicitly use 'sslmode=verify-full'
+# - If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+# See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+# {"timestamp":"2026-08-24T19:04:17.472Z","level":"INFO","message":"Token pair generated successfully","service":"IssueTokenUseCase","email":"[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:17.472Z","level":"INFO","message":"gRPC VerifyToken request received","service":"TokenServiceGrpc"}
+# {"timestamp":"2026-08-24T19:04:17.473Z","level":"INFO","message":"gRPC RefreshToken request received","service":"TokenServiceGrpc"}
+# {"timestamp":"2026-08-24T19:04:17.473Z","level":"INFO","message":"Refresh token request received","service":"RefreshTokenUseCase"}
+# {"timestamp":"2026-08-24T19:04:23.732Z","level":"INFO","message":"Token rotated successfully","service":"RefreshTokenUseCase","userId":"[REDACTED]-0000-[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:23.733Z","level":"INFO","message":"Login request received","service":"AuthController","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":false,"hasMfa":false}
+# {"timestamp":"2026-08-24T19:04:23.733Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":false,"hasMfa":false}
+    # Subtest: TokenServiceGrpc should route grpc actions correctly
+    ok 7 - TokenServiceGrpc should route grpc actions correctly
+      ---
+      duration_ms: 31997.752389
+      type: 'test'
+      ...
+# {"timestamp":"2026-08-24T19:04:46.800Z","level":"INFO","message":"Token pair generated successfully","service":"IssueTokenUseCase","email":"[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:46.801Z","level":"INFO","message":"Received request to append audit log","service":"AuditController","tenantId":"[REDACTED]-0000-[REDACTED]","eventId":"evt-f18a4387-fcab-4d42-9473-58254c021e3d"}
+# {"timestamp":"2026-08-24T19:04:46.801Z","level":"INFO","message":"Recording audit event in append-only cryptographic store","service":"RecordAuditUseCase","tenantId":"[REDACTED]-0000-[REDACTED]","eventId":"evt-f18a4387-fcab-4d42-9473-58254c021e3d"}
+# {"timestamp":"2026-08-24T19:04:46.801Z","level":"INFO","message":"Audit block appended and audit.recorded event raised","service":"RecordAuditUseCase","blockNumber":2,"hash":"3aec36f5d06efad5...","eventId":"01a03529-2fd1-7da4-850a-[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:46.802Z","level":"INFO","message":"Verify request received","service":"AuthController"}
+# {"timestamp":"2026-08-24T19:04:46.867Z","level":"INFO","message":"JWKS request received","service":"AuthController"}
+# {"timestamp":"2026-08-24T19:04:46.946Z","level":"INFO","message":"JWKS request received","service":"AuthController"}
+# {"timestamp":"2026-08-24T19:04:46.946Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":false,"hasMfa":false}
+# {"timestamp":"2026-08-24T19:04:46.949Z","level":"INFO","message":"Token pair generated successfully","service":"IssueTokenUseCase","email":"[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:46.950Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":true,"hasMfa":false}
+# {"timestamp":"2026-08-24T19:04:46.950Z","level":"INFO","message":"SSO token validated via OIDC provider","service":"IssueTokenUseCase"}
+# {"timestamp":"2026-08-24T19:04:46.953Z","level":"INFO","message":"Token pair generated successfully","service":"IssueTokenUseCase","email":"[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:46.953Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":false,"hasMfa":true}
+# {"timestamp":"2026-08-24T19:04:46.953Z","level":"INFO","message":"MFA verification code validated","service":"IssueTokenUseCase"}
+    # Subtest: AuthController should orchestrate login and verify endpoints
+    ok 8 - AuthController should orchestrate login and verify endpoints
+      ---
+      duration_ms: 23069.701727
+      type: 'test'
+      ...
+    # Subtest: KeyManager and AuthController should support automatic key rotation and JWKS output
+    ok 9 - KeyManager and AuthController should support automatic key rotation and JWKS output
+      ---
+      duration_ms: 147.225113
+      type: 'test'
+      ...
+# {"timestamp":"2026-08-24T19:04:47.080Z","level":"INFO","message":"Token pair generated successfully","service":"IssueTokenUseCase","email":"[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:47.080Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":true,"hasMfa":false}
+# {"timestamp":"2026-08-24T19:04:47.081Z","level":"INFO","message":"Issuing RS256 JWT token pair for user","service":"IssueTokenUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]","hasSso":false,"hasMfa":true}
+    # Subtest: IssueTokenUseCase should support OIDC SSO and MFA OTP validation checks
+    ok 10 - IssueTokenUseCase should support OIDC SSO and MFA OTP validation checks
+      ---
+      duration_ms: 131.559757
+      type: 'test'
+      ...
+    1..10
+ok 1 - Identity & Auth Verification Tests
+  ---
+  duration_ms: 55828.764675
+  type: 'suite'
+  ...
+# {"timestamp":"2026-08-24T19:04:47.324Z","level":"INFO","message":"Creating user","service":"CreateUserUseCase","email":"[REDACTED]","tenantId":"[REDACTED]-0000-[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:47.455Z","level":"INFO","message":"Updating user","service":"UpdateUserUseCase","id":"95e8af40-6443-40bb-adb8-164c38d7fb80","tenantId":"[REDACTED]-0000-[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:47.458Z","level":"INFO","message":"Creating role","service":"CreateRoleUseCase","name":"Manager","tenantId":"[REDACTED]-0000-[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:47.459Z","level":"INFO","message":"Updating role","service":"UpdateRoleUseCase","id":"1fe9f751-d0eb-4b86-b8a9-2964e2c2fa4c","tenantId":"[REDACTED]-0000-[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:47.461Z","level":"INFO","message":"Creating tenant","service":"CreateTenantUseCase","name":"Enterprise Tenant B","tenantId":"[REDACTED]-0000-[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:47.461Z","level":"INFO","message":"Updating tenant","service":"UpdateTenantUseCase","id":"436612ec-1290-409f-8349-52ef9084f04b","tenantId":"[REDACTED]-0000-[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:47.463Z","level":"INFO","message":"Creating permission","service":"CreatePermissionUseCase","name":"orders:create","tenantId":"[REDACTED]-0000-[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:47.464Z","level":"INFO","message":"Updating permission","service":"UpdatePermissionUseCase","id":"c7d6d0b0-a473-4e61-8550-b507e20b34e0","tenantId":"[REDACTED]-0000-[REDACTED]"}
+# {"timestamp":"2026-08-24T19:04:47.466Z","level":"INFO","message":"MFADevice Audit log recorded: [MFA_DEVICE_CREATED] for Device:551a0d4e-5255-4d81-9f23-91b77385e19f by admin-1","service":"MFADeviceAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.467Z","level":"INFO","message":"MFADevice Audit log recorded: [MFA_DEVICE_UPDATED] for Device:551a0d4e-5255-4d81-9f23-91b77385e19f by admin-1","service":"MFADeviceAuditService"}
+# Subtest: Identity CRUD Use Cases & Repositories Tests
+    # Subtest: User CRUD Use Cases
+        # Subtest: Should perform User lifecycle successfully
+        ok 1 - Should perform User lifecycle successfully
+          ---
+          duration_ms: 133.079747
+          type: 'test'
+          ...
+        1..1
+    ok 1 - User CRUD Use Cases
+      ---
+      duration_ms: 134.182861
+      type: 'suite'
+      ...
+    # Subtest: Role CRUD Use Cases
+        # Subtest: Should perform Role lifecycle successfully
+        ok 1 - Should perform Role lifecycle successfully
+          ---
+          duration_ms: 2.082913
+          type: 'test'
+          ...
+        1..1
+    ok 2 - Role CRUD Use Cases
+      ---
+      duration_ms: 2.240636
+      type: 'suite'
+      ...
+    # Subtest: Tenant CRUD Use Cases
+        # Subtest: Should perform Tenant lifecycle successfully
+        ok 1 - Should perform Tenant lifecycle successfully
+          ---
+          duration_ms: 2.252448
+          type: 'test'
+          ...
+        1..1
+    ok 3 - Tenant CRUD Use Cases
+      ---
+      duration_ms: 2.412333
+      type: 'suite'
+      ...
+    # Subtest: Permission CRUD Use Cases
+        # Subtest: Should perform Permission lifecycle successfully
+        ok 1 - Should perform Permission lifecycle successfully
+          ---
+          duration_ms: 2.119501
+          type: 'test'
+          ...
+        1..1
+    ok 4 - Permission CRUD Use Cases
+      ---
+      duration_ms: 2.351648
+      type: 'suite'
+      ...
+    # Subtest: MFADevice CRUD Use Cases
+        # Subtest: Should perform MFADevice lifecycle successfully
+        ok 1 - Should perform MFADevice lifecycle successfully
+          ---
+          duration_ms: 2.358745
+          type: 'test'
+          ...
+        1..1
+    ok 5 - MFADevice CRUD Use Cases
+      ---
+      duration_ms: 2.584162
+      type: 'suite'
+      ...
+    1..5
+ok 2 - Identity CRUD Use Cases & Repositories Tests
+  ---
+  duration_ms: 145.014464
+  type: 'suite'
+  ...
+# {"timestamp":"2026-08-24T19:04:47.553Z","level":"INFO","message":"Processing event [identity.mfa_device.created] id=evt-mfa-100 for tenant=00000000-0000-0000-0000-000000000001","service":"MFADeviceEventConsumer"}
+# {"timestamp":"2026-08-24T19:04:47.554Z","level":"WARN","message":"Duplicate event ID 'evt-mfa-100' skipped for tenant '00000000-0000-0000-0000-000000000001'","service":"MFADeviceEventConsumer"}
+# {"timestamp":"2026-08-24T19:04:47.554Z","level":"ERROR","message":"POISON_EVENT: Invalid event schema or missing envelope headers","service":"MFADeviceEventConsumer","event":{"id":"","name":"invalid","tenantId":"","occurredAt":"","payload":{}}}
+# {"timestamp":"2026-08-24T19:04:47.562Z","level":"INFO","message":"MFADevice Audit log recorded: [MFA_DEVICE_CREATED] for Device:1c34f804-3cbe-4228-a6c3-2687d23136d4 by user-admin-id-1","service":"MFADeviceAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.562Z","level":"INFO","message":"MFADevice Audit log recorded: [MFA_DEVICE_CREATED] for Device:74d885f0-dcdd-4304-97a0-86566e40e524 by user-admin-id-1","service":"MFADeviceAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.563Z","level":"INFO","message":"MFADevice Audit log recorded: [MFA_DEVICE_UPDATED] for Device:74d885f0-dcdd-4304-97a0-86566e40e524 by user-admin-id-1","service":"MFADeviceAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.565Z","level":"INFO","message":"MFADevice Audit log recorded: [MFA_DEVICE_CREATED] for Device:34225d30-d758-46dd-928e-86442d144af0 by admin-1","service":"MFADeviceAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.566Z","level":"INFO","message":"MFADevice Audit log recorded: [MFA_DEVICE_UPDATED] for Device:34225d30-d758-46dd-928e-86442d144af0 by admin-1","service":"MFADeviceAuditService"}
+# Subtest: MFADevice Full Vertical Slice QA & Security Suite (Tasks 1525-1543)
+    # Subtest: Task 1534: MFADevice Event Consumer & DLQ Handling
+        # Subtest: deduplicates events by ID and routes poison messages to DLQ
+        ok 1 - deduplicates events by ID and routes poison messages to DLQ
+          ---
+          duration_ms: 3.171611
+          type: 'test'
+          ...
+        1..1
+    ok 1 - Task 1534: MFADevice Event Consumer & DLQ Handling
+      ---
+      duration_ms: 3.970706
+      type: 'suite'
+      ...
+    # Subtest: Task 1526 & 1533: MFADevice Domain Entity & Invariants
+        # Subtest: enforces constructor invariants: tenantId, userId, type, secretEncrypted non-empty
+        ok 1 - enforces constructor invariants: tenantId, userId, type, secretEncrypted non-empty
+          ---
+          duration_ms: 1.022954
+          type: 'test'
+          ...
+        # Subtest: executes valid state transitions and rejects illegal ones
+        ok 2 - executes valid state transitions and rejects illegal ones
+          ---
+          duration_ms: 0.928263
+          type: 'test'
+          ...
+        # Subtest: redacts sensitive secretEncrypted when calling toJSON() by default
+        ok 3 - redacts sensitive secretEncrypted when calling toJSON() by default
+          ---
+          duration_ms: 0.655182
+          type: 'test'
+          ...
+        1..3
+    ok 2 - Task 1526 & 1533: MFADevice Domain Entity & Invariants
+      ---
+      duration_ms: 2.89367
+      type: 'suite'
+      ...
+    # Subtest: Task 1532: MFADevice Domain Validation Rules
+        # Subtest: validates Create input and rejects unknown fields (mass assignment defense)
+        ok 1 - validates Create input and rejects unknown fields (mass assignment defense)
+          ---
+          duration_ms: 0.70499
+          type: 'test'
+          ...
+        # Subtest: validates Update input and version field
+        not ok 2 - validates Update input and version field
+          ---
+          duration_ms: 0.910348
+          type: 'test'
+          location: '/app/services/identity-service/dist/services/identity-service/src/mfa_device_slice.test.js:119:30'
+          failureType: 'testCodeFailure'
+          error: 'Missing expected exception.'
+          code: 'ERR_ASSERTION'
+          name: 'AssertionError'
+          expected:
+          operator: 'throws'
+          stack: |-
+            TestContext.<anonymous> (/app/services/identity-service/dist/services/identity-service/src/mfa_device_slice.test.js:122:35)
+            Test.runInAsyncScope (node:async_hooks:214:14)
+            Test.run (node:internal/test_runner/test:1047:25)
+            async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+          ...
+        1..2
+    not ok 3 - Task 1532: MFADevice Domain Validation Rules
+      ---
+      duration_ms: 2.0485
+      type: 'suite'
+      location: '/app/services/identity-service/dist/services/identity-service/src/mfa_device_slice.test.js:108:30'
+      failureType: 'subtestsFailed'
+      error: '1 subtest failed'
+      code: 'ERR_TEST_FAILURE'
+      ...
+    # Subtest: Task 1528-1531 & 1538: MFADevice Use Cases & Audit Trail
+        # Subtest: executes CreateMFADeviceUseCase with idempotency & audit trail
+        ok 1 - executes CreateMFADeviceUseCase with idempotency & audit trail
+          ---
+          duration_ms: 0.913209
+          type: 'test'
+          ...
+        # Subtest: executes Get, Update and List use cases with optimistic locking
+        ok 2 - executes Get, Update and List use cases with optimistic locking
+          ---
+          duration_ms: 1.152782
+          type: 'test'
+          ...
+        # Subtest: rejects unauthorized principals
+        ok 3 - rejects unauthorized principals
+          ---
+          duration_ms: 0.900433
+          type: 'test'
+          ...
+        1..3
+    ok 4 - Task 1528-1531 & 1538: MFADevice Use Cases & Audit Trail
+      ---
+      duration_ms: 3.194709
+      type: 'suite'
+      ...
+    # Subtest: Task 1527 & 1542: Repository RLS Isolation Proof
+        # Subtest: enforces tenant RLS isolation between Tenant A and Tenant B
+        ok 1 - enforces tenant RLS isolation between Tenant A and Tenant B
+          ---
+          duration_ms: 0.335696
+          type: 'test'
+          ...
+        1..1
+    ok 5 - Task 1527 & 1542: Repository RLS Isolation Proof
+      ---
+      duration_ms: 0.493668
+      type: 'suite'
+      ...
+    # Subtest: Task 1535 & 1543: MFADevice Controller REST API & Security
+        # Subtest: handles controller CRUD endpoints with correct HTTP status codes
+        ok 1 - handles controller CRUD endpoints with correct HTTP status codes
+          ---
+          duration_ms: 1.141054
+          type: 'test'
+          ...
+        # Subtest: rejects unsupported content-type
+        ok 2 - rejects unsupported content-type
+          ---
+          duration_ms: 1.142593
+          type: 'test'
+          ...
+        1..2
+    ok 6 - Task 1535 & 1543: MFADevice Controller REST API & Security
+      ---
+      duration_ms: 2.395679
+      type: 'suite'
+      ...
+    1..6
+not ok 3 - MFADevice Full Vertical Slice QA & Security Suite (Tasks 1525-1543)
+  ---
+  duration_ms: 16.160674
+  type: 'suite'
+  location: '/app/services/identity-service/dist/services/identity-service/src/mfa_device_slice.test.js:18:26'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# {"timestamp":"2026-08-24T19:04:47.657Z","level":"INFO","message":"Processing event [identity.permission.created] id=evt-perm-100 for tenant=00000000-0000-0000-0000-000000000001","service":"PermissionEventConsumer"}
+# {"timestamp":"2026-08-24T19:04:47.658Z","level":"WARN","message":"Duplicate event ID 'evt-perm-100' skipped for tenant '00000000-0000-0000-0000-000000000001'","service":"PermissionEventConsumer"}
+# {"timestamp":"2026-08-24T19:04:47.658Z","level":"ERROR","message":"POISON_EVENT: Invalid event schema or missing envelope headers","service":"PermissionEventConsumer","event":{"id":"","name":"invalid","tenantId":"","occurredAt":""}}
+# {"timestamp":"2026-08-24T19:04:47.665Z","level":"INFO","message":"Permission Audit log recorded: [PERMISSION_CREATED] for Permission:5d1e119b-bc56-4a53-bd28-40e6aff724f6 by user-admin-id-1","service":"PermissionAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.666Z","level":"INFO","message":"Permission Audit log recorded: [PERMISSION_CREATED] for Permission:46b3e84e-6834-4522-b478-e9c7f9918794 by user-admin-id-1","service":"PermissionAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.666Z","level":"INFO","message":"Permission Audit log recorded: [PERMISSION_UPDATED_PROFILE] for Permission:46b3e84e-6834-4522-b478-e9c7f9918794 by user-admin-id-1","service":"PermissionAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.668Z","level":"INFO","message":"Permission Audit log recorded: [PERMISSION_CREATED] for Permission:89328eff-b8bb-4ff0-9953-fbbd8d3b2f33 by user-admin-id-1","service":"PermissionAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.668Z","level":"INFO","message":"Permission Audit log recorded: [PERMISSION_CREATED] for Permission:4b21455a-5779-445b-a89d-77c9b4c01eba by user-tenant-b-id","service":"PermissionAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.670Z","level":"INFO","message":"Permission Audit log recorded: [PERMISSION_CREATED] for Permission:1f4e2340-6a72-43ed-ba06-577d82d2f19f by admin-1","service":"PermissionAuditService"}
+# Subtest: Permission Full Vertical Slice QA & Security Suite (Tasks 1483-1501)
+    # Subtest: Task 1492: Permission Event Consumer & DLQ Handling
+        # Subtest: deduplicates events by ID and routes poison messages to DLQ
+        ok 1 - deduplicates events by ID and routes poison messages to DLQ
+          ---
+          duration_ms: 3.492781
+          type: 'test'
+          ...
+        1..1
+    ok 1 - Task 1492: Permission Event Consumer & DLQ Handling
+      ---
+      duration_ms: 4.229951
+      type: 'suite'
+      ...
+    # Subtest: Task 1484 & 1498: Permission Domain Entity & Invariants
+        # Subtest: enforces constructor invariants: tenantId, non-empty name, resource, action
+        ok 1 - enforces constructor invariants: tenantId, non-empty name, resource, action
+          ---
+          duration_ms: 1.375122
+          type: 'test'
+          ...
+        # Subtest: executes valid state transitions and rejects illegal ones
+        ok 2 - executes valid state transitions and rejects illegal ones
+          ---
+          duration_ms: 0.61157
+          type: 'test'
+          ...
+        1..2
+    ok 2 - Task 1484 & 1498: Permission Domain Entity & Invariants
+      ---
+      duration_ms: 2.240581
+      type: 'suite'
+      ...
+    # Subtest: Task 1490: Permission Domain Validation Rules
+        # Subtest: validates Create input and rejects unknown fields (mass assignment defense)
+        ok 1 - validates Create input and rejects unknown fields (mass assignment defense)
+          ---
+          duration_ms: 0.642388
+          type: 'test'
+          ...
+        # Subtest: validates Update input and version field
+        ok 2 - validates Update input and version field
+          ---
+          duration_ms: 0.596626
+          type: 'test'
+          ...
+        1..2
+    ok 3 - Task 1490: Permission Domain Validation Rules
+      ---
+      duration_ms: 1.444481
+      type: 'suite'
+      ...
+    # Subtest: Task 1486-1489 & 1499: Permission Use Cases & Audit Trail
+        # Subtest: executes CreatePermissionUseCase with idempotency & audit trail
+        ok 1 - executes CreatePermissionUseCase with idempotency & audit trail
+          ---
+          duration_ms: 1.184068
+          type: 'test'
+          ...
+        # Subtest: executes Get, Update and List use cases with optimistic locking
+        ok 2 - executes Get, Update and List use cases with optimistic locking
+          ---
+          duration_ms: 1.639165
+          type: 'test'
+          ...
+        # Subtest: rejects unauthorized principals
+        ok 3 - rejects unauthorized principals
+          ---
+          duration_ms: 0.372049
+          type: 'test'
+          ...
+        1..3
+    ok 4 - Task 1486-1489 & 1499: Permission Use Cases & Audit Trail
+      ---
+      duration_ms: 3.690517
+      type: 'suite'
+      ...
+    # Subtest: Task 1485 & 1500: Repository RLS Isolation Proof
+        # Subtest: enforces tenant RLS isolation between Tenant A and Tenant B
+        ok 1 - enforces tenant RLS isolation between Tenant A and Tenant B
+          ---
+          duration_ms: 0.988982
+          type: 'test'
+          ...
+        1..1
+    ok 5 - Task 1485 & 1500: Repository RLS Isolation Proof
+      ---
+      duration_ms: 1.080572
+      type: 'suite'
+      ...
+    # Subtest: Task 1493 & 1501: Permission Controller REST API & Security
+        # Subtest: handles controller CRUD endpoints with correct HTTP status codes
+        ok 1 - handles controller CRUD endpoints with correct HTTP status codes
+          ---
+          duration_ms: 1.001339
+          type: 'test'
+          ...
+        # Subtest: rejects unsupported content-type
+        ok 2 - rejects unsupported content-type
+          ---
+          duration_ms: 0.469421
+          type: 'test'
+          ...
+        1..2
+    ok 6 - Task 1493 & 1501: Permission Controller REST API & Security
+      ---
+      duration_ms: 1.593344
+      type: 'suite'
+      ...
+    1..6
+ok 4 - Permission Full Vertical Slice QA & Security Suite (Tasks 1483-1501)
+  ---
+  duration_ms: 17.679697
+  type: 'suite'
+  ...
+# {"timestamp":"2026-08-24T19:04:47.761Z","level":"INFO","message":"Processing event [identity.role.created] id=evt-role-100 for tenant=00000000-0000-0000-0000-000000000001","service":"RoleEventConsumer"}
+# {"timestamp":"2026-08-24T19:04:47.762Z","level":"WARN","message":"Duplicate event ID 'evt-role-100' skipped for tenant '00000000-0000-0000-0000-000000000001'","service":"RoleEventConsumer"}
+# {"timestamp":"2026-08-24T19:04:47.762Z","level":"ERROR","message":"POISON_EVENT: Invalid event schema or missing envelope headers","service":"RoleEventConsumer","event":{"id":"","name":"invalid","tenantId":"","occurredAt":""}}
+# {"timestamp":"2026-08-24T19:04:47.769Z","level":"INFO","message":"Role Audit log recorded: [ROLE_CREATED] for Role:ea00877c-65ce-45a9-bb90-4872a8ea6521 by user-admin-id-1","service":"RoleAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.770Z","level":"INFO","message":"Role Audit log recorded: [ROLE_CREATED] for Role:8c769754-ca42-4fcf-a646-93d5db53e413 by user-admin-id-1","service":"RoleAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.770Z","level":"INFO","message":"Role Audit log recorded: [ROLE_UPDATED_PROFILE] for Role:8c769754-ca42-4fcf-a646-93d5db53e413 by user-admin-id-1","service":"RoleAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.772Z","level":"INFO","message":"Role Audit log recorded: [ROLE_CREATED] for Role:b957f558-6cb6-4db6-b184-8e69584cac61 by user-admin-id-1","service":"RoleAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.772Z","level":"INFO","message":"Role Audit log recorded: [ROLE_CREATED] for Role:8acfc863-dc5a-4c86-ae06-0fc80f88bbb2 by user-tenant-b-id","service":"RoleAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.773Z","level":"INFO","message":"Role Audit log recorded: [ROLE_CREATED] for Role:83a0a3cc-9f08-41c7-bda8-f8424b3f9f36 by admin-1","service":"RoleAuditService"}
+# Subtest: Role Full Vertical Slice QA & Security Suite (Tasks 1462-1480)
+    # Subtest: Task 1471: Role Event Consumer & DLQ Handling
+        # Subtest: deduplicates events by ID and routes poison messages to DLQ
+        ok 1 - deduplicates events by ID and routes poison messages to DLQ
+          ---
+          duration_ms: 3.48877
+          type: 'test'
+          ...
+        1..1
+    ok 1 - Task 1471: Role Event Consumer & DLQ Handling
+      ---
+      duration_ms: 4.293392
+      type: 'suite'
+      ...
+    # Subtest: Task 1463 & 1477: Role Domain Entity & Invariants
+        # Subtest: enforces constructor invariants: tenantId, non-empty name, system role protection
+        ok 1 - enforces constructor invariants: tenantId, non-empty name, system role protection
+          ---
+          duration_ms: 1.3522
+          type: 'test'
+          ...
+        # Subtest: executes valid state transitions and protects system roles
+        ok 2 - executes valid state transitions and protects system roles
+          ---
+          duration_ms: 0.657347
+          type: 'test'
+          ...
+        1..2
+    ok 2 - Task 1463 & 1477: Role Domain Entity & Invariants
+      ---
+      duration_ms: 2.280426
+      type: 'suite'
+      ...
+    # Subtest: Task 1469: Role Domain Validation Rules
+        # Subtest: validates Create input and rejects unknown fields (mass assignment defense)
+        ok 1 - validates Create input and rejects unknown fields (mass assignment defense)
+          ---
+          duration_ms: 0.648686
+          type: 'test'
+          ...
+        # Subtest: validates Update input and version field
+        ok 2 - validates Update input and version field
+          ---
+          duration_ms: 0.633532
+          type: 'test'
+          ...
+        1..2
+    ok 3 - Task 1469: Role Domain Validation Rules
+      ---
+      duration_ms: 1.579877
+      type: 'suite'
+      ...
+    # Subtest: Task 1465-1468 & 1478: Role Use Cases & Audit Trail
+        # Subtest: executes CreateRoleUseCase with idempotency & audit trail
+        ok 1 - executes CreateRoleUseCase with idempotency & audit trail
+          ---
+          duration_ms: 1.145978
+          type: 'test'
+          ...
+        # Subtest: executes Get, Update and List use cases with optimistic locking
+        ok 2 - executes Get, Update and List use cases with optimistic locking
+          ---
+          duration_ms: 1.545168
+          type: 'test'
+          ...
+        # Subtest: rejects unauthorized principals
+        ok 3 - rejects unauthorized principals
+          ---
+          duration_ms: 0.398437
+          type: 'test'
+          ...
+        1..3
+    ok 4 - Task 1465-1468 & 1478: Role Use Cases & Audit Trail
+      ---
+      duration_ms: 3.478084
+      type: 'suite'
+      ...
+    # Subtest: Task 1464 & 1479: Repository RLS Isolation Proof
+        # Subtest: enforces tenant RLS isolation between Tenant A and Tenant B
+        ok 1 - enforces tenant RLS isolation between Tenant A and Tenant B
+          ---
+          duration_ms: 0.976066
+          type: 'test'
+          ...
+        1..1
+    ok 5 - Task 1464 & 1479: Repository RLS Isolation Proof
+      ---
+      duration_ms: 1.157436
+      type: 'suite'
+      ...
+    # Subtest: Task 1472 & 1480: Role Controller REST API & Security
+        # Subtest: handles controller CRUD endpoints with correct HTTP status codes
+        ok 1 - handles controller CRUD endpoints with correct HTTP status codes
+          ---
+          duration_ms: 1.110115
+          type: 'test'
+          ...
+        # Subtest: rejects unsupported content-type
+        ok 2 - rejects unsupported content-type
+          ---
+          duration_ms: 0.455291
+          type: 'test'
+          ...
+        1..2
+    ok 6 - Task 1472 & 1480: Role Controller REST API & Security
+      ---
+      duration_ms: 1.689488
+      type: 'suite'
+      ...
+    1..6
+ok 5 - Role Full Vertical Slice QA & Security Suite (Tasks 1462-1480)
+  ---
+  duration_ms: 15.702736
+  type: 'suite'
+  ...
+# {"timestamp":"2026-08-24T19:04:47.866Z","level":"INFO","message":"Processing event [identity.tenant.created] id=evt-tenant-100 for tenant=00000000-0000-0000-0000-000000000001","service":"TenantEventConsumer"}
+# {"timestamp":"2026-08-24T19:04:47.867Z","level":"WARN","message":"Duplicate event ID 'evt-tenant-100' skipped for tenant '00000000-0000-0000-0000-000000000001'","service":"TenantEventConsumer"}
+# {"timestamp":"2026-08-24T19:04:47.867Z","level":"ERROR","message":"POISON_EVENT: Invalid event schema or missing envelope headers","service":"TenantEventConsumer","event":{"id":"","name":"invalid","tenantId":"","occurredAt":""}}
+# {"timestamp":"2026-08-24T19:04:47.874Z","level":"INFO","message":"Tenant Audit log recorded: [TENANT_CREATED] for Tenant:9bd3102a-c5ce-4680-9d45-758e31effa88 by user-admin-id-1","service":"TenantAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.875Z","level":"INFO","message":"Tenant Audit log recorded: [TENANT_CREATED] for Tenant:aada4210-aa32-4a03-9a73-234fdf1bd265 by user-admin-id-1","service":"TenantAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.876Z","level":"INFO","message":"Tenant Audit log recorded: [TENANT_UPDATED] for Tenant:aada4210-aa32-4a03-9a73-234fdf1bd265 by user-admin-id-1","service":"TenantAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.878Z","level":"INFO","message":"Tenant Audit log recorded: [TENANT_CREATED] for Tenant:bd140012-a07c-410e-a603-e708f5a51961 by admin-1","service":"TenantAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.879Z","level":"INFO","message":"Tenant Audit log recorded: [TENANT_UPDATED] for Tenant:bd140012-a07c-410e-a603-e708f5a51961 by admin-1","service":"TenantAuditService"}
+# Subtest: Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)
+    # Subtest: Task 1513: Tenant Event Consumer & DLQ Handling
+        # Subtest: deduplicates events by ID and routes poison messages to DLQ
+        ok 1 - deduplicates events by ID and routes poison messages to DLQ
+          ---
+          duration_ms: 3.290359
+          type: 'test'
+          ...
+        1..1
+    ok 1 - Task 1513: Tenant Event Consumer & DLQ Handling
+      ---
+      duration_ms: 4.346469
+      type: 'suite'
+      ...
+    # Subtest: Task 1505 & 1512: Tenant Domain Entity & Invariants
+        # Subtest: enforces constructor invariants: name required, code required
+        ok 1 - enforces constructor invariants: name required, code required
+          ---
+          duration_ms: 1.684503
+          type: 'test'
+          ...
+        # Subtest: executes valid state transitions and rejects illegal ones
+        ok 2 - executes valid state transitions and rejects illegal ones
+          ---
+          duration_ms: 0.741404
+          type: 'test'
+          ...
+        1..2
+    ok 2 - Task 1505 & 1512: Tenant Domain Entity & Invariants
+      ---
+      duration_ms: 2.719815
+      type: 'suite'
+      ...
+    # Subtest: Task 1511: Tenant Domain Validation Rules
+        # Subtest: validates Create input and rejects unknown fields (mass assignment defense)
+        ok 1 - validates Create input and rejects unknown fields (mass assignment defense)
+          ---
+          duration_ms: 0.691121
+          type: 'test'
+          ...
+        # Subtest: validates Update input and version field
+        ok 2 - validates Update input and version field
+          ---
+          duration_ms: 0.554001
+          type: 'test'
+          ...
+        1..2
+    ok 3 - Task 1511: Tenant Domain Validation Rules
+      ---
+      duration_ms: 1.615844
+      type: 'suite'
+      ...
+    # Subtest: Task 1507-1510 & 1517-1520: Tenant Use Cases & Audit Trail
+        # Subtest: executes CreateTenantUseCase with idempotency & audit trail
+        ok 1 - executes CreateTenantUseCase with idempotency & audit trail
+          ---
+          duration_ms: 1.084404
+          type: 'test'
+          ...
+        # Subtest: executes Get, Update and List use cases with optimistic locking
+        ok 2 - executes Get, Update and List use cases with optimistic locking
+          ---
+          duration_ms: 1.429909
+          type: 'test'
+          ...
+        # Subtest: rejects unauthorized principals
+        ok 3 - rejects unauthorized principals
+          ---
+          duration_ms: 0.575749
+          type: 'test'
+          ...
+        1..3
+    ok 4 - Task 1507-1510 & 1517-1520: Tenant Use Cases & Audit Trail
+      ---
+      duration_ms: 3.457005
+      type: 'suite'
+      ...
+    # Subtest: Task 1506 & 1521: Repository RLS Isolation Proof
+        # Subtest: enforces tenant RLS isolation between Tenant A and Tenant B
+        ok 1 - enforces tenant RLS isolation between Tenant A and Tenant B
+          ---
+          duration_ms: 0.597964
+          type: 'test'
+          ...
+        1..1
+    ok 5 - Task 1506 & 1521: Repository RLS Isolation Proof
+      ---
+      duration_ms: 0.691661
+      type: 'suite'
+      ...
+    # Subtest: Task 1514 & 1522: Tenant Controller REST API & Security
+        # Subtest: handles controller CRUD endpoints with correct HTTP status codes
+        ok 1 - handles controller CRUD endpoints with correct HTTP status codes
+          ---
+          duration_ms: 1.697672
+          type: 'test'
+          ...
+        # Subtest: rejects unsupported content-type
+        ok 2 - rejects unsupported content-type
+          ---
+          duration_ms: 0.253576
+          type: 'test'
+          ...
+        1..2
+    ok 6 - Task 1514 & 1522: Tenant Controller REST API & Security
+      ---
+      duration_ms: 2.09183
+      type: 'suite'
+      ...
+    1..6
+ok 6 - Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)
+  ---
+  duration_ms: 17.209642
+  type: 'suite'
+  ...
+# {"timestamp":"2026-08-24T19:04:47.971Z","level":"INFO","message":"Processing event [identity.user.created] id=evt-usr-100 for tenant=00000000-0000-0000-0000-000000000001","service":"UserEventConsumer"}
+# {"timestamp":"2026-08-24T19:04:47.972Z","level":"WARN","message":"Duplicate event ID 'evt-usr-100' skipped for tenant '00000000-0000-0000-0000-000000000001'","service":"UserEventConsumer"}
+# {"timestamp":"2026-08-24T19:04:47.972Z","level":"ERROR","message":"POISON_EVENT: Invalid event schema or missing envelope headers","service":"UserEventConsumer","event":{"id":"","name":"invalid","tenantId":"","occurredAt":""}}
+# {"timestamp":"2026-08-24T19:04:47.980Z","level":"INFO","message":"User Audit log recorded: [USER_CREATED] for User:1bacb831-5524-49d4-9055-2890e0e39ea7 by user-admin-id-1","service":"UserAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.981Z","level":"INFO","message":"User Audit log recorded: [USER_CREATED] for User:fb220aaf-163d-4634-9b69-efa559fe540d by user-admin-id-1","service":"UserAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.982Z","level":"INFO","message":"User Audit log recorded: [USER_UPDATED_SUSPENDED] for User:fb220aaf-163d-4634-9b69-efa559fe540d by user-admin-id-1","service":"UserAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.983Z","level":"INFO","message":"User Audit log recorded: [USER_CREATED] for User:53b74a67-874e-4d13-9771-dce094fd573a by user-admin-id-1","service":"UserAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.984Z","level":"INFO","message":"User Audit log recorded: [USER_CREATED] for User:5b965b5c-aa2e-4d59-8b47-772236709188 by user-tenant-b-id","service":"UserAuditService"}
+# {"timestamp":"2026-08-24T19:04:47.985Z","level":"INFO","message":"User Audit log recorded: [USER_CREATED] for User:b6638dbd-551d-431a-8ec2-0156a3d81c4f by admin-1","service":"UserAuditService"}
+# Subtest: User Full Vertical Slice QA & Security Suite (Tasks 1441-1459)
+    # Subtest: Task 1450: User Event Consumer & DLQ Handling
+        # Subtest: deduplicates events by ID and routes poison messages to DLQ
+        ok 1 - deduplicates events by ID and routes poison messages to DLQ
+          ---
+          duration_ms: 3.630108
+          type: 'test'
+          ...
+        1..1
+    ok 1 - Task 1450: User Event Consumer & DLQ Handling
+      ---
+      duration_ms: 4.4118
+      type: 'suite'
+      ...
+    # Subtest: Task 1442 & 1456: User Domain Entity & Invariants
+        # Subtest: enforces constructor invariants: tenantId, email format, passwordHash non-empty
+        ok 1 - enforces constructor invariants: tenantId, email format, passwordHash non-empty
+          ---
+          duration_ms: 1.333525
+          type: 'test'
+          ...
+        # Subtest: executes valid state transitions and rejects illegal ones
+        ok 2 - executes valid state transitions and rejects illegal ones
+          ---
+          duration_ms: 0.658007
+          type: 'test'
+          ...
+        # Subtest: redacts sensitive passwordHash when calling toJSON() by default
+        ok 3 - redacts sensitive passwordHash when calling toJSON() by default
+          ---
+          duration_ms: 0.679414
+          type: 'test'
+          ...
+        1..3
+    ok 2 - Task 1442 & 1456: User Domain Entity & Invariants
+      ---
+      duration_ms: 3.048867
+      type: 'suite'
+      ...
+    # Subtest: Task 1448: User Domain Validation Rules
+        # Subtest: validates Create input and rejects unknown fields (mass assignment defense)
+        ok 1 - validates Create input and rejects unknown fields (mass assignment defense)
+          ---
+          duration_ms: 0.743378
+          type: 'test'
+          ...
+        # Subtest: validates Update input and version field
+        ok 2 - validates Update input and version field
+          ---
+          duration_ms: 0.421039
+          type: 'test'
+          ...
+        1..2
+    ok 3 - Task 1448: User Domain Validation Rules
+      ---
+      duration_ms: 1.520041
+      type: 'suite'
+      ...
+    # Subtest: Task 1444-1447 & 1457: User Use Cases & Audit Trail
+        # Subtest: executes CreateUserUseCase with idempotency & audit trail
+        ok 1 - executes CreateUserUseCase with idempotency & audit trail
+          ---
+          duration_ms: 1.032372
+          type: 'test'
+          ...
+        # Subtest: executes Get, Update and List use cases with optimistic locking
+        ok 2 - executes Get, Update and List use cases with optimistic locking
+          ---
+          duration_ms: 1.912362
+          type: 'test'
+          ...
+        # Subtest: rejects unauthorized principals
+        ok 3 - rejects unauthorized principals
+          ---
+          duration_ms: 0.502286
+          type: 'test'
+          ...
+        1..3
+    ok 4 - Task 1444-1447 & 1457: User Use Cases & Audit Trail
+      ---
+      duration_ms: 3.823416
+      type: 'suite'
+      ...
+    # Subtest: Task 1443 & 1458: Repository RLS Isolation Proof
+        # Subtest: enforces tenant RLS isolation between Tenant A and Tenant B
+        ok 1 - enforces tenant RLS isolation between Tenant A and Tenant B
+          ---
+          duration_ms: 0.879358
+          type: 'test'
+          ...
+        1..1
+    ok 5 - Task 1443 & 1458: Repository RLS Isolation Proof
+      ---
+      duration_ms: 0.970752
+      type: 'suite'
+      ...
+    # Subtest: Task 1451 & 1459: User Controller REST API & Security
+        # Subtest: handles controller CRUD endpoints with correct HTTP status codes
+        ok 1 - handles controller CRUD endpoints with correct HTTP status codes
+          ---
+          duration_ms: 2.264264
+          type: 'test'
+          ...
+        # Subtest: rejects unsupported content-type
+        ok 2 - rejects unsupported content-type
+          ---
+          duration_ms: 0.477292
+          type: 'test'
+          ...
+        1..2
+    ok 6 - Task 1451 & 1459: User Controller REST API & Security
+      ---
+      duration_ms: 2.872238
+      type: 'suite'
+      ...
+    1..6
+ok 7 - User Full Vertical Slice QA & Security Suite (Tasks 1441-1459)
+  ---
+  duration_ms: 17.850338
+  type: 'suite'
+  ...
+1..7
+# tests 72
+# suites 42
+# pass 71
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 57215.797354
+/app/services/identity-service:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @dms/identity-service@1.0.0 test: `node --test --test-concurrency=1 "dist/**/*.test.js"`
+Exit status 1
