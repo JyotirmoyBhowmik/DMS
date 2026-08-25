@@ -31,6 +31,18 @@ export class ClaimPgRepository {
   }
 
   async update(claim: Claim, tenantId?: string): Promise<void> {
+    const data = claim.toJSON();
+
+    // First let's check optimistic locking, because simple save() via INSERT ... ON CONFLICT
+    // wouldn't enforce version concurrency conflict properly.
+    if (data.version !== undefined && data.version > 1) {
+      const existing = await this.findById(tenantId || data.tenantId, claim.id);
+      if (existing && existing.version !== undefined && existing.version !== data.version - 1) {
+        const { ConcurrencyError } = await import('@dms/pkg-database');
+        throw new ConcurrencyError('Claim', claim.id);
+      }
+    }
+
     await this.save(claim, tenantId);
   }
 
