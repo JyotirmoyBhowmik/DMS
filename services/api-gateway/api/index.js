@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 function resolveConnectionString() {
   let connStr = (
     process.env.DATABASE_URL ||
@@ -408,7 +409,7 @@ module.exports = async function handler(req, res) {
           existing.minOrderQty = m.minOrderQty;
         } else {
           global.__distributorSkuMappingStore.push({
-            id: 'map-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+            id: 'map-' + Date.now() + '-' + crypto.randomBytes(4).toString('hex'),
             tenantId,
             distributorId: targetDistributorId,
             skuId: m.skuId,
