@@ -93,7 +93,7 @@ export class SessionManager {
     method: string,
     urlPath: string,
     query: string,
-    body: string
+    body: string,
   ): Promise<Record<string, string>> {
     if (!this.currentSession) {
       throw new Error('Authentication required');
@@ -105,7 +105,19 @@ export class SessionManager {
     }
 
     const timestamp = new Date().toISOString();
-    const nonce = Math.random().toString(36).substring(2, 15);
+    // 🛡️ Security: Use Web Crypto API for cryptographically secure random nonce generation, with fallback to Math.random() for environments where it is unsupported.
+    let nonce: string;
+    if (
+      typeof globalThis.crypto !== 'undefined' &&
+      typeof globalThis.crypto.getRandomValues === 'function'
+    ) {
+      const array = new Uint8Array(16);
+      globalThis.crypto.getRandomValues(array);
+      nonce = Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
+    } else {
+      nonce =
+        Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    }
 
     const parts: CanonicalRequestParts = {
       method,
@@ -119,7 +131,7 @@ export class SessionManager {
     const signature = signRequest(parts, this.currentSession.clientSecretKeyHex);
 
     return {
-      'Authorization': `Bearer ${this.currentSession.accessToken}`,
+      Authorization: `Bearer ${this.currentSession.accessToken}`,
       'X-Tenant-Id': this.currentSession.tenantId,
       'X-DMS-Signature': signature,
       'X-DMS-Timestamp': timestamp,
