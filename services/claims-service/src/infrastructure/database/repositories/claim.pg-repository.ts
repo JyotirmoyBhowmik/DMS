@@ -30,8 +30,9 @@ export class ClaimPgRepository {
     }
   }
 
-  async update(claim: Claim, tenantId?: string): Promise<void> {
+  async update(claim: Claim, tenantId?: string): Promise<Claim> {
     await this.save(claim, tenantId);
+    return claim;
   }
 
   async findById(tenantId: string, id: string): Promise<Claim | null> {

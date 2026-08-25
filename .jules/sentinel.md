@@ -7,3 +7,7 @@
 **Vulnerability:** Weak PRNG (`Math.random()`) used for generating secure nonces in React Native apps, allowing for predictable values.
 **Learning:** React Native lacks built-in support for `globalThis.crypto.randomUUID()` without specialized polyfills (like `react-native-get-random-values`), which can lead to silent fallback to `Math.random()`. `globalThis.crypto.getRandomValues()` is generally more robust for mobile environments.
 **Prevention:** In React Native, prefer `getRandomValues()` over `randomUUID()`. Always include a fallback for unsupported environments to prevent app crashes while gracefully degrading security.
+## 2024-10-31 - Use crypto module for secure ID generation in Node.js
+**Vulnerability:** Use of `Math.random()` to generate mapping IDs in API Gateway, which can lead to predictable IDs (IDOR/enumeration risks).
+**Learning:** `Math.random()` is cryptographically weak.
+**Prevention:** In Node.js environments, use the built-in `crypto` module (e.g. `crypto.randomBytes(4).toString('hex')` or `crypto.randomUUID()`) to generate secure internal identifiers instead of relying on `Math.random()`.
