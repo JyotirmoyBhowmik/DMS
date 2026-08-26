@@ -31,4 +31,8 @@ export class ClaimEntity {
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }
+
+  toJSON() {
+    return Object.assign({}, this);
+  }
 }

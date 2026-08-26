@@ -30,7 +30,7 @@ export class ClaimPgRepository {
     }
   }
 
-  async update(claim: Claim, tenantId?: string): Promise<void> {
+  async update(claim: Claim, tenantId?: string): Promise<any> {
     const data = claim.toJSON();
 
     // First let's check optimistic locking, because simple save() via INSERT ... ON CONFLICT
@@ -44,6 +44,12 @@ export class ClaimPgRepository {
     }
 
     await this.save(claim, tenantId);
+
+    if (typeof (claim as any).version === 'number') {
+      (claim as any).version++;
+    }
+
+    return claim;
   }
 
   async findById(tenantId: string, id: string): Promise<Claim | null> {
