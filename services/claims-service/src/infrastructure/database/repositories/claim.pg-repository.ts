@@ -45,8 +45,7 @@ export class ClaimPgRepository {
 
     await this.save(claim, tenantId);
 
-    // For tests, update the claim object with the incremented version if using ClaimEntity directly.
-    if ('version' in claim && typeof (claim as any).version === 'number') {
+    if (typeof (claim as any).version === 'number') {
       (claim as any).version++;
     }
 
