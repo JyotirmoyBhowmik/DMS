@@ -154,6 +154,11 @@ export const SkuMappingManager: React.FC<{ role: UserRole }> = ({ role }) => {
   // Unmap SKU from Distributor
   const handleUnmapSku = async (skuId: string) => {
     if (!selectedDistributorId) return;
+
+    if (!window.confirm(`Are you sure you want to unmap SKU ${skuId}?`)) {
+      return;
+    }
+
     try {
       const res = await fetch(`/api/v1/distributors/${selectedDistributorId}/skus/${skuId}`, {
         method: 'DELETE'
@@ -428,6 +433,7 @@ export const SkuMappingManager: React.FC<{ role: UserRole }> = ({ role }) => {
 
                     <button
                       onClick={() => handleUnmapSku(m.sku)}
+                      aria-label={`Unmap SKU ${m.sku}`}
                       style={{ padding: '4px 8px', backgroundColor: '#FEE2E2', color: '#B91C1C', border: '1px solid #FCA5A5', borderRadius: '4px', fontWeight: 700, fontSize: '11px', cursor: 'pointer', marginLeft: '4px' }}
                     >
                       ✕ Unmap
