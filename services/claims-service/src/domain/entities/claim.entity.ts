@@ -18,6 +18,22 @@ export class ClaimEntity {
   createdAt?: Date;
   updatedAt?: Date;
 
+
+  toJSON() {
+    return {
+      id: this.id,
+      tenantId: this.tenantId,
+      distributorId: this.distributorId,
+      schemeId: this.schemeId,
+      name: '', // Mock name or add to entity if needed
+      claimCode: this.id, // Mock claim code or add to entity
+      claimAmountCents: this.amount,
+      approvedAmountCents: this.settledAmount,
+      status: this.status,
+      version: this.version
+    };
+  }
+
   constructor(data: Partial<ClaimEntity>) {
     this.id = data.id || '';
     this.tenantId = data.tenantId || '';

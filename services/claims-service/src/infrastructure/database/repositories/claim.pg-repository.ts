@@ -13,7 +13,18 @@ export class ClaimPgRepository {
   async save(claim: Claim, _tenantId?: string): Promise<void> {
     ClaimPgRepository.inMemoryStore.set(claim.id, claim);
     try {
-      const data = claim.toJSON();
+      const data = typeof claim.toJSON === 'function' ? claim.toJSON() : {
+      id: claim.id,
+      tenantId: claim.tenantId || (claim as any)._tenantId || '',
+      distributorId: claim.distributorId || (claim as any)._distributorId || '',
+      schemeId: claim.schemeId || (claim as any)._schemeId || '',
+      name: (claim as any).name || (claim as any)._name || '',
+      claimCode: claim.claimCode || (claim as any)._claimCode || claim.id,
+      claimAmountCents: claim.claimAmountCents ?? (claim as any).amount ?? 0,
+      approvedAmountCents: claim.approvedAmountCents ?? (claim as any).settledAmount ?? 0,
+      status: claim.status || (claim as any)._status || 'raised',
+      version: claim.version !== undefined ? claim.version : ((claim as any)._version !== undefined ? (claim as any)._version : 1)
+    };
       await this.db.query(
         `INSERT INTO claims
           (id, tenant_id, distributor_id, scheme_id, name, claim_code, claim_amount_cents, approved_amount_cents, status, version)
@@ -31,7 +42,18 @@ export class ClaimPgRepository {
   }
 
   async update(claim: Claim, tenantId?: string): Promise<void> {
-    const data = claim.toJSON();
+    const data = typeof claim.toJSON === 'function' ? claim.toJSON() : {
+      id: claim.id,
+      tenantId: claim.tenantId || (claim as any)._tenantId || '',
+      distributorId: claim.distributorId || (claim as any)._distributorId || '',
+      schemeId: claim.schemeId || (claim as any)._schemeId || '',
+      name: (claim as any).name || (claim as any)._name || '',
+      claimCode: claim.claimCode || (claim as any)._claimCode || claim.id,
+      claimAmountCents: claim.claimAmountCents ?? (claim as any).amount ?? 0,
+      approvedAmountCents: claim.approvedAmountCents ?? (claim as any).settledAmount ?? 0,
+      status: claim.status || (claim as any)._status || 'raised',
+      version: claim.version !== undefined ? claim.version : ((claim as any)._version !== undefined ? (claim as any)._version : 1)
+    };
 
     // First let's check optimistic locking, because simple save() via INSERT ... ON CONFLICT
     // wouldn't enforce version concurrency conflict properly.
