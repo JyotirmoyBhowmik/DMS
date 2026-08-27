@@ -89,11 +89,13 @@ export const EnterpriseHierarchy: React.FC<{ role: UserRole }> = ({ role }) => {
 
   // Filter Distributors by Search Query
   const filteredDistributors = useMemo(() => {
+    // ⚡ Bolt: Hoisted searchQuery.toLowerCase() outside the filter loop to prevent redundant allocations
+    const lowerQuery = searchQuery.toLowerCase();
     return distributors.filter(d => {
       const matchesSearch =
-        d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.level.toLowerCase().includes(searchQuery.toLowerCase());
+        d.name.toLowerCase().includes(lowerQuery) ||
+        d.id.toLowerCase().includes(lowerQuery) ||
+        d.level.toLowerCase().includes(lowerQuery);
       return matchesSearch;
     });
   }, [distributors, searchQuery]);
