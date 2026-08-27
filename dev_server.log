@@ -3,7 +3,8 @@
 > vite
 
 
-  VITE v5.4.21  ready in 332 ms
+  VITE v5.4.21  ready in 273 ms
 
   ➜  Local:   http://localhost:3000/
   ➜  Network: use --host to expose
+6:04:42 PM [vite] hmr update /src/components/FormField.tsx
