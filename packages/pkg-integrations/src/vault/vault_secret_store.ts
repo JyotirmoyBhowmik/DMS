@@ -18,7 +18,7 @@ export class VaultSecretStore {
    */
   async storeTenantErpCredentials(
     tenantId: string,
-    credentials: ErpConnectionConfig
+    credentials: ErpConnectionConfig,
   ): Promise<void> {
     const vaultPath = `secret/data/tenants/${tenantId}/erp`;
     const serialized = JSON.stringify(credentials);
@@ -65,7 +65,7 @@ export class VaultSecretStore {
         });
 
         if (response.ok) {
-          const json = await response.json() as any;
+          const json = (await response.json()) as any;
           return json?.data?.data as ErpConnectionConfig;
         }
       }
@@ -80,13 +80,23 @@ export class VaultSecretStore {
       const decrypted = this.decryptAesGcm(encrypted);
       return JSON.parse(decrypted) as ErpConnectionConfig;
     } catch (err: any) {
-      this.logger.error(`Failed to decrypt tenant ERP credentials`, { tenantId, error: err.message });
+      this.logger.error(`Failed to decrypt tenant ERP credentials`, {
+        tenantId,
+        error: err.message,
+      });
       return null;
     }
   }
 
   private encryptAesGcm(plainText: string): string {
-    const key = crypto.scryptSync('dms-vault-secret-key-32-chars-long', 'salt', 32);
+    if (!process.env.VAULT_FALLBACK_SECRET) {
+      throw new Error(
+        'VAULT_FALLBACK_SECRET environment variable is required for fallback encryption',
+      );
+    }
+    const secret = process.env.VAULT_FALLBACK_SECRET;
+    const salt = process.env.VAULT_FALLBACK_SALT || 'salt';
+    const key = crypto.scryptSync(secret, salt, 32);
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
     let encrypted = cipher.update(plainText, 'utf8', 'hex');
@@ -97,11 +107,34 @@ export class VaultSecretStore {
 
   private decryptAesGcm(cipherText: string): string {
     const [ivHex, authTagHex, encryptedHex] = cipherText.split(':');
-    const key = crypto.scryptSync('dms-vault-secret-key-32-chars-long', 'salt', 32);
-    const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(ivHex, 'hex'));
-    decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
-    let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
+    const iv = Buffer.from(ivHex, 'hex');
+    const authTag = Buffer.from(authTagHex, 'hex');
+
+    // Try new secure key first
+    if (process.env.VAULT_FALLBACK_SECRET) {
+      try {
+        const secret = process.env.VAULT_FALLBACK_SECRET;
+        const salt = process.env.VAULT_FALLBACK_SALT || 'salt';
+        const key = crypto.scryptSync(secret, salt, 32);
+        const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+        decipher.setAuthTag(authTag);
+        let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        return decrypted;
+      } catch (err) {
+        // Fall back to legacy key on failure
+        this.logger.warn(
+          'Failed to decrypt with current VAULT_FALLBACK_SECRET, attempting legacy key',
+        );
+      }
+    }
+
+    // Legacy fallback to prevent data loss
+    const legacyKey = crypto.scryptSync('dms-vault-secret-key-32-chars-long', 'salt', 32);
+    const legacyDecipher = crypto.createDecipheriv('aes-256-gcm', legacyKey, iv);
+    legacyDecipher.setAuthTag(authTag);
+    let decrypted = legacyDecipher.update(encryptedHex, 'hex', 'utf8');
+    decrypted += legacyDecipher.final('utf8');
     return decrypted;
   }
 }
