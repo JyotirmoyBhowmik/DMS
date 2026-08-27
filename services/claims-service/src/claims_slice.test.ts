@@ -4,7 +4,13 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { Pool } from 'pg';
 import { createSign } from 'node:crypto';
-import { PostgresDatabaseClient, PgDriver, MigrationRunner, ConcurrencyError, EntityNotFoundError } from '@dms/pkg-database';
+import {
+  PostgresDatabaseClient,
+  PgDriver,
+  MigrationRunner,
+  ConcurrencyError,
+  EntityNotFoundError,
+} from '@dms/pkg-database';
 import { loadConfigSync } from '@dms/pkg-config';
 import { ClaimEntity } from './domain/entities/claim.entity.js';
 import { ClaimAggregate } from './domain/aggregates/claim.aggregate.js';
@@ -44,7 +50,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       const systemMigrationsDir = existsSync(join(rootDir, 'db/migrations/system'))
         ? join(rootDir, 'db/migrations/system')
         : join(rootDir, '../../db/migrations/system');
-      
+
       const claimsMigrationsDir = existsSync(join(rootDir, 'db/migrations/claims'))
         ? join(rootDir, 'db/migrations/claims')
         : join(rootDir, '../../db/migrations/claims');
@@ -56,13 +62,18 @@ describe('Claims Module & E2E Integration Tests', () => {
       const systemRunner = new MigrationRunner(db, { migrationsDir: systemMigrationsDir });
       await systemRunner.migrate();
 
-      const claimsRunner = new MigrationRunner(db, { migrationsDir: claimsMigrationsDir, tableName: 'claims_schema_migrations' });
+      const claimsRunner = new MigrationRunner(db, {
+        migrationsDir: claimsMigrationsDir,
+        tableName: 'claims_schema_migrations',
+      });
       await claimsRunner.migrate();
 
       gateway = new GatewayController();
       isDbAvailable = true;
     } catch {
-      console.log('Skipping Claims Module & E2E Integration Tests because live database is not reachable.');
+      console.log(
+        'Skipping Claims Module & E2E Integration Tests because live database is not reachable.',
+      );
     }
   });
 
@@ -76,9 +87,10 @@ describe('Claims Module & E2E Integration Tests', () => {
   beforeEach(async () => {
     if (!isDbAvailable) return;
     await db.query(`SET app.tenant_id = '${tenantA}'`);
-    await db.query('TRUNCATE TABLE claims, claim_audit_history, claims_outbox, claim_reconciliations RESTART IDENTITY CASCADE');
+    await db.query(
+      'TRUNCATE TABLE claims, claim_audit_history, claims_outbox, claim_reconciliations RESTART IDENTITY CASCADE',
+    );
   });
-
 
   // ─── 1. DOMAIN UNIT TESTS ──────────────────────────────────────────────────
   test('Domain: ClaimAggregate validates invariants, state machine transitions, and over-claim checks', () => {
@@ -133,11 +145,11 @@ describe('Claims Module & E2E Integration Tests', () => {
       status: 'validated',
     });
     const aggregate2 = new ClaimAggregate(entity2);
-    
+
     // Approve
     aggregate2.approve();
     assert.strictEqual(entity2.status, 'approved');
-    
+
     // Settle (Full Settlement)
     aggregate2.settle(5000);
     assert.strictEqual(entity2.status, 'settled');
@@ -147,50 +159,60 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+    const { Claim } = await import('./domain/entities/claim.js');
+    const claim = new Claim({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      name: 'Test Claim',
+      claimCode: 'CLM-000300',
+      claimAmountCents: 12000,
+      status: 'SUBMITTED',
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(claim, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
-    assert.strictEqual(saved.id, entity.id);
-    assert.strictEqual(saved.version, 1);
+    const saved = await claimRepo.findById(tenantA, claim.id);
+    assert.strictEqual(saved!.id, claim.id);
+    assert.strictEqual(saved!.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
-    assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    saved!.updateStatus('APPROVED');
+    await claimRepo.update(saved!, tenantA);
+    const updated = await claimRepo.findById(tenantA, claim.id);
+    assert.strictEqual(updated!.version, 2);
+    assert.strictEqual(updated!.status, 'APPROVED');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleClaim = new Claim({
+      ...updated!.toJSON(),
+      status: 'SUBMITTED',
+      version: 1,
+    });
+
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleClaim, tenantA);
       },
 
       (err: any) => {
         return err instanceof ConcurrencyError;
-      }
+      },
     );
 
     // 5. Verify RLS Isolation
     await assert.rejects(
       async () => {
-        await claimRepo.findById(tenantB, entity.id);
+        const found = await claimRepo.findById(tenantB, claim.id);
+        if (!found) throw new EntityNotFoundError('Claim', { id: claim.id });
       },
       (err: any) => {
         return err instanceof EntityNotFoundError;
-      }
+      },
     );
   });
 
@@ -202,25 +224,29 @@ describe('Claims Module & E2E Integration Tests', () => {
     await db.query(
       `INSERT INTO schemes (id, tenant_id, name, type, status, rules, created_at, updated_at) 
        VALUES ($1, $2, 'Test Scheme', 'volume_discount', 'active', '{}', NOW(), NOW())`,
-      [schemeId, tenantA]
+      [schemeId, tenantA],
     );
 
     // Generate JWT Token for Tenant A
     const keyRecord = KeyManager.getInstance().getSigningKey();
     const iat = Math.floor(Date.now() / 1000);
     const exp = iat + 3600;
-    
-    const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT', kid: keyRecord.kid })).toString('base64url');
-    const payload = Buffer.from(JSON.stringify({
-      sub: 'distributor-user-uuid',
-      email: 'distributor@distributor.com',
-      tenantId: tenantA,
-      roles: ['admin'],
-      iss: config.security.jwtIssuer,
-      aud: config.security.jwtAudience,
-      iat,
-      exp,
-    })).toString('base64url');
+
+    const header = Buffer.from(
+      JSON.stringify({ alg: 'RS256', typ: 'JWT', kid: keyRecord.kid }),
+    ).toString('base64url');
+    const payload = Buffer.from(
+      JSON.stringify({
+        sub: 'distributor-user-uuid',
+        email: 'distributor@distributor.com',
+        tenantId: tenantA,
+        roles: ['admin'],
+        iss: config.security.jwtIssuer,
+        aud: config.security.jwtAudience,
+        iat,
+        exp,
+      }),
+    ).toString('base64url');
 
     const signatureInput = `${header}.${payload}`;
     const signer = createSign('RSA-SHA256');
@@ -235,7 +261,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       method: 'POST',
       path: '/api/v1/claims',
       headers: {
-        'authorization': `Bearer ${token}`,
+        authorization: `Bearer ${token}`,
         'x-tenant-id': tenantA,
         'content-type': 'application/json',
       },
@@ -256,7 +282,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       method: 'POST',
       path: `/api/v1/claims/${claimId}/validate`,
       headers: {
-        'authorization': `Bearer ${token}`,
+        authorization: `Bearer ${token}`,
         'x-tenant-id': tenantA,
         'content-type': 'application/json',
       },
@@ -272,7 +298,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       method: 'POST',
       path: `/api/v1/claims/${claimId}/approve`,
       headers: {
-        'authorization': `Bearer ${token}`,
+        authorization: `Bearer ${token}`,
         'x-tenant-id': tenantA,
         'content-type': 'application/json',
       },
@@ -288,7 +314,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       method: 'POST',
       path: `/api/v1/claims/${claimId}/settle`,
       headers: {
-        'authorization': `Bearer ${token}`,
+        authorization: `Bearer ${token}`,
         'x-tenant-id': tenantA,
         'content-type': 'application/json',
       },
@@ -300,14 +326,14 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(settleResult.status, 200);
     assert.strictEqual(settleResult.body.success, true);
-    assert.strictEqual(((settleResult.body as any).transaction).status, 'settled');
+    assert.strictEqual((settleResult.body as any).transaction.status, 'settled');
 
     // 5. Test Idempotency (Repeat settle request with same key)
     const settleRepeatResult = await gateway.handleRequest({
       method: 'POST',
       path: `/api/v1/claims/${claimId}/settle`,
       headers: {
-        'authorization': `Bearer ${token}`,
+        authorization: `Bearer ${token}`,
         'x-tenant-id': tenantA,
         'content-type': 'application/json',
       },
@@ -324,7 +350,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     const auditRows = await db.query<any>(
       `SELECT * FROM claim_audit_history WHERE claim_id = $1 ORDER BY created_at ASC`,
       [claimId],
-      tenantA
+      tenantA,
     );
     assert.strictEqual(auditRows.rows.length, 4); // raised, validate, approve, settle
     assert.strictEqual(auditRows.rows[0].action, 'raised');
@@ -333,7 +359,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     const outboxRows = await db.query<any>(
       `SELECT * FROM claims_outbox WHERE aggregate_id = $1`,
       [claimId],
-      tenantA
+      tenantA,
     );
     assert.strictEqual(outboxRows.rows.length, 4);
     assert.strictEqual(outboxRows.rows[0].event_type, 'claim.raised');
