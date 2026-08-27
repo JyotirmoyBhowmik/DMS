@@ -257,16 +257,18 @@ describe('Claims Module & E2E Integration Tests', () => {
         'content-type': 'application/json',
       },
       body: {
-        id: claimId,
+        name: 'Test Claim API',
+        claimCode: 'CLM-002',
         distributorId,
         schemeId,
-        amount: 8500,
+        claimAmountCents: 8500,
       },
     });
 
     assert.strictEqual(createResult.status, 201);
     assert.strictEqual(createResult.body.success, true);
-    assert.strictEqual((createResult.body as any).status, 'raised');
+    assert.strictEqual((createResult.body as any).claim.status, 'SUBMITTED');
+    const createdClaimId = (createResult.body as any).claim.id;
 
     // 2. POST /api/v1/claims/:id/validate
     const validateResult = await gateway.handleRequest({
