@@ -147,35 +147,44 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+    const { Claim } = await import('./domain/entities/claim.js');
+    const claim = new Claim({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      name: 'Test Claim',
+      claimCode: 'CLM-000300',
+      claimAmountCents: 12000,
+      status: 'SUBMITTED',
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(claim, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
-    assert.strictEqual(saved.id, entity.id);
-    assert.strictEqual(saved.version, 1);
+    const saved = await claimRepo.findById(tenantA, claim.id);
+    assert.strictEqual(saved!.id, claim.id);
+    assert.strictEqual(saved!.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
-    assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    saved!.updateStatus('APPROVED');
+    await claimRepo.update(saved!, tenantA);
+    const updated = await claimRepo.findById(tenantA, claim.id);
+    assert.strictEqual(updated!.version, 2);
+    assert.strictEqual(updated!.status, 'APPROVED');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleClaim = new Claim({
+      ...updated!.toJSON(),
+      status: 'SUBMITTED',
+      version: 1,
+    });
+
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleClaim, tenantA);
       },
 
       (err: any) => {
@@ -186,7 +195,8 @@ describe('Claims Module & E2E Integration Tests', () => {
     // 5. Verify RLS Isolation
     await assert.rejects(
       async () => {
-        await claimRepo.findById(tenantB, entity.id);
+        const found = await claimRepo.findById(tenantB, claim.id);
+        if (!found) throw new EntityNotFoundError('Claim', { id: claim.id });
       },
       (err: any) => {
         return err instanceof EntityNotFoundError;
