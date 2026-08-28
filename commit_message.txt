@@ -1,0 +1,5 @@
+fix: link label to input in FormField for accessibility and fix claim tests
+
+Automatically generate and assign a unique ID to the child element (if it doesn't have one) and link it to the `htmlFor` attribute of the `<label>` in `FormField`. This improves accessibility by ensuring screen readers correctly associate labels with inputs and allows users to click the label to focus the input field.
+
+Also fixes a failing test in `@dms/claims-service` where `ClaimEntity` was incorrectly passed to `ClaimPgRepository.save` and `ClaimPgRepository.update` instead of the required `Claim` domain aggregate. The tests have been updated to properly instantiate and update the `Claim` object.
