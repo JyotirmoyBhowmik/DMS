@@ -23,7 +23,9 @@ export class RoleAuditService {
       timestamp: entry.timestamp || new Date(),
     };
     RoleAuditService.auditLogs.push(record);
-    this.logger.info(`Role Audit log recorded: [${record.action}] for Role:${record.entityId} by ${record.actorId}`);
+    this.logger.info(
+      `Role Audit log recorded: [${record.action}] for Role:${record.entityId} by ${record.actorId}`,
+    );
   }
 
   static getAuditLogs(): AuditLogEntry[] {

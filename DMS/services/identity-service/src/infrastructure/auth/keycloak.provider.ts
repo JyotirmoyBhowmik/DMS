@@ -18,7 +18,8 @@ export class KeycloakOidcProvider {
   private clientId: string;
 
   constructor(issuerUrl?: string, clientId?: string) {
-    this.issuerUrl = issuerUrl ?? process.env.KEYCLOAK_ISSUER_URL ?? 'http://localhost:8080/realms/dms';
+    this.issuerUrl =
+      issuerUrl ?? process.env.KEYCLOAK_ISSUER_URL ?? 'http://localhost:8080/realms/dms';
     this.clientId = clientId ?? process.env.KEYCLOAK_CLIENT_ID ?? 'dms-app';
   }
 

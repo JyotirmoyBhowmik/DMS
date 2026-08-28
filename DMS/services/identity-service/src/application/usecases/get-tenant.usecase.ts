@@ -5,7 +5,11 @@ import { Principal } from './create-user.usecase.js';
 export class GetTenantUseCase {
   constructor(private readonly repository: TenantRepository) {}
 
-  async execute(principal: Principal, tenantEntityId: string, correlationId?: string): Promise<TenantAggregate> {
+  async execute(
+    principal: Principal,
+    tenantEntityId: string,
+    correlationId?: string,
+  ): Promise<TenantAggregate> {
     if (!principal || !principal.tenantId) {
       throw new TenantDomainError('Forbidden: Valid principal and tenantId are required');
     }

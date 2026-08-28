@@ -8,7 +8,9 @@ export class RolePgRepository implements RoleRepository {
 
   async save(role: RoleAggregate, tenantId: string): Promise<RoleAggregate> {
     if (role.tenantId && role.tenantId !== tenantId) {
-      throw new RoleDomainError(`Tenant mismatch: Role tenant '${role.tenantId}' does not match context '${tenantId}'`);
+      throw new RoleDomainError(
+        `Tenant mismatch: Role tenant '${role.tenantId}' does not match context '${tenantId}'`,
+      );
     }
 
     RolePgRepository.inMemoryDb.set(role.id, role);
@@ -26,9 +28,16 @@ export class RolePgRepository implements RoleRepository {
             RETURNING *;
           `;
           const values = [
-            role.id, role.tenantId || tenantId, role.name, role.description || null,
-            role.isSystem || false, role.status || 'ACTIVE', role.idempotencyKey || null,
-            role.version || 1, role.createdAt || new Date(), role.updatedAt || new Date()
+            role.id,
+            role.tenantId || tenantId,
+            role.name,
+            role.description || null,
+            role.isSystem || false,
+            role.status || 'ACTIVE',
+            role.idempotencyKey || null,
+            role.version || 1,
+            role.createdAt || new Date(),
+            role.updatedAt || new Date(),
           ];
           await client.query(query, values);
         } finally {
@@ -50,7 +59,7 @@ export class RolePgRepository implements RoleRepository {
           await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
           const res = await client.query(
             'SELECT * FROM identity_roles WHERE id = $1 AND tenant_id = $2',
-            [id, tenantId]
+            [id, tenantId],
           );
           if (res.rows.length === 0) return null;
           return this.mapRowToEntity(res.rows[0]);
@@ -77,7 +86,7 @@ export class RolePgRepository implements RoleRepository {
           await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
           const res = await client.query(
             'SELECT * FROM identity_roles WHERE LOWER(name) = $1 AND tenant_id = $2',
-            [normalized, tenantId]
+            [normalized, tenantId],
           );
           if (res.rows.length === 0) return null;
           return this.mapRowToEntity(res.rows[0]);
@@ -97,7 +106,10 @@ export class RolePgRepository implements RoleRepository {
     return null;
   }
 
-  async list(tenantId: string, options?: ListRolesOptions): Promise<{ items: RoleAggregate[]; total: number }> {
+  async list(
+    tenantId: string,
+    options?: ListRolesOptions,
+  ): Promise<{ items: RoleAggregate[]; total: number }> {
     const page = options?.page || 1;
     const limit = Math.min(options?.limit || 20, 100);
     const offset = (page - 1) * limit;
@@ -118,12 +130,19 @@ export class RolePgRepository implements RoleRepository {
           query += ` AND LOWER(name) LIKE $${params.length}`;
         }
 
-        query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+        query +=
+          ' ORDER BY created_at DESC LIMIT $' +
+          (params.length + 1) +
+          ' OFFSET $' +
+          (params.length + 2);
         params.push(limit, offset);
 
         const res = await client.query(query, params);
-        const countRes = await client.query('SELECT COUNT(*) FROM identity_roles WHERE tenant_id = $1', [tenantId]);
-        
+        const countRes = await client.query(
+          'SELECT COUNT(*) FROM identity_roles WHERE tenant_id = $1',
+          [tenantId],
+        );
+
         return {
           items: res.rows.map((row: any) => this.mapRowToEntity(row)),
           total: parseInt(countRes.rows[0].count, 10),
@@ -133,14 +152,16 @@ export class RolePgRepository implements RoleRepository {
       }
     }
 
-    let items = Array.from(RolePgRepository.inMemoryDb.values()).filter(r => r.tenantId === tenantId);
+    let items = Array.from(RolePgRepository.inMemoryDb.values()).filter(
+      (r) => r.tenantId === tenantId,
+    );
 
     if (options?.status) {
-      items = items.filter(r => r.status === options.status);
+      items = items.filter((r) => r.status === options.status);
     }
     if (options?.searchName) {
       const q = options.searchName.toLowerCase();
-      items = items.filter(r => r.name.toLowerCase().includes(q));
+      items = items.filter((r) => r.name.toLowerCase().includes(q));
     }
 
     const total = items.length;
@@ -160,9 +181,13 @@ export class RolePgRepository implements RoleRepository {
       throw new RoleDomainError(`Role with id '${role.id}' not found`);
     }
 
-    if (existing.version !== undefined && role.version !== undefined && existing.version !== role.version) {
+    if (
+      existing.version !== undefined &&
+      role.version !== undefined &&
+      existing.version !== role.version
+    ) {
       throw new RoleDomainError(
-        `Optimistic concurrency conflict for Role '${role.id}': expected v${role.version}, found v${existing.version}`
+        `Optimistic concurrency conflict for Role '${role.id}': expected v${role.version}, found v${existing.version}`,
       );
     }
 
@@ -192,7 +217,14 @@ export class RolePgRepository implements RoleRepository {
             WHERE id = $4 AND tenant_id = $5 AND version = $6
             RETURNING *;
           `;
-          await client.query(query, [role.name, role.description || null, role.status, role.id, tenantId, role.version]);
+          await client.query(query, [
+            role.name,
+            role.description || null,
+            role.status,
+            role.id,
+            tenantId,
+            role.version,
+          ]);
         } finally {
           client.release();
         }
@@ -216,7 +248,10 @@ export class RolePgRepository implements RoleRepository {
       const client = await this.dbPool.connect();
       try {
         await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        await client.query('DELETE FROM identity_roles WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
+        await client.query('DELETE FROM identity_roles WHERE id = $1 AND tenant_id = $2', [
+          id,
+          tenantId,
+        ]);
       } finally {
         client.release();
       }

@@ -16,7 +16,9 @@ export class RoleEventConsumer {
 
   async consume(event: DomainEventEnvelope): Promise<{ success: boolean; reason?: string }> {
     if (!event || !event.id || !event.tenantId || !event.name) {
-      this.logger.error('POISON_EVENT: Invalid event schema or missing envelope headers', { event });
+      this.logger.error('POISON_EVENT: Invalid event schema or missing envelope headers', {
+        event,
+      });
       this.dlq.push(event);
       return { success: false, reason: 'POISON_EVENT' };
     }
@@ -26,7 +28,9 @@ export class RoleEventConsumer {
       return { success: true, reason: 'DUPLICATE_SKIPPED' };
     }
 
-    this.logger.info(`Processing event [${event.name}] id=${event.id} for tenant=${event.tenantId}`);
+    this.logger.info(
+      `Processing event [${event.name}] id=${event.id} for tenant=${event.tenantId}`,
+    );
 
     try {
       this.processedEventIds.add(event.id);

@@ -5,7 +5,10 @@ import {
   MFADeviceDomainError,
   InvalidMFADeviceStateTransitionError,
 } from './domain/entities/mfa_device.entity.js';
-import { validateCreateMFADeviceInput, validateUpdateMFADeviceInput } from './domain/validation/mfa_device.validation.js';
+import {
+  validateCreateMFADeviceInput,
+  validateUpdateMFADeviceInput,
+} from './domain/validation/mfa_device.validation.js';
 import { MFADevicePgRepository } from './infrastructure/database/repositories/mfa_device.pg-repository.js';
 import { CreateMFADeviceUseCase } from './application/usecases/create-mfa-device.usecase.js';
 import { GetMFADeviceUseCase } from './application/usecases/get-mfa-device.usecase.js';
@@ -77,23 +80,47 @@ describe('MFADevice Full Vertical Slice QA & Security Suite (Tasks 1525-1543)', 
   describe('Task 1526 & 1533: MFADevice Domain Entity & Invariants', () => {
     test('enforces constructor invariants: tenantId, userId, type, secretEncrypted non-empty', () => {
       assert.throws(
-        () => new MFADeviceAggregate({ tenantId: '', userId: 'u1', type: 'TOTP', secretEncrypted: 'enc' }),
-        /tenantId is required/
+        () =>
+          new MFADeviceAggregate({
+            tenantId: '',
+            userId: 'u1',
+            type: 'TOTP',
+            secretEncrypted: 'enc',
+          }),
+        /tenantId is required/,
       );
 
       assert.throws(
-        () => new MFADeviceAggregate({ tenantId: tenantA, userId: '', type: 'TOTP', secretEncrypted: 'enc' }),
-        /userId is required/
+        () =>
+          new MFADeviceAggregate({
+            tenantId: tenantA,
+            userId: '',
+            type: 'TOTP',
+            secretEncrypted: 'enc',
+          }),
+        /userId is required/,
       );
 
       assert.throws(
-        () => new MFADeviceAggregate({ tenantId: tenantA, userId: 'u1', type: 'INVALID' as any, secretEncrypted: 'enc' }),
-        /Invalid MFADevice type/
+        () =>
+          new MFADeviceAggregate({
+            tenantId: tenantA,
+            userId: 'u1',
+            type: 'INVALID' as any,
+            secretEncrypted: 'enc',
+          }),
+        /Invalid MFADevice type/,
       );
 
       assert.throws(
-        () => new MFADeviceAggregate({ tenantId: tenantA, userId: 'u1', type: 'TOTP', secretEncrypted: '  ' }),
-        /secretEncrypted is required/
+        () =>
+          new MFADeviceAggregate({
+            tenantId: tenantA,
+            userId: 'u1',
+            type: 'TOTP',
+            secretEncrypted: '  ',
+          }),
+        /secretEncrypted is required/,
       );
     });
 
@@ -117,10 +144,7 @@ describe('MFADevice Full Vertical Slice QA & Security Suite (Tasks 1525-1543)', 
       assert.strictEqual(device.isActive, false);
 
       // Attempt usage on inactive device throws
-      assert.throws(
-        () => device.recordUse(),
-        InvalidMFADeviceStateTransitionError
-      );
+      assert.throws(() => device.recordUse(), InvalidMFADeviceStateTransitionError);
 
       // Reactivate
       device.activate();
@@ -154,8 +178,14 @@ describe('MFADevice Full Vertical Slice QA & Security Suite (Tasks 1525-1543)', 
       assert.strictEqual(valid.type, 'TOTP');
 
       assert.throws(
-        () => validateCreateMFADeviceInput({ userId: 'u1', type: 'TOTP', secretEncrypted: 'sec', maliciousProperty: 'hack' }),
-        /Mass assignment violation/
+        () =>
+          validateCreateMFADeviceInput({
+            userId: 'u1',
+            type: 'TOTP',
+            secretEncrypted: 'sec',
+            maliciousProperty: 'hack',
+          }),
+        /Mass assignment violation/,
       );
     });
 
@@ -165,7 +195,7 @@ describe('MFADevice Full Vertical Slice QA & Security Suite (Tasks 1525-1543)', 
 
       assert.throws(
         () => validateUpdateMFADeviceInput({ isActive: false }),
-        /Validation failed for UpdateMFADevice input/
+        /Validation failed for UpdateMFADevice input/,
       );
     });
   });
@@ -238,8 +268,9 @@ describe('MFADevice Full Vertical Slice QA & Security Suite (Tasks 1525-1543)', 
       };
 
       await assert.rejects(
-        () => useCase.execute(guestPrincipal, { userId: 'u1', type: 'TOTP', secretEncrypted: 'enc' }),
-        { name: 'MFADeviceDomainError' }
+        () =>
+          useCase.execute(guestPrincipal, { userId: 'u1', type: 'TOTP', secretEncrypted: 'enc' }),
+        { name: 'MFADeviceDomainError' },
       );
     });
   });
@@ -251,7 +282,12 @@ describe('MFADevice Full Vertical Slice QA & Security Suite (Tasks 1525-1543)', 
       const repoA = new MFADevicePgRepository(undefined, storeA);
       const repoB = new MFADevicePgRepository(undefined, storeB);
 
-      const devA = new MFADeviceAggregate({ tenantId: tenantA, userId: 'uA', type: 'TOTP', secretEncrypted: 'encA' });
+      const devA = new MFADeviceAggregate({
+        tenantId: tenantA,
+        userId: 'uA',
+        type: 'TOTP',
+        secretEncrypted: 'encA',
+      });
       await repoA.save(devA, tenantA);
 
       const fetchedFromB = await repoB.findById(devA.id, tenantB);
@@ -280,7 +316,7 @@ describe('MFADevice Full Vertical Slice QA & Security Suite (Tasks 1525-1543)', 
       // POST - Create
       const createRes = await controller.handlePostMFADevice(
         { userId: 'api-usr-1', type: 'TOTP', secretEncrypted: 'enc-totp' },
-        headers
+        headers,
       );
       assert.strictEqual(createRes.statusCode, 201);
       assert.strictEqual(createRes.body.userId, 'api-usr-1');
@@ -295,7 +331,11 @@ describe('MFADevice Full Vertical Slice QA & Security Suite (Tasks 1525-1543)', 
       assert.ok(Array.isArray(listRes.body.items));
 
       // PUT - Update
-      const updateRes = await controller.handlePutMFADevice(createRes.body.id, { isActive: false, version: 1 }, headers);
+      const updateRes = await controller.handlePutMFADevice(
+        createRes.body.id,
+        { isActive: false, version: 1 },
+        headers,
+      );
       assert.strictEqual(updateRes.statusCode, 200);
 
       // DELETE

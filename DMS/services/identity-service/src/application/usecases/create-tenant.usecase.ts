@@ -10,7 +10,12 @@ export class CreateTenantUseCase {
 
   constructor(private readonly repository: TenantRepository) {}
 
-  async execute(principal: Principal, dto: CreateTenantDto, idempotencyKey?: string, correlationId?: string): Promise<TenantAggregate> {
+  async execute(
+    principal: Principal,
+    dto: CreateTenantDto,
+    idempotencyKey?: string,
+    correlationId?: string,
+  ): Promise<TenantAggregate> {
     if (!principal || !principal.tenantId) {
       throw new TenantDomainError('Forbidden: Valid principal and tenantId are required');
     }

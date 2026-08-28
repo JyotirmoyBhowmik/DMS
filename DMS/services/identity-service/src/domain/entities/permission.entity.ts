@@ -15,7 +15,10 @@ export class InvalidPermissionStateTransitionError extends PermissionDomainError
 }
 
 export class PermissionValidationError extends PermissionDomainError {
-  constructor(public readonly fields: Record<string, string>, message = 'Permission validation failed') {
+  constructor(
+    public readonly fields: Record<string, string>,
+    message = 'Permission validation failed',
+  ) {
     const detail = Object.values(fields).join('; ');
     super(detail ? `${message}: ${detail}` : message);
     this.name = 'PermissionValidationError';
@@ -84,18 +87,42 @@ export class PermissionAggregate {
     this._updatedAt = props.updatedAt || new Date();
   }
 
-  get id(): string { return this._id; }
-  get tenantId(): string { return this._tenantId; }
-  get name(): string { return this._name; }
-  get resource(): string { return this._resource; }
-  get action(): string { return this._action; }
-  get description(): string | undefined { return this._description; }
-  get status(): PermissionStatus { return this._status; }
-  get idempotencyKey(): string | undefined { return this._idempotencyKey; }
-  get version(): number { return this._version; }
-  get createdAt(): Date { return this._createdAt; }
-  get updatedAt(): Date { return this._updatedAt; }
-  get domainEvents(): DomainEvent[] { return [...this._domainEvents]; }
+  get id(): string {
+    return this._id;
+  }
+  get tenantId(): string {
+    return this._tenantId;
+  }
+  get name(): string {
+    return this._name;
+  }
+  get resource(): string {
+    return this._resource;
+  }
+  get action(): string {
+    return this._action;
+  }
+  get description(): string | undefined {
+    return this._description;
+  }
+  get status(): PermissionStatus {
+    return this._status;
+  }
+  get idempotencyKey(): string | undefined {
+    return this._idempotencyKey;
+  }
+  get version(): number {
+    return this._version;
+  }
+  get createdAt(): Date {
+    return this._createdAt;
+  }
+  get updatedAt(): Date {
+    return this._updatedAt;
+  }
+  get domainEvents(): DomainEvent[] {
+    return [...this._domainEvents];
+  }
 
   public clearEvents(): void {
     this._domainEvents = [];
@@ -142,7 +169,7 @@ export class PermissionAggregate {
     const allowed = validTransitions[this._status] || [];
     if (!allowed.includes(newStatus)) {
       throw new InvalidPermissionStateTransitionError(
-        `Cannot transition Permission from state '${this._status}' to '${newStatus}'`
+        `Cannot transition Permission from state '${this._status}' to '${newStatus}'`,
       );
     }
 

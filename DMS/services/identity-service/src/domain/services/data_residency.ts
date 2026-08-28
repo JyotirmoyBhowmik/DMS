@@ -38,7 +38,9 @@ export class DataResidencyService {
   /**
    * Resolves region-pinned infrastructure endpoints for enterprise data residency requirements.
    */
-  static getRegionalInfrastructure(region: DataRegion = 'ap-south-1'): RegionalInfrastructureConfig {
+  static getRegionalInfrastructure(
+    region: DataRegion = 'ap-south-1',
+  ): RegionalInfrastructureConfig {
     return this.REGIONAL_CONFIGS[region] || this.REGIONAL_CONFIGS['ap-south-1'];
   }
 }

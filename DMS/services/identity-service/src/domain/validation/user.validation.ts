@@ -8,16 +8,10 @@ const ALLOWED_CREATE_KEYS = new Set([
   'firstName',
   'lastName',
   'roles',
-  'idempotencyKey'
+  'idempotencyKey',
 ]);
 
-const ALLOWED_UPDATE_KEYS = new Set([
-  'status',
-  'roles',
-  'firstName',
-  'lastName',
-  'version'
-]);
+const ALLOWED_UPDATE_KEYS = new Set(['status', 'roles', 'firstName', 'lastName', 'version']);
 
 export function validateCreateUserInput(rawInput: any): CreateUserDto {
   if (!rawInput || typeof rawInput !== 'object') {
@@ -46,7 +40,11 @@ export function validateCreateUserInput(rawInput: any): CreateUserDto {
     }
   }
 
-  if (!rawInput.passwordHash || typeof rawInput.passwordHash !== 'string' || rawInput.passwordHash.trim().length === 0) {
+  if (
+    !rawInput.passwordHash ||
+    typeof rawInput.passwordHash !== 'string' ||
+    rawInput.passwordHash.trim().length === 0
+  ) {
     errors.passwordHash = 'passwordHash is required and must be a non-empty string';
   }
 
@@ -83,7 +81,10 @@ export function validateUpdateUserInput(rawInput: any): UpdateUserDto {
     }
   }
 
-  if (rawInput.version !== undefined && (typeof rawInput.version !== 'number' || rawInput.version < 1)) {
+  if (
+    rawInput.version !== undefined &&
+    (typeof rawInput.version !== 'number' || rawInput.version < 1)
+  ) {
     errors.version = 'version must be a positive integer >= 1';
   }
 

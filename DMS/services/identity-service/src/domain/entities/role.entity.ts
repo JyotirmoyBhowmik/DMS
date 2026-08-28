@@ -15,7 +15,10 @@ export class InvalidRoleStateTransitionError extends RoleDomainError {
 }
 
 export class RoleValidationError extends RoleDomainError {
-  constructor(public readonly fields: Record<string, string>, message = 'Role validation failed') {
+  constructor(
+    public readonly fields: Record<string, string>,
+    message = 'Role validation failed',
+  ) {
     const detail = Object.values(fields).join('; ');
     super(detail ? `${message}: ${detail}` : message);
     this.name = 'RoleValidationError';
@@ -75,17 +78,39 @@ export class RoleAggregate {
     this._updatedAt = props.updatedAt || new Date();
   }
 
-  get id(): string { return this._id; }
-  get tenantId(): string { return this._tenantId; }
-  get name(): string { return this._name; }
-  get description(): string | undefined { return this._description; }
-  get isSystem(): boolean { return this._isSystem; }
-  get status(): RoleStatus { return this._status; }
-  get idempotencyKey(): string | undefined { return this._idempotencyKey; }
-  get version(): number { return this._version; }
-  get createdAt(): Date { return this._createdAt; }
-  get updatedAt(): Date { return this._updatedAt; }
-  get domainEvents(): DomainEvent[] { return [...this._domainEvents]; }
+  get id(): string {
+    return this._id;
+  }
+  get tenantId(): string {
+    return this._tenantId;
+  }
+  get name(): string {
+    return this._name;
+  }
+  get description(): string | undefined {
+    return this._description;
+  }
+  get isSystem(): boolean {
+    return this._isSystem;
+  }
+  get status(): RoleStatus {
+    return this._status;
+  }
+  get idempotencyKey(): string | undefined {
+    return this._idempotencyKey;
+  }
+  get version(): number {
+    return this._version;
+  }
+  get createdAt(): Date {
+    return this._createdAt;
+  }
+  get updatedAt(): Date {
+    return this._updatedAt;
+  }
+  get domainEvents(): DomainEvent[] {
+    return [...this._domainEvents];
+  }
 
   public clearEvents(): void {
     this._domainEvents = [];
@@ -134,7 +159,7 @@ export class RoleAggregate {
     const allowed = validTransitions[this._status] || [];
     if (!allowed.includes(newStatus)) {
       throw new InvalidRoleStateTransitionError(
-        `Cannot transition Role from state '${this._status}' to '${newStatus}'`
+        `Cannot transition Role from state '${this._status}' to '${newStatus}'`,
       );
     }
 

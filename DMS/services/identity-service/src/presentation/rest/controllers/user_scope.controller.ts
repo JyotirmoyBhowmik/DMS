@@ -38,10 +38,7 @@ export class UserScopeController {
     }
   }
 
-  async handleGetUserScope(
-    userId: string,
-    headers: Record<string, string>,
-  ): Promise<HttpResponse> {
+  async handleGetUserScope(userId: string, headers: Record<string, string>): Promise<HttpResponse> {
     const tenantId = headers['x-tenant-id'] ?? '';
     const rolesHeader = headers['x-user-roles'] ?? 'agent';
     try {

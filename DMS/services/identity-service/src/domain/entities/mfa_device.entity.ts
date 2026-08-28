@@ -17,7 +17,10 @@ export class InvalidMFADeviceStateTransitionError extends Error {
 }
 
 export class MFADeviceValidationError extends Error {
-  constructor(message: string, public readonly fields?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly fields?: Record<string, string>,
+  ) {
     super(message);
     this.name = 'MFADeviceValidationError';
   }
@@ -61,7 +64,9 @@ export class MFADeviceAggregate {
 
     const validTypes: MfaType[] = ['TOTP', 'SMS', 'EMAIL', 'SECURITY_KEY'];
     if (!validTypes.includes(props.type)) {
-      throw new MFADeviceDomainError(`Invalid MFADevice type '${props.type}'. Allowed types: ${validTypes.join(', ')}`);
+      throw new MFADeviceDomainError(
+        `Invalid MFADevice type '${props.type}'. Allowed types: ${validTypes.join(', ')}`,
+      );
     }
 
     if (!props.secretEncrypted || props.secretEncrypted.trim().length === 0) {
@@ -81,17 +86,39 @@ export class MFADeviceAggregate {
     this._updatedAt = props.updatedAt ? new Date(props.updatedAt) : new Date();
   }
 
-  get id(): string { return this._id; }
-  get tenantId(): string { return this._tenantId; }
-  get userId(): string { return this._userId; }
-  get type(): MfaType { return this._type; }
-  get secretEncrypted(): string { return this._secretEncrypted; }
-  get isActive(): boolean { return this._isActive; }
-  get lastUsedAt(): Date | null { return this._lastUsedAt; }
-  get idempotencyKey(): string | undefined { return this._idempotencyKey; }
-  get version(): number { return this._version; }
-  get createdAt(): Date { return this._createdAt; }
-  get updatedAt(): Date { return this._updatedAt; }
+  get id(): string {
+    return this._id;
+  }
+  get tenantId(): string {
+    return this._tenantId;
+  }
+  get userId(): string {
+    return this._userId;
+  }
+  get type(): MfaType {
+    return this._type;
+  }
+  get secretEncrypted(): string {
+    return this._secretEncrypted;
+  }
+  get isActive(): boolean {
+    return this._isActive;
+  }
+  get lastUsedAt(): Date | null {
+    return this._lastUsedAt;
+  }
+  get idempotencyKey(): string | undefined {
+    return this._idempotencyKey;
+  }
+  get version(): number {
+    return this._version;
+  }
+  get createdAt(): Date {
+    return this._createdAt;
+  }
+  get updatedAt(): Date {
+    return this._updatedAt;
+  }
 
   // State Machine methods
   activate(): void {
@@ -120,7 +147,9 @@ export class MFADeviceAggregate {
 
   recordUse(): void {
     if (!this._isActive) {
-      throw new InvalidMFADeviceStateTransitionError('Cannot record usage of an inactive MFA device');
+      throw new InvalidMFADeviceStateTransitionError(
+        'Cannot record usage of an inactive MFA device',
+      );
     }
     this._lastUsedAt = new Date();
     this._updatedAt = new Date();

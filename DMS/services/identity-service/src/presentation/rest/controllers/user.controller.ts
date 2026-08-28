@@ -2,7 +2,11 @@ import { CreateUserUseCase, Principal } from '../../../application/usecases/crea
 import { GetUserUseCase } from '../../../application/usecases/get-user.usecase.js';
 import { UpdateUserUseCase } from '../../../application/usecases/update-user.usecase.js';
 import { ListUsersUseCase } from '../../../application/usecases/list-users.usecase.js';
-import { UserDomainError, UserValidationError, InvalidUserStateTransitionError } from '../../../domain/entities/user.entity.js';
+import {
+  UserDomainError,
+  UserValidationError,
+  InvalidUserStateTransitionError,
+} from '../../../domain/entities/user.entity.js';
 import { UserPgRepository } from '../../../infrastructure/database/repositories/user.pg-repository.js';
 
 export class UserController {
@@ -15,7 +19,7 @@ export class UserController {
     createUseCase?: CreateUserUseCase,
     getUseCase?: GetUserUseCase,
     updateUseCase?: UpdateUserUseCase,
-    listUseCase?: ListUsersUseCase
+    listUseCase?: ListUsersUseCase,
   ) {
     const repo = new UserPgRepository();
     this.createUseCase = createUseCase || new CreateUserUseCase(repo);
@@ -29,9 +33,16 @@ export class UserController {
       this.validateHeaders(req);
       const principal = this.extractPrincipal(req);
       const correlationId = (req.headers && req.headers['x-correlation-id']) || 'N/A';
-      const idempotencyKey = (req.headers && req.headers['x-idempotency-key']) as string | undefined;
+      const idempotencyKey = (req.headers && req.headers['x-idempotency-key']) as
+        | string
+        | undefined;
 
-      const user = await this.createUseCase.execute(principal, req.body, idempotencyKey, correlationId);
+      const user = await this.createUseCase.execute(
+        principal,
+        req.body,
+        idempotencyKey,
+        correlationId,
+      );
 
       res.status(201).json({
         success: true,
@@ -63,7 +74,12 @@ export class UserController {
       const principal = this.extractPrincipal(req);
       const correlationId = (req.headers && req.headers['x-correlation-id']) || 'N/A';
 
-      const user = await this.updateUseCase.execute(req.params.id, principal, req.body, correlationId);
+      const user = await this.updateUseCase.execute(
+        req.params.id,
+        principal,
+        req.body,
+        correlationId,
+      );
 
       res.status(200).json({
         success: true,
@@ -90,7 +106,7 @@ export class UserController {
 
       res.status(200).json({
         success: true,
-        data: result.items.map(item => item.toJSON(true)),
+        data: result.items.map((item) => item.toJSON(true)),
         meta: {
           total: result.total,
           page: result.page,
@@ -124,17 +140,24 @@ export class UserController {
     }
   }
 
-  async handleListUsers(queryOrBody?: any, headers?: any): Promise<{ statusCode: number; body: any }> {
+  async handleListUsers(
+    queryOrBody?: any,
+    headers?: any,
+  ): Promise<{ statusCode: number; body: any }> {
     try {
       const principal = this.extractPrincipalFromHeaders(headers);
       const result = await this.listUseCase.execute(principal, queryOrBody || {});
-      return { statusCode: 200, body: { data: result.items.map(i => i.toJSON(true)) } };
+      return { statusCode: 200, body: { data: result.items.map((i) => i.toJSON(true)) } };
     } catch (err: any) {
       return { statusCode: 400, body: { error: err.message } };
     }
   }
 
-  async handlePutUser(id: string, body: any, headers?: any): Promise<{ statusCode: number; body: any }> {
+  async handlePutUser(
+    id: string,
+    body: any,
+    headers?: any,
+  ): Promise<{ statusCode: number; body: any }> {
     try {
       const principal = this.extractPrincipalFromHeaders(headers);
       const user = await this.updateUseCase.execute(id, principal, body);
@@ -147,7 +170,8 @@ export class UserController {
   async handleDeleteUser(id: string, headers?: any): Promise<{ statusCode: number; body: any }> {
     try {
       const repo = new UserPgRepository();
-      const tenantId = (headers && headers['x-tenant-id']) || '00000000-0000-0000-0000-000000000001';
+      const tenantId =
+        (headers && headers['x-tenant-id']) || '00000000-0000-0000-0000-000000000001';
       const deleted = await repo.delete(id, tenantId);
       return { statusCode: deleted ? 200 : 404, body: { success: deleted } };
     } catch (err: any) {
@@ -212,7 +236,8 @@ export class UserController {
       let statusCode = 400;
       if (err.message.includes('Forbidden')) statusCode = 403;
       else if (err.message.includes('not found')) statusCode = 404;
-      else if (err.message.includes('already exists') || err.message.includes('Optimistic')) statusCode = 409;
+      else if (err.message.includes('already exists') || err.message.includes('Optimistic'))
+        statusCode = 409;
       else if (err.message.includes('Unsupported Media Type')) statusCode = 415;
 
       res.status(statusCode).json({

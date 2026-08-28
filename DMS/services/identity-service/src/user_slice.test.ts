@@ -1,7 +1,14 @@
 import { describe, test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { UserAggregate, UserDomainError, InvalidUserStateTransitionError } from './domain/entities/user.entity.js';
-import { validateCreateUserInput, validateUpdateUserInput } from './domain/validation/user.validation.js';
+import {
+  UserAggregate,
+  UserDomainError,
+  InvalidUserStateTransitionError,
+} from './domain/entities/user.entity.js';
+import {
+  validateCreateUserInput,
+  validateUpdateUserInput,
+} from './domain/validation/user.validation.js';
 import { UserPgRepository } from './infrastructure/database/repositories/user.pg-repository.js';
 import { CreateUserUseCase } from './application/usecases/create-user.usecase.js';
 import { GetUserUseCase } from './application/usecases/get-user.usecase.js';
@@ -55,7 +62,12 @@ describe('User Full Vertical Slice QA & Security Suite (Tasks 1441-1459)', () =>
       assert.equal(res2.reason, 'DUPLICATE_SKIPPED');
 
       // Poison event
-      const resPoison = await consumer.consume({ id: '', name: 'invalid', tenantId: '', occurredAt: '' } as any);
+      const resPoison = await consumer.consume({
+        id: '',
+        name: 'invalid',
+        tenantId: '',
+        occurredAt: '',
+      } as any);
       assert.equal(resPoison.success, false);
       assert.equal(resPoison.reason, 'POISON_EVENT');
       assert.equal(consumer.getDlqMessages().length, 1);
@@ -170,11 +182,21 @@ describe('User Full Vertical Slice QA & Security Suite (Tasks 1441-1459)', () =>
         idempotencyKey: 'idemp-usr-201',
       };
 
-      const created = await createUseCase.execute(adminPrincipalTenantA, dto, 'idemp-usr-201', 'corr-usr-1');
+      const created = await createUseCase.execute(
+        adminPrincipalTenantA,
+        dto,
+        'idemp-usr-201',
+        'corr-usr-1',
+      );
       assert.equal(created.email, 'new.user@example.com');
 
       // Idempotent retry returns identical instance
-      const retried = await createUseCase.execute(adminPrincipalTenantA, dto, 'idemp-usr-201', 'corr-usr-1');
+      const retried = await createUseCase.execute(
+        adminPrincipalTenantA,
+        dto,
+        'idemp-usr-201',
+        'corr-usr-1',
+      );
       assert.equal(retried.id, created.id);
 
       const logs = UserAuditService.getAuditLogs();
@@ -308,7 +330,7 @@ describe('User Full Vertical Slice QA & Security Suite (Tasks 1441-1459)', () =>
         new CreateUserUseCase(repository),
         new GetUserUseCase(repository),
         new UpdateUserUseCase(repository),
-        new ListUsersUseCase(repository)
+        new ListUsersUseCase(repository),
       );
 
       const req = {
@@ -333,7 +355,10 @@ describe('User Full Vertical Slice QA & Security Suite (Tasks 1441-1459)', () =>
       await controller.create(req, res);
       assert.equal(statusCode, 415);
       assert.equal(jsonPayload.success, false);
-      assert.equal(jsonPayload.error.message, 'Unsupported Media Type: Content-Type must be application/json');
+      assert.equal(
+        jsonPayload.error.message,
+        'Unsupported Media Type: Content-Type must be application/json',
+      );
     });
   });
 });

@@ -1,5 +1,8 @@
 import { MFADeviceValidationError, MfaType } from '../entities/mfa_device.entity.js';
-import { CreateMFADeviceInputDTO, UpdateMFADeviceInputDTO } from '../../application/dtos/mfa_device.dto.js';
+import {
+  CreateMFADeviceInputDTO,
+  UpdateMFADeviceInputDTO,
+} from '../../application/dtos/mfa_device.dto.js';
 
 export function validateCreateMFADeviceInput(input: any): CreateMFADeviceInputDTO {
   if (!input || typeof input !== 'object') {
@@ -7,9 +10,11 @@ export function validateCreateMFADeviceInput(input: any): CreateMFADeviceInputDT
   }
 
   const allowedKeys = ['userId', 'type', 'secretEncrypted', 'isActive', 'idempotencyKey'];
-  const unknownKeys = Object.keys(input).filter(key => !allowedKeys.includes(key));
+  const unknownKeys = Object.keys(input).filter((key) => !allowedKeys.includes(key));
   if (unknownKeys.length > 0) {
-    throw new MFADeviceValidationError(`Mass assignment violation: Unknown fields [${unknownKeys.join(', ')}] are forbidden`);
+    throw new MFADeviceValidationError(
+      `Mass assignment violation: Unknown fields [${unknownKeys.join(', ')}] are forbidden`,
+    );
   }
 
   const errors: Record<string, string> = {};
@@ -23,7 +28,11 @@ export function validateCreateMFADeviceInput(input: any): CreateMFADeviceInputDT
     errors.type = `type must be one of: ${validTypes.join(', ')}`;
   }
 
-  if (!input.secretEncrypted || typeof input.secretEncrypted !== 'string' || input.secretEncrypted.trim().length === 0) {
+  if (
+    !input.secretEncrypted ||
+    typeof input.secretEncrypted !== 'string' ||
+    input.secretEncrypted.trim().length === 0
+  ) {
     errors.secretEncrypted = 'secretEncrypted is required and must be a non-empty string';
   }
 
@@ -50,9 +59,11 @@ export function validateUpdateMFADeviceInput(input: any): UpdateMFADeviceInputDT
   }
 
   const allowedKeys = ['secretEncrypted', 'isActive', 'version'];
-  const unknownKeys = Object.keys(input).filter(key => !allowedKeys.includes(key));
+  const unknownKeys = Object.keys(input).filter((key) => !allowedKeys.includes(key));
   if (unknownKeys.length > 0) {
-    throw new MFADeviceValidationError(`Mass assignment violation: Unknown fields [${unknownKeys.join(', ')}] are forbidden`);
+    throw new MFADeviceValidationError(
+      `Mass assignment violation: Unknown fields [${unknownKeys.join(', ')}] are forbidden`,
+    );
   }
 
   const errors: Record<string, string> = {};
@@ -61,7 +72,10 @@ export function validateUpdateMFADeviceInput(input: any): UpdateMFADeviceInputDT
     errors.version = 'version must be a positive integer >= 1';
   }
 
-  if (input.secretEncrypted !== undefined && (typeof input.secretEncrypted !== 'string' || input.secretEncrypted.trim().length === 0)) {
+  if (
+    input.secretEncrypted !== undefined &&
+    (typeof input.secretEncrypted !== 'string' || input.secretEncrypted.trim().length === 0)
+  ) {
     errors.secretEncrypted = 'secretEncrypted must be a non-empty string';
   }
 

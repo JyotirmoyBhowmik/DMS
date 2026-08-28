@@ -10,7 +10,12 @@ export class UpdateUserUseCase {
 
   constructor(private readonly repository: UserRepository) {}
 
-  async execute(id: string, principal: Principal, dto: UpdateUserDto, correlationId?: string): Promise<UserAggregate> {
+  async execute(
+    id: string,
+    principal: Principal,
+    dto: UpdateUserDto,
+    correlationId?: string,
+  ): Promise<UserAggregate> {
     if (!principal || !principal.tenantId) {
       throw new UserDomainError('Forbidden: Valid principal and tenantId are required');
     }
@@ -33,12 +38,12 @@ export class UpdateUserUseCase {
 
     if (dto.version !== undefined && existing.version !== dto.version) {
       throw new UserDomainError(
-        `Optimistic locking conflict: User version is ${existing.version}, provided version is ${dto.version}`
+        `Optimistic locking conflict: User version is ${existing.version}, provided version is ${dto.version}`,
       );
     }
 
     const oldValue = existing.toJSON(true);
-    
+
     if (dto.status) {
       existing.transitionTo(dto.status);
     }

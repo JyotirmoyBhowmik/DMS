@@ -1,17 +1,32 @@
-import { PermissionRepository, ListPermissionsOptions } from '../../../domain/repositories/permission.repository.js';
-import { PermissionAggregate, PermissionDomainError } from '../../../domain/entities/permission.entity.js';
+import {
+  PermissionRepository,
+  ListPermissionsOptions,
+} from '../../../domain/repositories/permission.repository.js';
+import {
+  PermissionAggregate,
+  PermissionDomainError,
+} from '../../../domain/entities/permission.entity.js';
 
 export class PermissionPgRepository implements PermissionRepository {
   private static globalInMemoryDb = new Map<string, PermissionAggregate>();
   private inMemoryDb: Map<string, PermissionAggregate>;
 
-  constructor(private readonly dbPool?: any, sharedStore?: Map<string, PermissionAggregate>) {
+  constructor(
+    private readonly dbPool?: any,
+    sharedStore?: Map<string, PermissionAggregate>,
+  ) {
     this.inMemoryDb = sharedStore || PermissionPgRepository.globalInMemoryDb;
   }
 
   async save(permission: PermissionAggregate, tenantId: string): Promise<PermissionAggregate> {
-    if (permission.tenantId && permission.tenantId !== tenantId && permission.tenantId !== 'global') {
-      throw new PermissionDomainError(`Tenant mismatch: Permission tenant '${permission.tenantId}' does not match context '${tenantId}'`);
+    if (
+      permission.tenantId &&
+      permission.tenantId !== tenantId &&
+      permission.tenantId !== 'global'
+    ) {
+      throw new PermissionDomainError(
+        `Tenant mismatch: Permission tenant '${permission.tenantId}' does not match context '${tenantId}'`,
+      );
     }
 
     this.inMemoryDb.set(permission.id, permission);
@@ -29,9 +44,17 @@ export class PermissionPgRepository implements PermissionRepository {
             RETURNING *;
           `;
           const values = [
-            permission.id, permission.tenantId || tenantId, permission.name, permission.resource, permission.action,
-            permission.description || null, permission.status || 'ACTIVE', permission.idempotencyKey || null,
-            permission.version || 1, permission.createdAt || new Date(), permission.updatedAt || new Date()
+            permission.id,
+            permission.tenantId || tenantId,
+            permission.name,
+            permission.resource,
+            permission.action,
+            permission.description || null,
+            permission.status || 'ACTIVE',
+            permission.idempotencyKey || null,
+            permission.version || 1,
+            permission.createdAt || new Date(),
+            permission.updatedAt || new Date(),
           ];
           await client.query(query, values);
         } finally {
@@ -53,7 +76,7 @@ export class PermissionPgRepository implements PermissionRepository {
           await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
           const res = await client.query(
             'SELECT * FROM identity_permissions WHERE id = $1 AND tenant_id = $2',
-            [id, tenantId]
+            [id, tenantId],
           );
           if (res.rows.length === 0) return null;
           return this.mapRowToEntity(res.rows[0]);
@@ -80,7 +103,7 @@ export class PermissionPgRepository implements PermissionRepository {
           await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
           const res = await client.query(
             'SELECT * FROM identity_permissions WHERE LOWER(name) = $1 AND tenant_id = $2',
-            [normalized, tenantId]
+            [normalized, tenantId],
           );
           if (res.rows.length === 0) return null;
           return this.mapRowToEntity(res.rows[0]);
@@ -93,14 +116,20 @@ export class PermissionPgRepository implements PermissionRepository {
     }
 
     for (const perm of this.inMemoryDb.values()) {
-      if ((perm.tenantId === tenantId || perm.tenantId === 'global') && perm.name.trim().toLowerCase() === normalized) {
+      if (
+        (perm.tenantId === tenantId || perm.tenantId === 'global') &&
+        perm.name.trim().toLowerCase() === normalized
+      ) {
         return perm;
       }
     }
     return null;
   }
 
-  async list(tenantId: string, options?: ListPermissionsOptions): Promise<{ items: PermissionAggregate[]; total: number }> {
+  async list(
+    tenantId: string,
+    options?: ListPermissionsOptions,
+  ): Promise<{ items: PermissionAggregate[]; total: number }> {
     const page = options?.page || 1;
     const limit = Math.min(options?.limit || 20, 100);
     const offset = (page - 1) * limit;
@@ -125,12 +154,19 @@ export class PermissionPgRepository implements PermissionRepository {
           query += ` AND LOWER(name) LIKE $${params.length}`;
         }
 
-        query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+        query +=
+          ' ORDER BY created_at DESC LIMIT $' +
+          (params.length + 1) +
+          ' OFFSET $' +
+          (params.length + 2);
         params.push(limit, offset);
 
         const res = await client.query(query, params);
-        const countRes = await client.query('SELECT COUNT(*) FROM identity_permissions WHERE tenant_id = $1', [tenantId]);
-        
+        const countRes = await client.query(
+          'SELECT COUNT(*) FROM identity_permissions WHERE tenant_id = $1',
+          [tenantId],
+        );
+
         return {
           items: res.rows.map((row: any) => this.mapRowToEntity(row)),
           total: parseInt(countRes.rows[0].count, 10),
@@ -140,17 +176,19 @@ export class PermissionPgRepository implements PermissionRepository {
       }
     }
 
-    let items = Array.from(this.inMemoryDb.values()).filter(p => p.tenantId === tenantId || p.tenantId === 'global');
+    let items = Array.from(this.inMemoryDb.values()).filter(
+      (p) => p.tenantId === tenantId || p.tenantId === 'global',
+    );
 
     if (options?.status) {
-      items = items.filter(p => p.status === options.status);
+      items = items.filter((p) => p.status === options.status);
     }
     if (options?.resource) {
-      items = items.filter(p => p.resource === options.resource);
+      items = items.filter((p) => p.resource === options.resource);
     }
     if (options?.searchName) {
       const q = options.searchName.toLowerCase();
-      items = items.filter(p => p.name.toLowerCase().includes(q));
+      items = items.filter((p) => p.name.toLowerCase().includes(q));
     }
 
     const total = items.length;
@@ -170,9 +208,13 @@ export class PermissionPgRepository implements PermissionRepository {
       throw new PermissionDomainError(`Permission with id '${permission.id}' not found`);
     }
 
-    if (existing.version !== undefined && permission.version !== undefined && existing.version !== permission.version) {
+    if (
+      existing.version !== undefined &&
+      permission.version !== undefined &&
+      existing.version !== permission.version
+    ) {
       throw new PermissionDomainError(
-        `Optimistic concurrency conflict for Permission '${permission.id}': expected v${permission.version}, found v${existing.version}`
+        `Optimistic concurrency conflict for Permission '${permission.id}': expected v${permission.version}, found v${existing.version}`,
       );
     }
 
@@ -203,7 +245,16 @@ export class PermissionPgRepository implements PermissionRepository {
             WHERE id = $6 AND tenant_id = $7 AND version = $8
             RETURNING *;
           `;
-          await client.query(query, [permission.name, permission.resource, permission.action, permission.description || null, permission.status, permission.id, tenantId, permission.version]);
+          await client.query(query, [
+            permission.name,
+            permission.resource,
+            permission.action,
+            permission.description || null,
+            permission.status,
+            permission.id,
+            tenantId,
+            permission.version,
+          ]);
         } finally {
           client.release();
         }
@@ -223,7 +274,10 @@ export class PermissionPgRepository implements PermissionRepository {
       const client = await this.dbPool.connect();
       try {
         await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        await client.query('DELETE FROM identity_permissions WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
+        await client.query('DELETE FROM identity_permissions WHERE id = $1 AND tenant_id = $2', [
+          id,
+          tenantId,
+        ]);
       } finally {
         client.release();
       }

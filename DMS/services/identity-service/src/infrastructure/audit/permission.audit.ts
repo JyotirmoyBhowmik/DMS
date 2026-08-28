@@ -23,7 +23,9 @@ export class PermissionAuditService {
       timestamp: entry.timestamp || new Date(),
     };
     PermissionAuditService.auditLogs.push(record);
-    this.logger.info(`Permission Audit log recorded: [${record.action}] for Permission:${record.entityId} by ${record.actorId}`);
+    this.logger.info(
+      `Permission Audit log recorded: [${record.action}] for Permission:${record.entityId} by ${record.actorId}`,
+    );
   }
 
   static getAuditLogs(): AuditLogEntry[] {

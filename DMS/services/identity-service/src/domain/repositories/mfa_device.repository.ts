@@ -13,8 +13,15 @@ export interface ListMFADevicesOptions {
 export interface MFADeviceRepository {
   save(mfaDevice: MFADeviceAggregate, tenantId: string): Promise<MFADeviceAggregate>;
   findById(id: string, tenantId: string): Promise<MFADeviceAggregate | null>;
-  findByUserAndType?(userId: string, type: MfaType, tenantId: string): Promise<MFADeviceAggregate | null>;
-  list(tenantId: string, options?: ListMFADevicesOptions): Promise<{ items: MFADeviceAggregate[]; total: number }>;
+  findByUserAndType?(
+    userId: string,
+    type: MfaType,
+    tenantId: string,
+  ): Promise<MFADeviceAggregate | null>;
+  list(
+    tenantId: string,
+    options?: ListMFADevicesOptions,
+  ): Promise<{ items: MFADeviceAggregate[]; total: number }>;
   update(mfaDevice: MFADeviceAggregate, tenantId: string): Promise<MFADeviceAggregate>;
   delete(id: string, tenantId: string): Promise<boolean>;
 }

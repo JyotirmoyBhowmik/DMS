@@ -12,7 +12,7 @@ import {
   GetUserUseCase,
   UpdateUserUseCase,
   DeleteUserUseCase,
-  ListUsersUseCase
+  ListUsersUseCase,
 } from './application/usecases/user.usecases.js';
 
 import {
@@ -20,7 +20,7 @@ import {
   GetRoleUseCase,
   UpdateRoleUseCase,
   DeleteRoleUseCase,
-  ListRolesUseCase
+  ListRolesUseCase,
 } from './application/usecases/role.usecases.js';
 
 import {
@@ -28,7 +28,7 @@ import {
   GetTenantUseCase,
   UpdateTenantUseCase,
   DeleteTenantUseCase,
-  ListTenantsUseCase
+  ListTenantsUseCase,
 } from './application/usecases/tenant.usecases.js';
 
 import {
@@ -36,14 +36,14 @@ import {
   GetPermissionUseCase,
   UpdatePermissionUseCase,
   DeletePermissionUseCase,
-  ListPermissionsUseCase
+  ListPermissionsUseCase,
 } from './application/usecases/permission.usecases.js';
 
 import {
   CreateMFADeviceUseCase,
   GetMFADeviceUseCase,
   UpdateMFADeviceUseCase,
-  ListMFADevicesUseCase
+  ListMFADevicesUseCase,
 } from './application/usecases/mfa_device.usecases.js';
 
 describe('Identity CRUD Use Cases & Repositories Tests', () => {
@@ -69,7 +69,7 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
       const user = await createUser.execute(tenantId, {
         email: 'test-user@enterprise.com',
         password: 'my-pass-123',
-        status: 'ACTIVE'
+        status: 'ACTIVE',
       });
       assert.strictEqual(user.email, 'test-user@enterprise.com');
       assert.strictEqual(user.status, 'ACTIVE');
@@ -82,7 +82,7 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
       // Update
       const updated = await updateUser.execute(tenantId, {
         id: user.id,
-        status: 'SUSPENDED'
+        status: 'SUSPENDED',
       });
       assert.strictEqual(updated.status, 'SUSPENDED');
 
@@ -109,7 +109,7 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
       const role = await createRole.execute(tenantId, {
         name: 'Manager',
         description: 'Store manager role',
-        isSystem: false
+        isSystem: false,
       });
       assert.strictEqual(role.name, 'Manager');
       assert.strictEqual(role.description, 'Store manager role');
@@ -121,7 +121,7 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
       // Update
       const updated = await updateRole.execute(tenantId, {
         id: role.id,
-        description: 'Updated store manager description'
+        description: 'Updated store manager description',
       });
       assert.strictEqual(updated.description, 'Updated store manager description');
 
@@ -147,7 +147,7 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
       // Create
       const tenant = await createTenant.execute(tenantId, {
         name: 'Enterprise Tenant B',
-        status: 'ACTIVE'
+        status: 'ACTIVE',
       });
       assert.strictEqual(tenant.name, 'Enterprise Tenant B');
 
@@ -158,7 +158,7 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
       // Update
       const updated = await updateTenant.execute(tenantId, {
         id: tenant.id,
-        status: 'SUSPENDED'
+        status: 'SUSPENDED',
       });
       assert.strictEqual(updated.status, 'SUSPENDED');
 
@@ -186,7 +186,7 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
         name: 'orders:create',
         resource: 'orders',
         action: 'create',
-        description: 'Ability to create orders'
+        description: 'Ability to create orders',
       });
       assert.strictEqual(perm.name, 'orders:create');
 
@@ -197,7 +197,7 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
       // Update
       const updated = await updatePerm.execute(tenantId, {
         id: perm.id,
-        description: 'Updated ability to create orders'
+        description: 'Updated ability to create orders',
       });
       assert.strictEqual(updated.description, 'Updated ability to create orders');
 
@@ -224,7 +224,7 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
         userId: 'admin-1',
         tenantId,
         roles: ['admin'],
-        permissions: ['identity:*']
+        permissions: ['identity:*'],
       };
 
       // Create
@@ -232,7 +232,7 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
         userId: 'user-email-123@domain.com',
         type: 'TOTP',
         secretEncrypted: 'my-secret-key-encrypted',
-        isActive: true
+        isActive: true,
       });
       assert.strictEqual(mfa.userId, 'user-email-123@domain.com');
 
@@ -243,7 +243,7 @@ describe('Identity CRUD Use Cases & Repositories Tests', () => {
       // Update
       const updated = await updateMfa.execute(mfa.id, adminPrincipal, {
         isActive: false,
-        version: 1
+        version: 1,
       });
       assert.strictEqual(updated.isActive, false);
 

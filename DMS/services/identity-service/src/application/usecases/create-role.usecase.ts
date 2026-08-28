@@ -10,7 +10,12 @@ export class CreateRoleUseCase {
 
   constructor(private readonly repository: RoleRepository) {}
 
-  async execute(principal: Principal, dto: CreateRoleDto, idempotencyKey?: string, correlationId?: string): Promise<RoleAggregate> {
+  async execute(
+    principal: Principal,
+    dto: CreateRoleDto,
+    idempotencyKey?: string,
+    correlationId?: string,
+  ): Promise<RoleAggregate> {
     if (!principal || !principal.tenantId) {
       throw new RoleDomainError('Forbidden: Valid principal and tenantId are required');
     }

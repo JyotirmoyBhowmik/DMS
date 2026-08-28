@@ -5,7 +5,10 @@ import { Principal } from './create-user.usecase.js';
 export class ListUsersUseCase {
   constructor(private readonly repository: UserRepository) {}
 
-  async execute(principal: Principal, options?: ListUsersOptions): Promise<{ items: UserAggregate[]; total: number; page: number; limit: number }> {
+  async execute(
+    principal: Principal,
+    options?: ListUsersOptions,
+  ): Promise<{ items: UserAggregate[]; total: number; page: number; limit: number }> {
     if (!principal || !principal.tenantId) {
       throw new UserDomainError('Forbidden: Valid principal and tenantId are required');
     }

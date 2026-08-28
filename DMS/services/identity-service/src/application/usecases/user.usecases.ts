@@ -25,7 +25,7 @@ export class CreateUserUseCase {
 
   constructor(
     private readonly db?: PostgresDatabaseClient,
-    private readonly userRepo?: UserRepository
+    private readonly userRepo?: UserRepository,
   ) {}
 
   async execute(tenantId: string, input: CreateUserInput): Promise<User> {
@@ -63,7 +63,7 @@ export class CreateUserUseCase {
         producer: 'identity-service',
         partitionKey: userId,
         causationId: activeCtx?.causationId,
-      }
+      },
     );
 
     if (this.db) {
@@ -72,13 +72,18 @@ export class CreateUserUseCase {
           await repo.save(entity, tenantId);
 
           // Save outbox event
-          await this.outboxRepo.save(conn, {
-            eventId: event.eventId,
-            tenantId,
-            type: event.type,
-            version: 'v1',
-            payload: event.payload,
-          }, 'User', userId);
+          await this.outboxRepo.save(
+            conn,
+            {
+              eventId: event.eventId,
+              tenantId,
+              type: event.type,
+              version: 'v1',
+              payload: event.payload,
+            },
+            'User',
+            userId,
+          );
         }, tenantId);
       } catch (txErr) {
         await repo.save(entity, tenantId);
@@ -106,7 +111,7 @@ export class UpdateUserUseCase {
 
   constructor(
     private readonly db?: PostgresDatabaseClient,
-    private readonly userRepo?: UserRepository
+    private readonly userRepo?: UserRepository,
   ) {}
 
   async execute(tenantId: string, input: UpdateUserInput): Promise<User> {
@@ -143,20 +148,25 @@ export class UpdateUserUseCase {
         producer: 'identity-service',
         partitionKey: entity.id,
         causationId: activeCtx?.causationId,
-      }
+      },
     );
 
     if (this.db) {
       try {
         await this.db.transaction(async (conn) => {
           await repo.update(entity, tenantId);
-          await this.outboxRepo.save(conn, {
-            eventId: event.eventId,
-            tenantId,
-            type: event.type,
-            version: 'v1',
-            payload: event.payload,
-          }, 'User', entity.id);
+          await this.outboxRepo.save(
+            conn,
+            {
+              eventId: event.eventId,
+              tenantId,
+              type: event.type,
+              version: 'v1',
+              payload: event.payload,
+            },
+            'User',
+            entity.id,
+          );
         }, tenantId);
       } catch (txErr) {
         await repo.update(entity, tenantId);

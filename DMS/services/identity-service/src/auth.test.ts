@@ -38,7 +38,7 @@ void describe('Identity & Auth Verification Tests', () => {
 
   void test('IssueTokenUseCase should verify credentials using scrypt', async () => {
     const issueUsecase = new IssueTokenUseCase(refreshTokenRepo);
-    
+
     // Correct login
     const pair = await issueUsecase.execute(tenantId, email, roles, 'secure_pass_123');
     assert.ok(pair.accessToken);
@@ -48,7 +48,7 @@ void describe('Identity & Auth Verification Tests', () => {
       async () => {
         await issueUsecase.execute(tenantId, email, roles, 'wrong_password');
       },
-      (err: unknown) => (err as Error).message === 'Invalid credentials'
+      (err: unknown) => (err as Error).message === 'Invalid credentials',
     );
   });
 
@@ -71,15 +71,17 @@ void describe('Identity & Auth Verification Tests', () => {
     const verifyUsecase = new VerifyTokenUseCase();
 
     const tokenPair = await issueUsecase.execute(tenantId, email, roles);
-    
+
     // Tamper the token payload
     const parts = tokenPair.accessToken.split('.');
     const header = parts[0];
     const originalPayload = Buffer.from(parts[1]!, 'base64url').toString('utf8');
     const tamperedPayloadObj = JSON.parse(originalPayload);
     tamperedPayloadObj.roles = ['admin']; // Escalating privilege
-    
-    const tamperedPayloadB64 = Buffer.from(JSON.stringify(tamperedPayloadObj)).toString('base64url');
+
+    const tamperedPayloadB64 = Buffer.from(JSON.stringify(tamperedPayloadObj)).toString(
+      'base64url',
+    );
     const tamperedToken = `${header}.${tamperedPayloadB64}.${parts[2]}`;
 
     await assert.rejects(
@@ -88,7 +90,7 @@ void describe('Identity & Auth Verification Tests', () => {
       },
       (err: unknown) => {
         return (err as Error).message === 'Invalid JWT signature';
-      }
+      },
     );
   });
 
@@ -110,7 +112,7 @@ void describe('Identity & Auth Verification Tests', () => {
       async () => {
         await refreshUsecase.execute(rt1, tenantId); // Reusing rt1
       },
-      (err: unknown) => (err as Error).message.includes('reuse detected')
+      (err: unknown) => (err as Error).message.includes('reuse detected'),
     );
 
     // Verify rt2 was revoked due to family revocation
@@ -118,14 +120,14 @@ void describe('Identity & Auth Verification Tests', () => {
       async () => {
         await refreshUsecase.execute(rt2, tenantId);
       },
-      (err: unknown) => (err as Error).message === 'Invalid refresh token'
+      (err: unknown) => (err as Error).message === 'Invalid refresh token',
     );
   });
 
   void test('AssignRoleUseCase should raise role.assigned.v1 event', async () => {
     const assignUseCase = new AssignRoleUseCase();
     const correlationId = 'corr-uuid-1111';
-    
+
     const result = await assignUseCase.execute(tenantId, email, 'admin', { correlationId });
     assert.strictEqual(result.userId, email);
     assert.strictEqual(result.role, 'admin');
@@ -136,7 +138,7 @@ void describe('Identity & Auth Verification Tests', () => {
     assert.strictEqual(event.tenantId, tenantId);
     assert.strictEqual(event.correlationId, correlationId);
     assert.strictEqual(event.payload.role, 'admin');
-    
+
     const parts = event.eventId.split('-');
     assert.strictEqual(parts[2]?.[0], '7'); // Verify UUIDv7 version is 7
   });
@@ -146,21 +148,21 @@ void describe('Identity & Auth Verification Tests', () => {
 
     // 1. IssueToken
     const issueRes = await grpcService.issueToken({
-      request: { email, password: 'correct_password' }
+      request: { email, password: 'correct_password' },
     });
     assert.ok(issueRes.accessToken);
     assert.ok(issueRes.refreshToken);
 
     // 2. VerifyToken
     const verifyRes = await grpcService.verifyToken({
-      request: { accessToken: issueRes.accessToken }
+      request: { accessToken: issueRes.accessToken },
     });
     assert.strictEqual(verifyRes.valid, true);
     assert.strictEqual(verifyRes.principalId, email);
 
     // 3. RefreshToken
     const refreshRes = await grpcService.refreshToken({
-      request: { refreshToken: issueRes.refreshToken }
+      request: { refreshToken: issueRes.refreshToken },
     });
     assert.ok(refreshRes.accessToken);
     assert.ok(refreshRes.refreshToken);
@@ -172,22 +174,19 @@ void describe('Identity & Auth Verification Tests', () => {
     // 1. Post Login
     const loginResult = await controller.handlePostLogin(
       { email, password: 'password123' },
-      { 'x-tenant-id': tenantId }
+      { 'x-tenant-id': tenantId },
     );
     assert.strictEqual(loginResult.statusCode, 200);
     assert.strictEqual(loginResult.body.success, true);
-    
+
     const token = loginResult.body.accessToken as string;
     assert.ok(token);
 
     // 2. Post Verify
-    const verifyResult = await controller.handlePostVerify(
-      { token },
-      {}
-    );
+    const verifyResult = await controller.handlePostVerify({ token }, {});
     assert.strictEqual(verifyResult.statusCode, 200);
     assert.strictEqual(verifyResult.body.valid, true);
-    
+
     const claims = verifyResult.body.claims as Record<string, unknown>;
     assert.strictEqual(claims['email'], email);
   });
@@ -202,7 +201,7 @@ void describe('Identity & Auth Verification Tests', () => {
     // 1. Get initial JWKS keys
     const jwksResult1 = await controller.handleGetJwks();
     assert.strictEqual(jwksResult1.statusCode, 200);
-    
+
     const body1 = jwksResult1.body as { keys: Array<{ kid: string }> };
     assert.ok(body1.keys);
     assert.strictEqual(body1.keys.length, 1);
@@ -223,7 +222,9 @@ void describe('Identity & Auth Verification Tests', () => {
 
     // Header should contain the new kid
     const parts = pair.accessToken.split('.');
-    const header = JSON.parse(Buffer.from(parts[0]!, 'base64url').toString('utf8')) as { kid: string };
+    const header = JSON.parse(Buffer.from(parts[0]!, 'base64url').toString('utf8')) as {
+      kid: string;
+    };
     assert.strictEqual(header.kid, newKey.kid);
 
     // Verify should work
@@ -235,11 +236,24 @@ void describe('Identity & Auth Verification Tests', () => {
     const issueUsecase = new IssueTokenUseCase(refreshTokenRepo);
 
     // 1. Success with SSO
-    const pairSso = await issueUsecase.execute(tenantId, 'sso_user@enterprise.com', roles, undefined, 'valid_sso_token');
+    const pairSso = await issueUsecase.execute(
+      tenantId,
+      'sso_user@enterprise.com',
+      roles,
+      undefined,
+      'valid_sso_token',
+    );
     assert.ok(pairSso.accessToken);
 
     // 2. Success with MFA code
-    const pairMfa = await issueUsecase.execute(tenantId, email, roles, 'secure_password', undefined, '123456');
+    const pairMfa = await issueUsecase.execute(
+      tenantId,
+      email,
+      roles,
+      'secure_password',
+      undefined,
+      '123456',
+    );
     assert.ok(pairMfa.accessToken);
 
     // 3. Failure with invalid SSO
@@ -247,7 +261,7 @@ void describe('Identity & Auth Verification Tests', () => {
       async () => {
         await issueUsecase.execute(tenantId, email, roles, undefined, 'invalid_sso_token');
       },
-      (err: unknown) => (err as Error).message === 'Invalid SSO token'
+      (err: unknown) => (err as Error).message === 'Invalid SSO token',
     );
 
     // 4. Failure with invalid MFA code (non-digit)
@@ -255,8 +269,7 @@ void describe('Identity & Auth Verification Tests', () => {
       async () => {
         await issueUsecase.execute(tenantId, email, roles, 'secure_password', undefined, 'abc123');
       },
-      (err: unknown) => (err as Error).message === 'Invalid MFA verification code'
+      (err: unknown) => (err as Error).message === 'Invalid MFA verification code',
     );
   });
 });
-

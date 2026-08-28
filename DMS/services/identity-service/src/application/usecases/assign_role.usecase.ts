@@ -14,7 +14,7 @@ export class AssignRoleUseCase {
     tenantId: string,
     userId: string,
     role: string,
-    ctx: { correlationId: string; causationId?: string }
+    ctx: { correlationId: string; causationId?: string },
   ): Promise<AssignRoleResult> {
     this.logger.info('Assigning role to user', { tenantId, userId, role });
 
@@ -33,12 +33,7 @@ export class AssignRoleUseCase {
       partitionKey: userId,
     };
 
-    const event = makeEnvelope(
-      'role.assigned',
-      'v1',
-      payload,
-      eventCtx
-    );
+    const event = makeEnvelope('role.assigned', 'v1', payload, eventCtx);
 
     this.logger.info('Role assigned and role.assigned.v1 event raised', {
       userId,

@@ -1,7 +1,14 @@
 import { describe, test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { RoleAggregate, RoleDomainError, InvalidRoleStateTransitionError } from './domain/entities/role.entity.js';
-import { validateCreateRoleInput, validateUpdateRoleInput } from './domain/validation/role.validation.js';
+import {
+  RoleAggregate,
+  RoleDomainError,
+  InvalidRoleStateTransitionError,
+} from './domain/entities/role.entity.js';
+import {
+  validateCreateRoleInput,
+  validateUpdateRoleInput,
+} from './domain/validation/role.validation.js';
 import { RolePgRepository } from './infrastructure/database/repositories/role.pg-repository.js';
 import { CreateRoleUseCase } from './application/usecases/create-role.usecase.js';
 import { GetRoleUseCase } from './application/usecases/get-role.usecase.js';
@@ -55,7 +62,12 @@ describe('Role Full Vertical Slice QA & Security Suite (Tasks 1462-1480)', () =>
       assert.equal(res2.reason, 'DUPLICATE_SKIPPED');
 
       // Poison event
-      const resPoison = await consumer.consume({ id: '', name: 'invalid', tenantId: '', occurredAt: '' } as any);
+      const resPoison = await consumer.consume({
+        id: '',
+        name: 'invalid',
+        tenantId: '',
+        occurredAt: '',
+      } as any);
       assert.equal(resPoison.success, false);
       assert.equal(resPoison.reason, 'POISON_EVENT');
       assert.equal(consumer.getDlqMessages().length, 1);
@@ -150,11 +162,21 @@ describe('Role Full Vertical Slice QA & Security Suite (Tasks 1462-1480)', () =>
         idempotencyKey: 'idemp-role-201',
       };
 
-      const created = await createUseCase.execute(adminPrincipalTenantA, dto, 'idemp-role-201', 'corr-role-1');
+      const created = await createUseCase.execute(
+        adminPrincipalTenantA,
+        dto,
+        'idemp-role-201',
+        'corr-role-1',
+      );
       assert.equal(created.name, 'Inventory Auditor');
 
       // Idempotent retry returns identical instance
-      const retried = await createUseCase.execute(adminPrincipalTenantA, dto, 'idemp-role-201', 'corr-role-1');
+      const retried = await createUseCase.execute(
+        adminPrincipalTenantA,
+        dto,
+        'idemp-role-201',
+        'corr-role-1',
+      );
       assert.equal(retried.id, created.id);
 
       const logs = RoleAuditService.getAuditLogs();
@@ -283,7 +305,7 @@ describe('Role Full Vertical Slice QA & Security Suite (Tasks 1462-1480)', () =>
         new CreateRoleUseCase(repository),
         new GetRoleUseCase(repository),
         new UpdateRoleUseCase(repository),
-        new ListRolesUseCase(repository)
+        new ListRolesUseCase(repository),
       );
 
       const req = {
@@ -308,7 +330,10 @@ describe('Role Full Vertical Slice QA & Security Suite (Tasks 1462-1480)', () =>
       await controller.create(req, res);
       assert.equal(statusCode, 415);
       assert.equal(jsonPayload.success, false);
-      assert.equal(jsonPayload.error.message, 'Unsupported Media Type: Content-Type must be application/json');
+      assert.equal(
+        jsonPayload.error.message,
+        'Unsupported Media Type: Content-Type must be application/json',
+      );
     });
   });
 });

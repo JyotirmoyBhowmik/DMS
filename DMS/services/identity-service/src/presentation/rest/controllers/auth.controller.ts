@@ -41,7 +41,7 @@ export class AuthController {
     const maxRequests = 10;
 
     let requests = this.rateLimitMap.get(key) || [];
-    requests = requests.filter(t => now - t < windowMs);
+    requests = requests.filter((t) => now - t < windowMs);
 
     if (requests.length >= maxRequests) {
       return true;
@@ -71,12 +71,20 @@ export class AuthController {
     }
   }
 
-  async handlePostLogin(requestBody: unknown, headers: Record<string, string>): Promise<HttpResponse> {
+  async handlePostLogin(
+    requestBody: unknown,
+    headers: Record<string, string>,
+  ): Promise<HttpResponse> {
     const tenantId = headers['x-tenant-id'] || 'mock-tenant';
     const { email, password, ssoToken, mfaCode } = (requestBody || {}) as Record<string, string>;
 
     const identifier = email || ssoToken || 'unknown';
-    this.logger.info('Login request received', { email: identifier, tenantId, hasSso: !!ssoToken, hasMfa: !!mfaCode });
+    this.logger.info('Login request received', {
+      email: identifier,
+      tenantId,
+      hasSso: !!ssoToken,
+      hasMfa: !!mfaCode,
+    });
 
     // 1. Rate Limiting check
     if (this.isRateLimited(identifier)) {
@@ -108,7 +116,8 @@ export class AuthController {
         return {
           statusCode: 429,
           body: {
-            message: 'Account locked out due to multiple failed login attempts. Please try again in 15 minutes.',
+            message:
+              'Account locked out due to multiple failed login attempts. Please try again in 15 minutes.',
           },
         };
       } else {
@@ -118,7 +127,14 @@ export class AuthController {
     }
 
     try {
-      const result = await this.issueUseCase.execute(tenantId, email || 'sso-user@dms.enterprise', ['agent'], password, ssoToken, mfaCode);
+      const result = await this.issueUseCase.execute(
+        tenantId,
+        email || 'sso-user@dms.enterprise',
+        ['agent'],
+        password,
+        ssoToken,
+        mfaCode,
+      );
 
       // Reset lockout on success
       this.lockoutMap.delete(lockoutKey);
@@ -146,28 +162,42 @@ export class AuthController {
       if (currentAttempts >= 5) {
         lockedUntil = Date.now() + 15 * 60 * 1000; // 15 mins lockout
         this.lockoutMap.set(lockoutKey, { failedAttempts: currentAttempts, lockedUntil });
-        
+
         // Record lockout event
-        await this.recordAuditLog(email || 'unknown', tenantId, 'auth.lockout', `Account locked out for 15 minutes. Reason: ${reason}`);
+        await this.recordAuditLog(
+          email || 'unknown',
+          tenantId,
+          'auth.lockout',
+          `Account locked out for 15 minutes. Reason: ${reason}`,
+        );
       } else {
         this.lockoutMap.set(lockoutKey, { failedAttempts: currentAttempts });
 
         // Record failed login event
-        await this.recordAuditLog(email || 'unknown', tenantId, 'login.failure', `Failed login attempt ${currentAttempts}/5. Reason: ${reason}`);
+        await this.recordAuditLog(
+          email || 'unknown',
+          tenantId,
+          'login.failure',
+          `Failed login attempt ${currentAttempts}/5. Reason: ${reason}`,
+        );
       }
 
       return {
         statusCode: currentAttempts >= 5 ? 429 : 401,
         body: {
-          message: currentAttempts >= 5 
-            ? 'Account locked out due to multiple failed login attempts. Please try again in 15 minutes.' 
-            : reason,
+          message:
+            currentAttempts >= 5
+              ? 'Account locked out due to multiple failed login attempts. Please try again in 15 minutes.'
+              : reason,
         },
       };
     }
   }
 
-  async handlePostVerify(requestBody: unknown, _headers: Record<string, string>): Promise<HttpResponse> {
+  async handlePostVerify(
+    requestBody: unknown,
+    _headers: Record<string, string>,
+  ): Promise<HttpResponse> {
     const { token } = (requestBody || {}) as Record<string, string>;
     this.logger.info('Verify request received');
 
@@ -205,7 +235,7 @@ export class AuthController {
     actor: string,
     tenantId: string,
     type: string,
-    result: string
+    result: string,
   ): Promise<void> {
     try {
       const auditController = AuditController.getInstance();
@@ -221,7 +251,7 @@ export class AuthController {
             correlationId: `corr-${randomUUID()}`,
           },
         },
-        { 'x-tenant-id': tenantId }
+        { 'x-tenant-id': tenantId },
       );
     } catch {
       // Tolerate logging errors

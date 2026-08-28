@@ -8,7 +8,9 @@ export class UserPgRepository implements UserRepository {
 
   async save(user: UserAggregate, tenantId: string): Promise<UserAggregate> {
     if (user.tenantId && user.tenantId !== tenantId) {
-      throw new UserDomainError(`Tenant mismatch: User tenant '${user.tenantId}' does not match context '${tenantId}'`);
+      throw new UserDomainError(
+        `Tenant mismatch: User tenant '${user.tenantId}' does not match context '${tenantId}'`,
+      );
     }
 
     UserPgRepository.inMemoryDb.set(user.id, user);
@@ -26,9 +28,19 @@ export class UserPgRepository implements UserRepository {
             RETURNING *;
           `;
           const values = [
-            user.id, user.tenantId || tenantId, user.email, user.passwordHash || (user as any).password || 'hash', user.firstName || null,
-            user.lastName || null, user.roles || ['user'], user.status || 'ACTIVE', user.idempotencyKey || null,
-            user.version || 1, user.createdAt || new Date(), user.updatedAt || new Date(), user.lastLoginAt || null
+            user.id,
+            user.tenantId || tenantId,
+            user.email,
+            user.passwordHash || (user as any).password || 'hash',
+            user.firstName || null,
+            user.lastName || null,
+            user.roles || ['user'],
+            user.status || 'ACTIVE',
+            user.idempotencyKey || null,
+            user.version || 1,
+            user.createdAt || new Date(),
+            user.updatedAt || new Date(),
+            user.lastLoginAt || null,
           ];
           await client.query(query, values);
         } finally {
@@ -50,7 +62,7 @@ export class UserPgRepository implements UserRepository {
           await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
           const res = await client.query(
             'SELECT * FROM identity_users WHERE id = $1 AND tenant_id = $2',
-            [id, tenantId]
+            [id, tenantId],
           );
           if (res.rows.length === 0) return null;
           return this.mapRowToEntity(res.rows[0]);
@@ -77,7 +89,7 @@ export class UserPgRepository implements UserRepository {
           await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
           const res = await client.query(
             'SELECT * FROM identity_users WHERE email = $1 AND tenant_id = $2',
-            [normalized, tenantId]
+            [normalized, tenantId],
           );
           if (res.rows.length === 0) return null;
           return this.mapRowToEntity(res.rows[0]);
@@ -97,7 +109,10 @@ export class UserPgRepository implements UserRepository {
     return null;
   }
 
-  async list(tenantId: string, options?: ListUsersOptions): Promise<{ items: UserAggregate[]; total: number }> {
+  async list(
+    tenantId: string,
+    options?: ListUsersOptions,
+  ): Promise<{ items: UserAggregate[]; total: number }> {
     const page = options?.page || 1;
     const limit = Math.min(options?.limit || 20, 100);
     const offset = (page - 1) * limit;
@@ -118,12 +133,19 @@ export class UserPgRepository implements UserRepository {
           query += ` AND email LIKE $${params.length}`;
         }
 
-        query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+        query +=
+          ' ORDER BY created_at DESC LIMIT $' +
+          (params.length + 1) +
+          ' OFFSET $' +
+          (params.length + 2);
         params.push(limit, offset);
 
         const res = await client.query(query, params);
-        const countRes = await client.query('SELECT COUNT(*) FROM identity_users WHERE tenant_id = $1', [tenantId]);
-        
+        const countRes = await client.query(
+          'SELECT COUNT(*) FROM identity_users WHERE tenant_id = $1',
+          [tenantId],
+        );
+
         return {
           items: res.rows.map((row: any) => this.mapRowToEntity(row)),
           total: parseInt(countRes.rows[0].count, 10),
@@ -133,17 +155,19 @@ export class UserPgRepository implements UserRepository {
       }
     }
 
-    let items = Array.from(UserPgRepository.inMemoryDb.values()).filter(r => r.tenantId === tenantId);
+    let items = Array.from(UserPgRepository.inMemoryDb.values()).filter(
+      (r) => r.tenantId === tenantId,
+    );
 
     if (options?.status) {
-      items = items.filter(r => r.status === options.status);
+      items = items.filter((r) => r.status === options.status);
     }
     if (options?.searchEmail) {
       const q = options.searchEmail.toLowerCase();
-      items = items.filter(r => r.email.includes(q));
+      items = items.filter((r) => r.email.includes(q));
     }
     if (options?.role) {
-      items = items.filter(r => r.roles.includes(options.role!));
+      items = items.filter((r) => r.roles.includes(options.role!));
     }
 
     const total = items.length;
@@ -163,9 +187,13 @@ export class UserPgRepository implements UserRepository {
       throw new UserDomainError(`User with id '${user.id}' not found`);
     }
 
-    if (existing.version !== undefined && user.version !== undefined && existing.version !== user.version) {
+    if (
+      existing.version !== undefined &&
+      user.version !== undefined &&
+      existing.version !== user.version
+    ) {
       throw new UserDomainError(
-        `Optimistic concurrency conflict for User '${user.id}': expected v${user.version}, found v${existing.version}`
+        `Optimistic concurrency conflict for User '${user.id}': expected v${user.version}, found v${existing.version}`,
       );
     }
 
@@ -198,7 +226,14 @@ export class UserPgRepository implements UserRepository {
             WHERE id = $4 AND tenant_id = $5 AND version = $6
             RETURNING *;
           `;
-          await client.query(query, [user.status, user.roles, user.passwordHash, user.id, tenantId, user.version]);
+          await client.query(query, [
+            user.status,
+            user.roles,
+            user.passwordHash,
+            user.id,
+            tenantId,
+            user.version,
+          ]);
         } finally {
           client.release();
         }
@@ -218,7 +253,10 @@ export class UserPgRepository implements UserRepository {
       const client = await this.dbPool.connect();
       try {
         await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        await client.query('DELETE FROM identity_users WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
+        await client.query('DELETE FROM identity_users WHERE id = $1 AND tenant_id = $2', [
+          id,
+          tenantId,
+        ]);
       } finally {
         client.release();
       }

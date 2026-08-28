@@ -23,7 +23,9 @@ export class UserAuditService {
       timestamp: entry.timestamp || new Date(),
     };
     UserAuditService.auditLogs.push(record);
-    this.logger.info(`User Audit log recorded: [${record.action}] for User:${record.entityId} by ${record.actorId}`);
+    this.logger.info(
+      `User Audit log recorded: [${record.action}] for User:${record.entityId} by ${record.actorId}`,
+    );
   }
 
   static getAuditLogs(): AuditLogEntry[] {

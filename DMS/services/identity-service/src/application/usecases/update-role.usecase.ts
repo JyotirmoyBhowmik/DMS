@@ -10,7 +10,12 @@ export class UpdateRoleUseCase {
 
   constructor(private readonly repository: RoleRepository) {}
 
-  async execute(id: string, principal: Principal, dto: UpdateRoleDto, correlationId?: string): Promise<RoleAggregate> {
+  async execute(
+    id: string,
+    principal: Principal,
+    dto: UpdateRoleDto,
+    correlationId?: string,
+  ): Promise<RoleAggregate> {
     if (!principal || !principal.tenantId) {
       throw new RoleDomainError('Forbidden: Valid principal and tenantId are required');
     }
@@ -33,12 +38,12 @@ export class UpdateRoleUseCase {
 
     if (dto.version !== undefined && existing.version !== dto.version) {
       throw new RoleDomainError(
-        `Optimistic locking conflict: Role version is ${existing.version}, provided version is ${dto.version}`
+        `Optimistic locking conflict: Role version is ${existing.version}, provided version is ${dto.version}`,
       );
     }
 
     const oldValue = existing.toJSON();
-    
+
     if (dto.name || dto.description !== undefined) {
       existing.updateProfile(dto.name || existing.name, dto.description);
     }
