@@ -169,16 +169,29 @@ describe('Claims Module & E2E Integration Tests', () => {
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
+    saved.updateStatus('APPROVED');
+    // claimRepo.update returns void, we need to fetch the updated entity
+    await claimRepo.update(saved, tenantA);
+    const updated: any = await claimRepo.findById(tenantA, entity.id);
     assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    assert.strictEqual(updated.status, 'APPROVED');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleClaim = new Claim({
+      id: saved.id,
+      tenantId: saved.tenantId,
+      distributorId: saved.distributorId,
+      schemeId: saved.schemeId,
+      claimAmountCents: saved.claimAmountCents,
+      name: saved.name,
+      claimCode: saved.claimCode,
+      status: 'APPROVED',
+      version: 1 // Stale version
+    });
+
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleClaim, tenantA);
       },
 
       (err: any) => {
