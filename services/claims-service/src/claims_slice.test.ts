@@ -147,18 +147,21 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+    const { Claim } = await import('./domain/entities/claim.js');
+    const entity = new Claim({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      claimAmountCents: 12000,
+      status: 'SUBMITTED', // Using valid ClaimStatus for Claim aggregate
       version: 1,
+      name: 'Test Claim',
+      claimCode: 'CLM-001'
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(entity, tenantA);
 
     // 2. Find
     const saved: any = await claimRepo.findById(tenantA, entity.id);
