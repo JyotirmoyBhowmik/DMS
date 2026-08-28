@@ -210,6 +210,12 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
+  packages/pkg-tenant-scope:
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   packages/pkg-testing:
     devDependencies:
       typescript:
@@ -573,6 +579,9 @@ importers:
       '@dms/pkg-rbac':
         specifier: workspace:*
         version: link:../../packages/pkg-rbac
+      '@dms/pkg-tenant-scope':
+        specifier: workspace:*
+        version: link:../../packages/pkg-tenant-scope
       '@dms/pkg-validation':
         specifier: workspace:*
         version: link:../../packages/pkg-validation

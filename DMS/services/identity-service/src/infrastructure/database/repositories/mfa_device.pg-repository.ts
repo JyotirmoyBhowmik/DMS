@@ -1,17 +1,28 @@
-import { MFADeviceRepository, ListMFADevicesOptions } from '../../../domain/repositories/mfa_device.repository.js';
-import { MFADeviceAggregate, MFADeviceDomainError } from '../../../domain/entities/mfa_device.entity.js';
+import {
+  MFADeviceRepository,
+  ListMFADevicesOptions,
+} from '../../../domain/repositories/mfa_device.repository.js';
+import {
+  MFADeviceAggregate,
+  MFADeviceDomainError,
+} from '../../../domain/entities/mfa_device.entity.js';
 
 export class MFADevicePgRepository implements MFADeviceRepository {
   private static globalInMemoryDb = new Map<string, MFADeviceAggregate>();
   private inMemoryDb: Map<string, MFADeviceAggregate>;
 
-  constructor(private readonly dbPool?: any, sharedStore?: Map<string, MFADeviceAggregate>) {
+  constructor(
+    private readonly dbPool?: any,
+    sharedStore?: Map<string, MFADeviceAggregate>,
+  ) {
     this.inMemoryDb = sharedStore || MFADevicePgRepository.globalInMemoryDb;
   }
 
   async save(mfaDevice: MFADeviceAggregate, tenantId: string): Promise<MFADeviceAggregate> {
     if (mfaDevice.tenantId !== tenantId) {
-      throw new MFADeviceDomainError(`Tenant mismatch: MFADevice tenant '${mfaDevice.tenantId}' does not match context '${tenantId}'`);
+      throw new MFADeviceDomainError(
+        `Tenant mismatch: MFADevice tenant '${mfaDevice.tenantId}' does not match context '${tenantId}'`,
+      );
     }
 
     this.inMemoryDb.set(mfaDevice.id, mfaDevice);
@@ -29,9 +40,16 @@ export class MFADevicePgRepository implements MFADeviceRepository {
             RETURNING *;
           `;
           const values = [
-            mfaDevice.id, mfaDevice.tenantId, mfaDevice.userId, mfaDevice.type,
-            mfaDevice.secretEncrypted, mfaDevice.isActive, mfaDevice.lastUsedAt,
-            mfaDevice.version, mfaDevice.createdAt, mfaDevice.updatedAt
+            mfaDevice.id,
+            mfaDevice.tenantId,
+            mfaDevice.userId,
+            mfaDevice.type,
+            mfaDevice.secretEncrypted,
+            mfaDevice.isActive,
+            mfaDevice.lastUsedAt,
+            mfaDevice.version,
+            mfaDevice.createdAt,
+            mfaDevice.updatedAt,
           ];
           await client.query(query, values);
         } finally {
@@ -53,7 +71,7 @@ export class MFADevicePgRepository implements MFADeviceRepository {
           await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
           const res = await client.query(
             'SELECT * FROM identity_mfa_devices WHERE id = $1 AND tenant_id = $2',
-            [id, tenantId]
+            [id, tenantId],
           );
           if (res.rows.length === 0) return null;
           return this.mapRowToEntity(res.rows[0]);
@@ -70,7 +88,11 @@ export class MFADevicePgRepository implements MFADeviceRepository {
     return item;
   }
 
-  async findByUserAndType(userId: string, type: any, tenantId: string): Promise<MFADeviceAggregate | null> {
+  async findByUserAndType(
+    userId: string,
+    type: any,
+    tenantId: string,
+  ): Promise<MFADeviceAggregate | null> {
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
       try {
         const client = await this.dbPool.connect();
@@ -78,7 +100,7 @@ export class MFADevicePgRepository implements MFADeviceRepository {
           await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
           const res = await client.query(
             'SELECT * FROM identity_mfa_devices WHERE user_id = $1 AND type = $2 AND tenant_id = $3',
-            [userId, type, tenantId]
+            [userId, type, tenantId],
           );
           if (res.rows.length === 0) return null;
           return this.mapRowToEntity(res.rows[0]);
@@ -98,7 +120,10 @@ export class MFADevicePgRepository implements MFADeviceRepository {
     return null;
   }
 
-  async list(tenantId: string, options?: ListMFADevicesOptions): Promise<{ items: MFADeviceAggregate[]; total: number }> {
+  async list(
+    tenantId: string,
+    options?: ListMFADevicesOptions,
+  ): Promise<{ items: MFADeviceAggregate[]; total: number }> {
     const page = Math.max(1, options?.page || 1);
     const limit = Math.min(100, Math.max(1, options?.limit || 20));
     const offset = (page - 1) * limit;
@@ -124,13 +149,16 @@ export class MFADevicePgRepository implements MFADeviceRepository {
         }
 
         const whereStr = whereClauses.join(' AND ');
-        const countRes = await client.query(`SELECT COUNT(*)::int FROM identity_mfa_devices WHERE ${whereStr}`, values);
+        const countRes = await client.query(
+          `SELECT COUNT(*)::int FROM identity_mfa_devices WHERE ${whereStr}`,
+          values,
+        );
         const total = countRes.rows[0].count;
 
         values.push(limit, offset);
         const dataRes = await client.query(
           `SELECT * FROM identity_mfa_devices WHERE ${whereStr} ORDER BY created_at DESC LIMIT $${values.length - 1} OFFSET $${values.length}`,
-          values
+          values,
         );
         const items = dataRes.rows.map((row: any) => this.mapRowToEntity(row));
         return { items, total };
@@ -139,16 +167,16 @@ export class MFADevicePgRepository implements MFADeviceRepository {
       }
     }
 
-    let items = Array.from(this.inMemoryDb.values()).filter(item => item.tenantId === tenantId);
+    let items = Array.from(this.inMemoryDb.values()).filter((item) => item.tenantId === tenantId);
 
     if (options?.type) {
-      items = items.filter(item => item.type === options.type);
+      items = items.filter((item) => item.type === options.type);
     }
     if (options?.isActive !== undefined) {
-      items = items.filter(item => item.isActive === options.isActive);
+      items = items.filter((item) => item.isActive === options.isActive);
     }
     if (options?.userId) {
-      items = items.filter(item => item.userId === options.userId);
+      items = items.filter((item) => item.userId === options.userId);
     }
 
     items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -167,7 +195,7 @@ export class MFADevicePgRepository implements MFADeviceRepository {
 
     if (existing.version !== mfaDevice.version) {
       throw new MFADeviceDomainError(
-        `Optimistic concurrency conflict for MFADevice '${mfaDevice.id}': expected v${mfaDevice.version}, found v${existing.version}`
+        `Optimistic concurrency conflict for MFADevice '${mfaDevice.id}': expected v${mfaDevice.version}, found v${existing.version}`,
       );
     }
 
@@ -198,8 +226,12 @@ export class MFADevicePgRepository implements MFADeviceRepository {
             RETURNING *;
           `;
           await client.query(query, [
-            updatedEntity.secretEncrypted, updatedEntity.isActive, updatedEntity.lastUsedAt,
-            mfaDevice.id, tenantId, mfaDevice.version
+            updatedEntity.secretEncrypted,
+            updatedEntity.isActive,
+            updatedEntity.lastUsedAt,
+            mfaDevice.id,
+            tenantId,
+            mfaDevice.version,
           ]);
         } finally {
           client.release();
@@ -220,7 +252,10 @@ export class MFADevicePgRepository implements MFADeviceRepository {
       const client = await this.dbPool.connect();
       try {
         await client.query("SELECT set_config('app.current_tenant_id', $1, true)", [tenantId]);
-        const res = await client.query('DELETE FROM identity_mfa_devices WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
+        const res = await client.query(
+          'DELETE FROM identity_mfa_devices WHERE id = $1 AND tenant_id = $2',
+          [id, tenantId],
+        );
         this.inMemoryDb.delete(id);
         return (res.rowCount ?? 0) > 0;
       } finally {

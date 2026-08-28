@@ -1,6 +1,11 @@
 import { describe, test, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { TenantAggregate, TenantDomainError, InvalidTenantStateTransitionError, TenantValidationError } from './domain/entities/tenant.entity.js';
+import {
+  TenantAggregate,
+  TenantDomainError,
+  InvalidTenantStateTransitionError,
+  TenantValidationError,
+} from './domain/entities/tenant.entity.js';
 import { TenantPgRepository } from './infrastructure/database/repositories/tenant.pg-repository.js';
 import { TenantAuditService } from './infrastructure/audit/tenant.audit.js';
 import { TenantEventConsumer } from './infrastructure/events/tenant.consumer.js';
@@ -9,7 +14,10 @@ import { GetTenantUseCase } from './application/usecases/get-tenant.usecase.js';
 import { UpdateTenantUseCase } from './application/usecases/update-tenant.usecase.js';
 import { ListTenantsUseCase } from './application/usecases/list-tenants.usecase.js';
 import { TenantController } from './presentation/rest/controllers/tenant.controller.js';
-import { validateCreateTenantInput, validateUpdateTenantInput } from './domain/validation/tenant.validation.js';
+import {
+  validateCreateTenantInput,
+  validateUpdateTenantInput,
+} from './domain/validation/tenant.validation.js';
 
 describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () => {
   const tenantA = '00000000-0000-0000-0000-000000000001';
@@ -38,17 +46,24 @@ describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () 
       const consumer = new TenantEventConsumer();
 
       await consumer.handleEvent({
-        id: 'evt-tenant-100', name: 'identity.tenant.created',
-        tenantId: tenantA, occurredAt: new Date().toISOString(),
+        id: 'evt-tenant-100',
+        name: 'identity.tenant.created',
+        tenantId: tenantA,
+        occurredAt: new Date().toISOString(),
       });
 
       await consumer.handleEvent({
-        id: 'evt-tenant-100', name: 'identity.tenant.created',
-        tenantId: tenantA, occurredAt: new Date().toISOString(),
+        id: 'evt-tenant-100',
+        name: 'identity.tenant.created',
+        tenantId: tenantA,
+        occurredAt: new Date().toISOString(),
       });
 
       await consumer.handleEvent({
-        id: '', name: 'invalid', tenantId: '', occurredAt: '',
+        id: '',
+        name: 'invalid',
+        tenantId: '',
+        occurredAt: '',
       });
 
       assert.strictEqual(consumer.getDlq().length, 1);
@@ -57,14 +72,12 @@ describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () 
 
   describe('Task 1505 & 1512: Tenant Domain Entity & Invariants', () => {
     test('enforces constructor invariants: name required, code required', () => {
-      assert.throws(
-        () => new TenantAggregate({ name: '', code: 'TEST' }),
-        { name: 'TenantDomainError' }
-      );
-      assert.throws(
-        () => new TenantAggregate({ name: 'Test Tenant', code: '' }),
-        { name: 'TenantDomainError' }
-      );
+      assert.throws(() => new TenantAggregate({ name: '', code: 'TEST' }), {
+        name: 'TenantDomainError',
+      });
+      assert.throws(() => new TenantAggregate({ name: 'Test Tenant', code: '' }), {
+        name: 'TenantDomainError',
+      });
 
       const valid = new TenantAggregate({ name: 'Test Tenant', code: 'TT01' });
       assert.strictEqual(valid.name, 'Test Tenant');
@@ -90,24 +103,24 @@ describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () 
       assert.strictEqual(tenant.status, 'ACTIVE');
 
       // SUSPENDED -> INACTIVE is invalid
-      const suspended = new TenantAggregate({ name: 'Suspended', code: 'SUS1', status: 'SUSPENDED' });
-      assert.throws(
-        () => suspended.deactivate(),
-        { name: 'InvalidTenantStateTransitionError' }
-      );
+      const suspended = new TenantAggregate({
+        name: 'Suspended',
+        code: 'SUS1',
+        status: 'SUSPENDED',
+      });
+      assert.throws(() => suspended.deactivate(), { name: 'InvalidTenantStateTransitionError' });
     });
   });
 
   describe('Task 1511: Tenant Domain Validation Rules', () => {
     test('validates Create input and rejects unknown fields (mass assignment defense)', () => {
-      assert.throws(
-        () => validateCreateTenantInput({ name: '', code: '' }),
-        { name: 'TenantValidationError' }
-      );
+      assert.throws(() => validateCreateTenantInput({ name: '', code: '' }), {
+        name: 'TenantValidationError',
+      });
 
       assert.throws(
         () => validateCreateTenantInput({ name: 'Test', code: 'TC', isAdmin: true } as any),
-        { name: 'TenantValidationError' }
+        { name: 'TenantValidationError' },
       );
 
       const result = validateCreateTenantInput({ name: 'Test', code: 'TC' });
@@ -117,13 +130,12 @@ describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () 
     test('validates Update input and version field', () => {
       assert.throws(
         () => validateUpdateTenantInput({ status: 'INVALID_STATUS' as any, version: 1 }),
-        { name: 'TenantValidationError' }
+        { name: 'TenantValidationError' },
       );
 
-      assert.throws(
-        () => validateUpdateTenantInput({ name: 'Updated' }),
-        { name: 'TenantValidationError' }
-      );
+      assert.throws(() => validateUpdateTenantInput({ name: 'Updated' }), {
+        name: 'TenantValidationError',
+      });
 
       const result = validateUpdateTenantInput({ name: 'Updated', version: 1 });
       assert.strictEqual(result.name, 'Updated');
@@ -139,20 +151,20 @@ describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () 
       const tenant = await useCase.execute(
         adminPrincipalTenantA,
         { name: 'Enterprise Tenant', code: 'ET01' },
-        'idem-key-tenant-1'
+        'idem-key-tenant-1',
       );
 
       assert.strictEqual(tenant.name, 'Enterprise Tenant');
       assert.strictEqual(tenant.code, 'ET01');
 
       const audits = TenantAuditService.getAuditLogs();
-      assert.ok(audits.some(a => a.action === 'TENANT_CREATED'));
+      assert.ok(audits.some((a) => a.action === 'TENANT_CREATED'));
 
       // Idempotency: same key returns same entity
       const duplicate = await useCase.execute(
         adminPrincipalTenantA,
         { name: 'Enterprise Tenant', code: 'ET01' },
-        'idem-key-tenant-1'
+        'idem-key-tenant-1',
       );
       assert.strictEqual(duplicate.id, tenant.id);
     });
@@ -165,14 +177,20 @@ describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () 
       const updateUC = new UpdateTenantUseCase(repo);
       const listUC = new ListTenantsUseCase(repo);
 
-      const created = await createUC.execute(adminPrincipalTenantA, { name: 'Alpha Corp', code: 'AC01' });
+      const created = await createUC.execute(adminPrincipalTenantA, {
+        name: 'Alpha Corp',
+        code: 'AC01',
+      });
 
       // Get
       const fetched = await getUC.execute(adminPrincipalTenantA, created.id);
       assert.strictEqual(fetched.name, 'Alpha Corp');
 
       // Update
-      const updated = await updateUC.execute(adminPrincipalTenantA, created.id, { name: 'Alpha Corporation', version: 1 });
+      const updated = await updateUC.execute(adminPrincipalTenantA, created.id, {
+        name: 'Alpha Corporation',
+        version: 1,
+      });
       assert.strictEqual(updated.name, 'Alpha Corporation');
 
       // List
@@ -194,7 +212,7 @@ describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () 
 
       await assert.rejects(
         () => useCase.execute(viewerPrincipal, { name: 'Hack Tenant', code: 'HT01' }),
-        { name: 'TenantDomainError' }
+        { name: 'TenantDomainError' },
       );
     });
   });
@@ -206,10 +224,18 @@ describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () 
       const repoA = new TenantPgRepository(undefined, storeA);
       const repoB = new TenantPgRepository(undefined, storeB);
 
-      const tenantObjA = new TenantAggregate({ tenantId: tenantA, name: 'Tenant A Corp', code: 'TAC' });
+      const tenantObjA = new TenantAggregate({
+        tenantId: tenantA,
+        name: 'Tenant A Corp',
+        code: 'TAC',
+      });
       await repoA.save(tenantObjA, tenantA);
 
-      const tenantObjB = new TenantAggregate({ tenantId: tenantB, name: 'Tenant B Corp', code: 'TBC' });
+      const tenantObjB = new TenantAggregate({
+        tenantId: tenantB,
+        name: 'Tenant B Corp',
+        code: 'TBC',
+      });
       await repoB.save(tenantObjB, tenantB);
 
       const resultA = await repoA.findById(tenantObjB.id, tenantA);
@@ -239,7 +265,10 @@ describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () 
       };
 
       // POST - Create
-      const createRes = await controller.handlePostTenant({ name: 'API Tenant', code: 'AT01' }, headers);
+      const createRes = await controller.handlePostTenant(
+        { name: 'API Tenant', code: 'AT01' },
+        headers,
+      );
       assert.strictEqual(createRes.statusCode, 201);
       assert.strictEqual(createRes.body.name, 'API Tenant');
 
@@ -253,7 +282,11 @@ describe('Tenant Full Vertical Slice QA & Security Suite (Tasks 1504-1522)', () 
       assert.ok(Array.isArray(listRes.body));
 
       // PUT - Update
-      const updateRes = await controller.handlePutTenant(createRes.body.id, { name: 'Updated API Tenant', version: 1 }, headers);
+      const updateRes = await controller.handlePutTenant(
+        createRes.body.id,
+        { name: 'Updated API Tenant', version: 1 },
+        headers,
+      );
       assert.strictEqual(updateRes.statusCode, 200);
 
       // DELETE

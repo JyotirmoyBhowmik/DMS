@@ -23,7 +23,9 @@ export class TenantAuditService {
       timestamp: entry.timestamp || new Date(),
     };
     TenantAuditService.auditLogs.push(record);
-    this.logger.info(`Tenant Audit log recorded: [${record.action}] for Tenant:${record.entityId} by ${record.actorId}`);
+    this.logger.info(
+      `Tenant Audit log recorded: [${record.action}] for Tenant:${record.entityId} by ${record.actorId}`,
+    );
   }
 
   static getAuditLogs(): AuditLogEntry[] {

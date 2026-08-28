@@ -1,4 +1,10 @@
-import { TenantStatus, PlanTier, IsolationTier, ErpConfig, BrandingConfig } from '../../domain/entities/tenant.entity.js';
+import {
+  TenantStatus,
+  PlanTier,
+  IsolationTier,
+  ErpConfig,
+  BrandingConfig,
+} from '../../domain/entities/tenant.entity.js';
 
 export interface CreateTenantDto {
   name: string;

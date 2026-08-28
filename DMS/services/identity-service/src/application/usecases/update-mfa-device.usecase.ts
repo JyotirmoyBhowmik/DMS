@@ -1,6 +1,9 @@
 import { MFADeviceRepository } from '../../domain/repositories/mfa_device.repository.js';
 import { UpdateMFADeviceInputDTO } from '../dtos/mfa_device.dto.js';
-import { MFADeviceAggregate, MFADeviceDomainError } from '../../domain/entities/mfa_device.entity.js';
+import {
+  MFADeviceAggregate,
+  MFADeviceDomainError,
+} from '../../domain/entities/mfa_device.entity.js';
 import { validateUpdateMFADeviceInput } from '../../domain/validation/mfa_device.validation.js';
 import { MFADeviceAuditService } from '../../infrastructure/audit/mfa_device.audit.js';
 import { Principal } from './create-user.usecase.js';
@@ -8,14 +11,19 @@ import { Principal } from './create-user.usecase.js';
 export class UpdateMFADeviceUseCase {
   constructor(private readonly repository: MFADeviceRepository) {}
 
-  async execute(id: string, principal: Principal, dto: UpdateMFADeviceInputDTO): Promise<MFADeviceAggregate> {
+  async execute(
+    id: string,
+    principal: Principal,
+    dto: UpdateMFADeviceInputDTO,
+  ): Promise<MFADeviceAggregate> {
     if (!principal || !principal.tenantId) {
       throw new MFADeviceDomainError('Unauthorized: Principal tenant context is required');
     }
 
-    const hasPermission = principal.permissions?.includes('identity:mfa:update') ||
-                          principal.permissions?.includes('identity:*') ||
-                          principal.roles?.includes('admin');
+    const hasPermission =
+      principal.permissions?.includes('identity:mfa:update') ||
+      principal.permissions?.includes('identity:*') ||
+      principal.roles?.includes('admin');
     if (!hasPermission) {
       throw new MFADeviceDomainError('Forbidden: Insufficient permissions to update MFA device');
     }
@@ -29,7 +37,7 @@ export class UpdateMFADeviceUseCase {
 
     if (existing.version !== validated.version) {
       throw new MFADeviceDomainError(
-        `Optimistic concurrency conflict for MFADevice '${id}': expected v${validated.version}, found v${existing.version}`
+        `Optimistic concurrency conflict for MFADevice '${id}': expected v${validated.version}, found v${existing.version}`,
       );
     }
 

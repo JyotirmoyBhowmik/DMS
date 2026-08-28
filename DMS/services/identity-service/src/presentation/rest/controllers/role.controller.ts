@@ -2,7 +2,11 @@ import { CreateRoleUseCase } from '../../../application/usecases/create-role.use
 import { GetRoleUseCase } from '../../../application/usecases/get-role.usecase.js';
 import { UpdateRoleUseCase } from '../../../application/usecases/update-role.usecase.js';
 import { ListRolesUseCase } from '../../../application/usecases/list-roles.usecase.js';
-import { RoleDomainError, RoleValidationError, InvalidRoleStateTransitionError } from '../../../domain/entities/role.entity.js';
+import {
+  RoleDomainError,
+  RoleValidationError,
+  InvalidRoleStateTransitionError,
+} from '../../../domain/entities/role.entity.js';
 import { RolePgRepository } from '../../../infrastructure/database/repositories/role.pg-repository.js';
 import { Principal } from '../../../application/usecases/create-user.usecase.js';
 
@@ -16,7 +20,7 @@ export class RoleController {
     createUseCase?: CreateRoleUseCase,
     getUseCase?: GetRoleUseCase,
     updateUseCase?: UpdateRoleUseCase,
-    listUseCase?: ListRolesUseCase
+    listUseCase?: ListRolesUseCase,
   ) {
     const repo = new RolePgRepository();
     this.createUseCase = createUseCase || new CreateRoleUseCase(repo);
@@ -30,9 +34,16 @@ export class RoleController {
       this.validateHeaders(req);
       const principal = this.extractPrincipal(req);
       const correlationId = (req.headers && req.headers['x-correlation-id']) || 'N/A';
-      const idempotencyKey = (req.headers && req.headers['x-idempotency-key']) as string | undefined;
+      const idempotencyKey = (req.headers && req.headers['x-idempotency-key']) as
+        | string
+        | undefined;
 
-      const role = await this.createUseCase.execute(principal, req.body, idempotencyKey, correlationId);
+      const role = await this.createUseCase.execute(
+        principal,
+        req.body,
+        idempotencyKey,
+        correlationId,
+      );
 
       res.status(201).json({
         success: true,
@@ -64,7 +75,12 @@ export class RoleController {
       const principal = this.extractPrincipal(req);
       const correlationId = (req.headers && req.headers['x-correlation-id']) || 'N/A';
 
-      const role = await this.updateUseCase.execute(req.params.id, principal, req.body, correlationId);
+      const role = await this.updateUseCase.execute(
+        req.params.id,
+        principal,
+        req.body,
+        correlationId,
+      );
 
       res.status(200).json({
         success: true,
@@ -90,7 +106,7 @@ export class RoleController {
 
       res.status(200).json({
         success: true,
-        data: result.items.map(item => item.toJSON()),
+        data: result.items.map((item) => item.toJSON()),
         meta: {
           total: result.total,
           page: result.page,
@@ -124,17 +140,24 @@ export class RoleController {
     }
   }
 
-  async handleListRoles(queryOrBody?: any, headers?: any): Promise<{ statusCode: number; body: any }> {
+  async handleListRoles(
+    queryOrBody?: any,
+    headers?: any,
+  ): Promise<{ statusCode: number; body: any }> {
     try {
       const principal = this.extractPrincipalFromHeaders(headers);
       const result = await this.listUseCase.execute(principal, queryOrBody || {});
-      return { statusCode: 200, body: result.items.map(i => i.toJSON()) };
+      return { statusCode: 200, body: result.items.map((i) => i.toJSON()) };
     } catch (err: any) {
       return { statusCode: 400, body: { error: err.message } };
     }
   }
 
-  async handlePutRole(id: string, body: any, headers?: any): Promise<{ statusCode: number; body: any }> {
+  async handlePutRole(
+    id: string,
+    body: any,
+    headers?: any,
+  ): Promise<{ statusCode: number; body: any }> {
     try {
       const principal = this.extractPrincipalFromHeaders(headers);
       const role = await this.updateUseCase.execute(id, principal, body);
@@ -147,7 +170,8 @@ export class RoleController {
   async handleDeleteRole(id: string, headers?: any): Promise<{ statusCode: number; body: any }> {
     try {
       const repo = new RolePgRepository();
-      const tenantId = (headers && headers['x-tenant-id']) || '00000000-0000-0000-0000-000000000001';
+      const tenantId =
+        (headers && headers['x-tenant-id']) || '00000000-0000-0000-0000-000000000001';
       const deleted = await repo.delete(id, tenantId);
       return { statusCode: deleted ? 200 : 404, body: { success: deleted } };
     } catch (err: any) {
@@ -212,7 +236,8 @@ export class RoleController {
       let statusCode = 400;
       if (err.message.includes('Forbidden')) statusCode = 403;
       else if (err.message.includes('not found')) statusCode = 404;
-      else if (err.message.includes('already exists') || err.message.includes('Optimistic')) statusCode = 409;
+      else if (err.message.includes('already exists') || err.message.includes('Optimistic'))
+        statusCode = 409;
       else if (err.message.includes('Unsupported Media Type')) statusCode = 415;
 
       res.status(statusCode).json({

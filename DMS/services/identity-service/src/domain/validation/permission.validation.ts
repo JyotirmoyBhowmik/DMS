@@ -6,7 +6,7 @@ const ALLOWED_CREATE_KEYS = new Set([
   'resource',
   'action',
   'description',
-  'idempotencyKey'
+  'idempotencyKey',
 ]);
 
 const ALLOWED_UPDATE_KEYS = new Set([
@@ -15,7 +15,7 @@ const ALLOWED_UPDATE_KEYS = new Set([
   'action',
   'description',
   'status',
-  'version'
+  'version',
 ]);
 
 export function validateCreatePermissionInput(rawInput: any): CreatePermissionDto {
@@ -28,17 +28,27 @@ export function validateCreatePermissionInput(rawInput: any): CreatePermissionDt
   // Mass assignment defense
   for (const key of Object.keys(rawInput)) {
     if (!ALLOWED_CREATE_KEYS.has(key)) {
-      throw new PermissionValidationError({ massAssignment: `Unknown field '${key}' is not allowed` });
+      throw new PermissionValidationError({
+        massAssignment: `Unknown field '${key}' is not allowed`,
+      });
     }
   }
 
   if (!rawInput.name || typeof rawInput.name !== 'string' || rawInput.name.trim().length === 0) {
     errors.name = 'name is required and must be a non-empty string';
   }
-  if (!rawInput.resource || typeof rawInput.resource !== 'string' || rawInput.resource.trim().length === 0) {
+  if (
+    !rawInput.resource ||
+    typeof rawInput.resource !== 'string' ||
+    rawInput.resource.trim().length === 0
+  ) {
     errors.resource = 'resource is required and must be a non-empty string';
   }
-  if (!rawInput.action || typeof rawInput.action !== 'string' || rawInput.action.trim().length === 0) {
+  if (
+    !rawInput.action ||
+    typeof rawInput.action !== 'string' ||
+    rawInput.action.trim().length === 0
+  ) {
     errors.action = 'action is required and must be a non-empty string';
   }
 
@@ -58,7 +68,9 @@ export function validateUpdatePermissionInput(rawInput: any): UpdatePermissionDt
 
   for (const key of Object.keys(rawInput)) {
     if (!ALLOWED_UPDATE_KEYS.has(key)) {
-      throw new PermissionValidationError({ massAssignment: `Unknown field '${key}' is not allowed` });
+      throw new PermissionValidationError({
+        massAssignment: `Unknown field '${key}' is not allowed`,
+      });
     }
   }
 
@@ -69,7 +81,10 @@ export function validateUpdatePermissionInput(rawInput: any): UpdatePermissionDt
     }
   }
 
-  if (rawInput.version !== undefined && (typeof rawInput.version !== 'number' || rawInput.version < 1)) {
+  if (
+    rawInput.version !== undefined &&
+    (typeof rawInput.version !== 'number' || rawInput.version < 1)
+  ) {
     errors.version = 'version must be a positive integer >= 1';
   }
 

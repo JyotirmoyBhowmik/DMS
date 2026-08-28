@@ -1,5 +1,8 @@
 import { PermissionRepository } from '../../domain/repositories/permission.repository.js';
-import { PermissionAggregate, PermissionDomainError } from '../../domain/entities/permission.entity.js';
+import {
+  PermissionAggregate,
+  PermissionDomainError,
+} from '../../domain/entities/permission.entity.js';
 import { CreatePermissionDto } from '../dtos/permission.dto.js';
 import { validateCreatePermissionInput } from '../../domain/validation/permission.validation.js';
 import { Principal } from './create-user.usecase.js';
@@ -10,7 +13,12 @@ export class CreatePermissionUseCase {
 
   constructor(private readonly repository: PermissionRepository) {}
 
-  async execute(principal: Principal, dto: CreatePermissionDto, idempotencyKey?: string, correlationId?: string): Promise<PermissionAggregate> {
+  async execute(
+    principal: Principal,
+    dto: CreatePermissionDto,
+    idempotencyKey?: string,
+    correlationId?: string,
+  ): Promise<PermissionAggregate> {
     if (!principal || !principal.tenantId) {
       throw new PermissionDomainError('Forbidden: Valid principal and tenantId are required');
     }

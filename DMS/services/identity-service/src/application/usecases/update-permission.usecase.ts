@@ -1,5 +1,8 @@
 import { PermissionRepository } from '../../domain/repositories/permission.repository.js';
-import { PermissionAggregate, PermissionDomainError } from '../../domain/entities/permission.entity.js';
+import {
+  PermissionAggregate,
+  PermissionDomainError,
+} from '../../domain/entities/permission.entity.js';
 import { UpdatePermissionDto } from '../dtos/permission.dto.js';
 import { validateUpdatePermissionInput } from '../../domain/validation/permission.validation.js';
 import { Principal } from './create-user.usecase.js';
@@ -10,7 +13,12 @@ export class UpdatePermissionUseCase {
 
   constructor(private readonly repository: PermissionRepository) {}
 
-  async execute(id: string, principal: Principal, dto: UpdatePermissionDto, correlationId?: string): Promise<PermissionAggregate> {
+  async execute(
+    id: string,
+    principal: Principal,
+    dto: UpdatePermissionDto,
+    correlationId?: string,
+  ): Promise<PermissionAggregate> {
     if (!principal || !principal.tenantId) {
       throw new PermissionDomainError('Forbidden: Valid principal and tenantId are required');
     }
@@ -33,18 +41,18 @@ export class UpdatePermissionUseCase {
 
     if (dto.version !== undefined && existing.version !== dto.version) {
       throw new PermissionDomainError(
-        `Optimistic locking conflict: Permission version is ${existing.version}, provided version is ${dto.version}`
+        `Optimistic locking conflict: Permission version is ${existing.version}, provided version is ${dto.version}`,
       );
     }
 
     const oldValue = existing.toJSON();
-    
+
     if (dto.name || dto.resource || dto.action || dto.description !== undefined) {
       existing.updateProfile(
         dto.name || existing.name,
         dto.resource || existing.resource,
         dto.action || existing.action,
-        dto.description
+        dto.description,
       );
     }
 

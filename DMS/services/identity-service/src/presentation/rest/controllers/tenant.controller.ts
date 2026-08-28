@@ -2,7 +2,11 @@ import { CreateTenantUseCase } from '../../../application/usecases/create-tenant
 import { GetTenantUseCase } from '../../../application/usecases/get-tenant.usecase.js';
 import { UpdateTenantUseCase } from '../../../application/usecases/update-tenant.usecase.js';
 import { ListTenantsUseCase } from '../../../application/usecases/list-tenants.usecase.js';
-import { TenantDomainError, TenantValidationError, InvalidTenantStateTransitionError } from '../../../domain/entities/tenant.entity.js';
+import {
+  TenantDomainError,
+  TenantValidationError,
+  InvalidTenantStateTransitionError,
+} from '../../../domain/entities/tenant.entity.js';
 import { TenantPgRepository } from '../../../infrastructure/database/repositories/tenant.pg-repository.js';
 import { Principal } from '../../../application/usecases/create-user.usecase.js';
 
@@ -18,7 +22,7 @@ export class TenantController {
     getUseCase?: GetTenantUseCase,
     updateUseCase?: UpdateTenantUseCase,
     listUseCase?: ListTenantsUseCase,
-    repo?: TenantPgRepository
+    repo?: TenantPgRepository,
   ) {
     this.repo = repo || new TenantPgRepository();
     this.createUseCase = createUseCase || new CreateTenantUseCase(this.repo);
@@ -32,7 +36,10 @@ export class TenantController {
       const principal = this.extractPrincipalFromHeaders(headers);
       const contentType = headers && headers['content-type'];
       if (contentType && !contentType.includes('application/json')) {
-        return { statusCode: 415, body: { error: 'Unsupported Media Type: Content-Type must be application/json' } };
+        return {
+          statusCode: 415,
+          body: { error: 'Unsupported Media Type: Content-Type must be application/json' },
+        };
       }
       const tenant = await this.createUseCase.execute(principal, body);
       return { statusCode: 201, body: tenant.toJSON() };
@@ -41,13 +48,20 @@ export class TenantController {
     }
   }
 
-  async handleProvisionTenant(body: any, headers?: any): Promise<{ statusCode: number; body: any }> {
+  async handleProvisionTenant(
+    body: any,
+    headers?: any,
+  ): Promise<{ statusCode: number; body: any }> {
     try {
       const contentType = headers && headers['content-type'];
       if (contentType && !contentType.includes('application/json')) {
-        return { statusCode: 415, body: { error: 'Unsupported Media Type: Content-Type must be application/json' } };
+        return {
+          statusCode: 415,
+          body: { error: 'Unsupported Media Type: Content-Type must be application/json' },
+        };
       }
-      const { ProvisionTenantUseCase } = await import('../../../application/usecases/provision-tenant.usecase.js');
+      const { ProvisionTenantUseCase } =
+        await import('../../../application/usecases/provision-tenant.usecase.js');
       const provisionUseCase = new ProvisionTenantUseCase(this.repo);
       const result = await provisionUseCase.execute(body);
       return { statusCode: 201, body: result };
@@ -66,7 +80,10 @@ export class TenantController {
     }
   }
 
-  async handleListTenants(queryOrBody?: any, headers?: any): Promise<{ statusCode: number; body: any }> {
+  async handleListTenants(
+    queryOrBody?: any,
+    headers?: any,
+  ): Promise<{ statusCode: number; body: any }> {
     try {
       const principal = this.extractPrincipalFromHeaders(headers);
       const result = await this.listUseCase.execute(principal, queryOrBody || {});
@@ -76,12 +93,19 @@ export class TenantController {
     }
   }
 
-  async handlePutTenant(id: string, body: any, headers?: any): Promise<{ statusCode: number; body: any }> {
+  async handlePutTenant(
+    id: string,
+    body: any,
+    headers?: any,
+  ): Promise<{ statusCode: number; body: any }> {
     try {
       const principal = this.extractPrincipalFromHeaders(headers);
       const contentType = headers && headers['content-type'];
       if (contentType && !contentType.includes('application/json')) {
-        return { statusCode: 415, body: { error: 'Unsupported Media Type: Content-Type must be application/json' } };
+        return {
+          statusCode: 415,
+          body: { error: 'Unsupported Media Type: Content-Type must be application/json' },
+        };
       }
       const tenant = await this.updateUseCase.execute(principal, id, body);
       return { statusCode: 200, body: tenant.toJSON() };
@@ -92,7 +116,8 @@ export class TenantController {
 
   async handleDeleteTenant(id: string, headers?: any): Promise<{ statusCode: number; body: any }> {
     try {
-      const tenantId = (headers && headers['x-tenant-id']) || '00000000-0000-0000-0000-000000000001';
+      const tenantId =
+        (headers && headers['x-tenant-id']) || '00000000-0000-0000-0000-000000000001';
       const deleted = await this.repo.delete(id, tenantId);
       return { statusCode: deleted ? 200 : 404, body: { success: deleted } };
     } catch (err: any) {
@@ -125,7 +150,8 @@ export class TenantController {
       let statusCode = 400;
       if (err.message.includes('Forbidden')) statusCode = 403;
       else if (err.message.includes('not found')) statusCode = 404;
-      else if (err.message.includes('already exists') || err.message.includes('Optimistic')) statusCode = 409;
+      else if (err.message.includes('already exists') || err.message.includes('Optimistic'))
+        statusCode = 409;
       else if (err.message.includes('Unsupported Media Type')) statusCode = 415;
       return { statusCode, body: { error: err.message } };
     }

@@ -15,7 +15,10 @@ export class InvalidTenantStateTransitionError extends TenantDomainError {
 }
 
 export class TenantValidationError extends TenantDomainError {
-  constructor(public readonly fields: Record<string, string>, message = 'Tenant validation failed') {
+  constructor(
+    public readonly fields: Record<string, string>,
+    message = 'Tenant validation failed',
+  ) {
     const detail = Object.values(fields).join('; ');
     super(detail ? `${message}: ${detail}` : message);
     this.name = 'TenantValidationError';
@@ -102,13 +105,21 @@ export class TenantAggregate {
     this._name = props.name.trim();
     this._code = props.code.trim().toUpperCase();
     this._domain = props.domain ? props.domain.trim().toLowerCase() : undefined;
-    this._subdomain = props.subdomain ? props.subdomain.trim().toLowerCase() : props.code.toLowerCase();
+    this._subdomain = props.subdomain
+      ? props.subdomain.trim().toLowerCase()
+      : props.code.toLowerCase();
     this._customDomain = props.customDomain ? props.customDomain.trim().toLowerCase() : undefined;
     this._planTier = props.planTier || 'PROFESSIONAL';
-    this._isolationTier = props.isolationTier || (props.planTier === 'ENTERPRISE' ? 'DEDICATED_CLUSTER' : 'SHARED_RLS');
+    this._isolationTier =
+      props.isolationTier || (props.planTier === 'ENTERPRISE' ? 'DEDICATED_CLUSTER' : 'SHARED_RLS');
     this._region = props.region || 'singapore';
     this._erpConfig = props.erpConfig || { type: 'NONE', status: 'DISCONNECTED' };
-    this._channelModules = props.channelModules || ['DMS_CORE', 'SFA', 'VAN_SALES', 'TRADE_SCHEMES'];
+    this._channelModules = props.channelModules || [
+      'DMS_CORE',
+      'SFA',
+      'VAN_SALES',
+      'TRADE_SCHEMES',
+    ];
     this._branding = props.branding || { primaryColor: '#0F172A', customTitle: props.name };
     this._status = props.status || 'ACTIVE';
     this._idempotencyKey = props.idempotencyKey;
@@ -117,25 +128,63 @@ export class TenantAggregate {
     this._updatedAt = props.updatedAt || new Date();
   }
 
-  get id(): string { return this._id; }
-  get tenantId(): string { return this._tenantId; }
-  get name(): string { return this._name; }
-  get code(): string { return this._code; }
-  get domain(): string | undefined { return this._domain; }
-  get subdomain(): string | undefined { return this._subdomain; }
-  get customDomain(): string | undefined { return this._customDomain; }
-  get planTier(): PlanTier { return this._planTier; }
-  get isolationTier(): IsolationTier { return this._isolationTier; }
-  get region(): string { return this._region; }
-  get erpConfig(): ErpConfig { return { ...this._erpConfig }; }
-  get channelModules(): string[] { return [...this._channelModules]; }
-  get branding(): BrandingConfig { return { ...this._branding }; }
-  get status(): TenantStatus { return this._status; }
-  get idempotencyKey(): string | undefined { return this._idempotencyKey; }
-  get version(): number { return this._version; }
-  get createdAt(): Date { return this._createdAt; }
-  get updatedAt(): Date { return this._updatedAt; }
-  get domainEvents(): DomainEvent[] { return [...this._domainEvents]; }
+  get id(): string {
+    return this._id;
+  }
+  get tenantId(): string {
+    return this._tenantId;
+  }
+  get name(): string {
+    return this._name;
+  }
+  get code(): string {
+    return this._code;
+  }
+  get domain(): string | undefined {
+    return this._domain;
+  }
+  get subdomain(): string | undefined {
+    return this._subdomain;
+  }
+  get customDomain(): string | undefined {
+    return this._customDomain;
+  }
+  get planTier(): PlanTier {
+    return this._planTier;
+  }
+  get isolationTier(): IsolationTier {
+    return this._isolationTier;
+  }
+  get region(): string {
+    return this._region;
+  }
+  get erpConfig(): ErpConfig {
+    return { ...this._erpConfig };
+  }
+  get channelModules(): string[] {
+    return [...this._channelModules];
+  }
+  get branding(): BrandingConfig {
+    return { ...this._branding };
+  }
+  get status(): TenantStatus {
+    return this._status;
+  }
+  get idempotencyKey(): string | undefined {
+    return this._idempotencyKey;
+  }
+  get version(): number {
+    return this._version;
+  }
+  get createdAt(): Date {
+    return this._createdAt;
+  }
+  get updatedAt(): Date {
+    return this._updatedAt;
+  }
+  get domainEvents(): DomainEvent[] {
+    return [...this._domainEvents];
+  }
 
   public clearEvents(): void {
     this._domainEvents = [];
@@ -174,7 +223,7 @@ export class TenantAggregate {
     const allowed = validTransitions[this._status] || [];
     if (!allowed.includes(newStatus)) {
       throw new InvalidTenantStateTransitionError(
-        `Cannot transition Tenant from state '${this._status}' to '${newStatus}'`
+        `Cannot transition Tenant from state '${this._status}' to '${newStatus}'`,
       );
     }
 

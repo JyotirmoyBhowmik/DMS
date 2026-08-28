@@ -15,7 +15,10 @@ export class InvalidUserStateTransitionError extends UserDomainError {
 }
 
 export class UserValidationError extends UserDomainError {
-  constructor(public readonly fields: Record<string, string>, message = 'User validation failed') {
+  constructor(
+    public readonly fields: Record<string, string>,
+    message = 'User validation failed',
+  ) {
     const detail = Object.values(fields).join('; ');
     super(detail ? `${message}: ${detail}` : message);
     this.name = 'UserValidationError';
@@ -91,20 +94,48 @@ export class UserAggregate {
     this._lastLoginAt = props.lastLoginAt;
   }
 
-  get id(): string { return this._id; }
-  get tenantId(): string { return this._tenantId; }
-  get email(): string { return this._email; }
-  get passwordHash(): string { return this._passwordHash; }
-  get firstName(): string | undefined { return this._firstName; }
-  get lastName(): string | undefined { return this._lastName; }
-  get roles(): string[] { return [...this._roles]; }
-  get status(): UserStatus { return this._status; }
-  get idempotencyKey(): string | undefined { return this._idempotencyKey; }
-  get version(): number { return this._version; }
-  get createdAt(): Date { return this._createdAt; }
-  get updatedAt(): Date { return this._updatedAt; }
-  get lastLoginAt(): Date | undefined { return this._lastLoginAt; }
-  get domainEvents(): DomainEvent[] { return [...this._domainEvents]; }
+  get id(): string {
+    return this._id;
+  }
+  get tenantId(): string {
+    return this._tenantId;
+  }
+  get email(): string {
+    return this._email;
+  }
+  get passwordHash(): string {
+    return this._passwordHash;
+  }
+  get firstName(): string | undefined {
+    return this._firstName;
+  }
+  get lastName(): string | undefined {
+    return this._lastName;
+  }
+  get roles(): string[] {
+    return [...this._roles];
+  }
+  get status(): UserStatus {
+    return this._status;
+  }
+  get idempotencyKey(): string | undefined {
+    return this._idempotencyKey;
+  }
+  get version(): number {
+    return this._version;
+  }
+  get createdAt(): Date {
+    return this._createdAt;
+  }
+  get updatedAt(): Date {
+    return this._updatedAt;
+  }
+  get lastLoginAt(): Date | undefined {
+    return this._lastLoginAt;
+  }
+  get domainEvents(): DomainEvent[] {
+    return [...this._domainEvents];
+  }
 
   public clearEvents(): void {
     this._domainEvents = [];
@@ -152,7 +183,7 @@ export class UserAggregate {
     const allowed = validTransitions[this._status] || [];
     if (!allowed.includes(newStatus)) {
       throw new InvalidUserStateTransitionError(
-        `Cannot transition User from state '${this._status}' to '${newStatus}'`
+        `Cannot transition User from state '${this._status}' to '${newStatus}'`,
       );
     }
 

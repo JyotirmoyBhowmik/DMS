@@ -25,7 +25,7 @@ export class CreateRoleUseCase {
 
   constructor(
     private readonly db?: PostgresDatabaseClient,
-    private readonly roleRepo?: RoleRepository
+    private readonly roleRepo?: RoleRepository,
   ) {}
 
   async execute(tenantId: string, input: CreateRoleInput): Promise<Role> {
@@ -57,20 +57,25 @@ export class CreateRoleUseCase {
         producer: 'identity-service',
         partitionKey: roleId,
         causationId: activeCtx?.causationId,
-      }
+      },
     );
 
     if (this.db) {
       try {
         await this.db.transaction(async (conn) => {
           await repo.save(entity, tenantId);
-          await this.outboxRepo.save(conn, {
-            eventId: event.eventId,
-            tenantId,
-            type: event.type,
-            version: 'v1',
-            payload: event.payload,
-          }, 'Role', roleId);
+          await this.outboxRepo.save(
+            conn,
+            {
+              eventId: event.eventId,
+              tenantId,
+              type: event.type,
+              version: 'v1',
+              payload: event.payload,
+            },
+            'Role',
+            roleId,
+          );
         }, tenantId);
       } catch (txErr) {
         await repo.save(entity, tenantId);
@@ -97,7 +102,7 @@ export class UpdateRoleUseCase {
 
   constructor(
     private readonly db?: PostgresDatabaseClient,
-    private readonly roleRepo?: RoleRepository
+    private readonly roleRepo?: RoleRepository,
   ) {}
 
   async execute(tenantId: string, input: UpdateRoleInput): Promise<Role> {
@@ -131,20 +136,25 @@ export class UpdateRoleUseCase {
         producer: 'identity-service',
         partitionKey: entity.id,
         causationId: activeCtx?.causationId,
-      }
+      },
     );
 
     if (this.db) {
       try {
         await this.db.transaction(async (conn) => {
           await repo.update(entity, tenantId);
-          await this.outboxRepo.save(conn, {
-            eventId: event.eventId,
-            tenantId,
-            type: event.type,
-            version: 'v1',
-            payload: event.payload,
-          }, 'Role', entity.id);
+          await this.outboxRepo.save(
+            conn,
+            {
+              eventId: event.eventId,
+              tenantId,
+              type: event.type,
+              version: 'v1',
+              payload: event.payload,
+            },
+            'Role',
+            entity.id,
+          );
         }, tenantId);
       } catch (txErr) {
         await repo.update(entity, tenantId);

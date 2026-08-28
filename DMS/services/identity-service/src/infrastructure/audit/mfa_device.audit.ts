@@ -1,7 +1,12 @@
 import { StructuredLogger } from '@dms/pkg-logger';
 
 export interface MFADeviceAuditLogEntry {
-  action: 'MFA_DEVICE_CREATED' | 'MFA_DEVICE_UPDATED' | 'MFA_DEVICE_ACTIVATED' | 'MFA_DEVICE_DEACTIVATED' | 'MFA_DEVICE_DELETED';
+  action:
+    | 'MFA_DEVICE_CREATED'
+    | 'MFA_DEVICE_UPDATED'
+    | 'MFA_DEVICE_ACTIVATED'
+    | 'MFA_DEVICE_DEACTIVATED'
+    | 'MFA_DEVICE_DELETED';
   deviceId: string;
   tenantId: string;
   actorUserId: string;
@@ -20,7 +25,9 @@ export class MFADeviceAuditService {
     };
 
     MFADeviceAuditService.auditLogs.push(fullEntry);
-    MFADeviceAuditService.logger.info(`MFADevice Audit log recorded: [${fullEntry.action}] for Device:${fullEntry.deviceId} by ${fullEntry.actorUserId}`);
+    MFADeviceAuditService.logger.info(
+      `MFADevice Audit log recorded: [${fullEntry.action}] for Device:${fullEntry.deviceId} by ${fullEntry.actorUserId}`,
+    );
   }
 
   static getAuditLogs(): MFADeviceAuditLogEntry[] {

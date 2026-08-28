@@ -34,14 +34,21 @@ export class SessionStore {
       this.families.set(metadata.familyId, new Set());
     }
     this.families.get(metadata.familyId)!.add(metadata.token);
-    this.logger.info('Refresh token persisted', { token: metadata.token.substring(0, 10) + '...', familyId: metadata.familyId });
+    this.logger.info('Refresh token persisted', {
+      token: metadata.token.substring(0, 10) + '...',
+      familyId: metadata.familyId,
+    });
   }
 
   async findToken(token: string): Promise<RefreshTokenMetadata | undefined> {
     return this.tokens.get(token);
   }
 
-  async rotateToken(oldToken: string, newToken: string, newExpiresAt: number): Promise<RefreshTokenMetadata> {
+  async rotateToken(
+    oldToken: string,
+    newToken: string,
+    newExpiresAt: number,
+  ): Promise<RefreshTokenMetadata> {
     const meta = this.tokens.get(oldToken);
     if (!meta) {
       throw new Error('Token not found');
@@ -49,7 +56,9 @@ export class SessionStore {
 
     if (meta.isUsed) {
       // Reuse detected! Revoke the entire family!
-      this.logger.warn('Token reuse detected! Revoking entire family.', { familyId: meta.familyId });
+      this.logger.warn('Token reuse detected! Revoking entire family.', {
+        familyId: meta.familyId,
+      });
       await this.revokeFamily(meta.familyId);
       throw new Error('Refresh token reuse detected. Revoking family.');
     }

@@ -16,7 +16,11 @@ export class InMemoryUserScopeRepository implements UserScopeRepository {
     return InMemoryUserScopeRepository.store.get(this.key(tenantId, userKey)) ?? null;
   }
 
-  async upsert(tenantId: string, userKey: string, scope: TokenScopeClaims): Promise<TokenScopeClaims> {
+  async upsert(
+    tenantId: string,
+    userKey: string,
+    scope: TokenScopeClaims,
+  ): Promise<TokenScopeClaims> {
     InMemoryUserScopeRepository.store.set(this.key(tenantId, userKey), scope);
     return scope;
   }

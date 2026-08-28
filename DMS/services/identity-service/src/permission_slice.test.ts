@@ -1,7 +1,14 @@
 import { describe, test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { PermissionAggregate, PermissionDomainError, InvalidPermissionStateTransitionError } from './domain/entities/permission.entity.js';
-import { validateCreatePermissionInput, validateUpdatePermissionInput } from './domain/validation/permission.validation.js';
+import {
+  PermissionAggregate,
+  PermissionDomainError,
+  InvalidPermissionStateTransitionError,
+} from './domain/entities/permission.entity.js';
+import {
+  validateCreatePermissionInput,
+  validateUpdatePermissionInput,
+} from './domain/validation/permission.validation.js';
 import { PermissionPgRepository } from './infrastructure/database/repositories/permission.pg-repository.js';
 import { CreatePermissionUseCase } from './application/usecases/create-permission.usecase.js';
 import { GetPermissionUseCase } from './application/usecases/get-permission.usecase.js';
@@ -54,7 +61,12 @@ describe('Permission Full Vertical Slice QA & Security Suite (Tasks 1483-1501)',
       assert.equal(res2.reason, 'DUPLICATE_SKIPPED');
 
       // Poison event
-      const resPoison = await consumer.consume({ id: '', name: 'invalid', tenantId: '', occurredAt: '' } as any);
+      const resPoison = await consumer.consume({
+        id: '',
+        name: 'invalid',
+        tenantId: '',
+        occurredAt: '',
+      } as any);
       assert.equal(resPoison.success, false);
       assert.equal(resPoison.reason, 'POISON_EVENT');
       assert.equal(consumer.getDlqMessages().length, 1);
@@ -155,11 +167,21 @@ describe('Permission Full Vertical Slice QA & Security Suite (Tasks 1483-1501)',
         idempotencyKey: 'idemp-perm-201',
       };
 
-      const created = await createUseCase.execute(adminPrincipalTenantA, dto, 'idemp-perm-201', 'corr-perm-1');
+      const created = await createUseCase.execute(
+        adminPrincipalTenantA,
+        dto,
+        'idemp-perm-201',
+        'corr-perm-1',
+      );
       assert.equal(created.name, 'claims:approve');
 
       // Idempotent retry returns identical instance
-      const retried = await createUseCase.execute(adminPrincipalTenantA, dto, 'idemp-perm-201', 'corr-perm-1');
+      const retried = await createUseCase.execute(
+        adminPrincipalTenantA,
+        dto,
+        'idemp-perm-201',
+        'corr-perm-1',
+      );
       assert.equal(retried.id, created.id);
 
       const logs = PermissionAuditService.getAuditLogs();
@@ -252,7 +274,12 @@ describe('Permission Full Vertical Slice QA & Security Suite (Tasks 1483-1501)',
       const updateUseCase = new UpdatePermissionUseCase(repository);
       const listUseCase = new ListPermissionsUseCase(repository);
 
-      const controller = new PermissionController(createUseCase, getUseCase, updateUseCase, listUseCase);
+      const controller = new PermissionController(
+        createUseCase,
+        getUseCase,
+        updateUseCase,
+        listUseCase,
+      );
 
       const req = {
         headers: {
@@ -296,7 +323,7 @@ describe('Permission Full Vertical Slice QA & Security Suite (Tasks 1483-1501)',
         new CreatePermissionUseCase(repository),
         new GetPermissionUseCase(repository),
         new UpdatePermissionUseCase(repository),
-        new ListPermissionsUseCase(repository)
+        new ListPermissionsUseCase(repository),
       );
 
       const req = {
@@ -321,7 +348,10 @@ describe('Permission Full Vertical Slice QA & Security Suite (Tasks 1483-1501)',
       await controller.create(req, res);
       assert.equal(statusCode, 415);
       assert.equal(jsonPayload.success, false);
-      assert.equal(jsonPayload.error.message, 'Unsupported Media Type: Content-Type must be application/json');
+      assert.equal(
+        jsonPayload.error.message,
+        'Unsupported Media Type: Content-Type must be application/json',
+      );
     });
   });
 });

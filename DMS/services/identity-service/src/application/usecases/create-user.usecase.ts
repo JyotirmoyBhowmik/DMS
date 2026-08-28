@@ -16,7 +16,12 @@ export class CreateUserUseCase {
 
   constructor(private readonly repository: UserRepository) {}
 
-  async execute(principal: Principal, dto: CreateUserDto, idempotencyKey?: string, correlationId?: string): Promise<UserAggregate> {
+  async execute(
+    principal: Principal,
+    dto: CreateUserDto,
+    idempotencyKey?: string,
+    correlationId?: string,
+  ): Promise<UserAggregate> {
     if (!principal || !principal.tenantId) {
       throw new UserDomainError('Forbidden: Valid principal and tenantId are required');
     }

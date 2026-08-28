@@ -1,20 +1,9 @@
 import { CreateTenantDto, UpdateTenantDto } from '../../application/dtos/tenant.dto.js';
 import { TenantValidationError } from '../entities/tenant.entity.js';
 
-const ALLOWED_CREATE_KEYS = new Set([
-  'name',
-  'code',
-  'domain',
-  'status',
-  'idempotencyKey'
-]);
+const ALLOWED_CREATE_KEYS = new Set(['name', 'code', 'domain', 'status', 'idempotencyKey']);
 
-const ALLOWED_UPDATE_KEYS = new Set([
-  'name',
-  'domain',
-  'status',
-  'version'
-]);
+const ALLOWED_UPDATE_KEYS = new Set(['name', 'domain', 'status', 'version']);
 
 export function validateCreateTenantInput(rawInput: any): CreateTenantDto {
   if (!rawInput || typeof rawInput !== 'object') {
@@ -68,7 +57,10 @@ export function validateUpdateTenantInput(rawInput: any): UpdateTenantDto {
     }
   }
 
-  if (rawInput.version !== undefined && (typeof rawInput.version !== 'number' || rawInput.version < 1)) {
+  if (
+    rawInput.version !== undefined &&
+    (typeof rawInput.version !== 'number' || rawInput.version < 1)
+  ) {
     errors.version = 'version must be a positive integer >= 1';
   }
 

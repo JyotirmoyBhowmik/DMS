@@ -1,6 +1,11 @@
 import { createHash } from 'node:crypto';
 import { TenantRepository } from '../../domain/repositories/tenant.repository.js';
-import { TenantAggregate, TenantDomainError, PlanTier, IsolationTier } from '../../domain/entities/tenant.entity.js';
+import {
+  TenantAggregate,
+  TenantDomainError,
+  PlanTier,
+  IsolationTier,
+} from '../../domain/entities/tenant.entity.js';
 import { UserRepository } from '../../domain/repositories/user.repository.js';
 import { UserAggregate } from '../../domain/entities/user.entity.js';
 import { CreateTenantDto } from '../dtos/tenant.dto.js';
@@ -8,7 +13,7 @@ import { CreateTenantDto } from '../dtos/tenant.dto.js';
 export class ProvisionTenantUseCase {
   constructor(
     private readonly tenantRepository: TenantRepository,
-    private readonly userRepository?: UserRepository
+    private readonly userRepository?: UserRepository,
   ) {}
 
   async execute(dto: CreateTenantDto, principalTenantId?: string) {
@@ -30,7 +35,8 @@ export class ProvisionTenantUseCase {
     }
 
     const planTier: PlanTier = dto.planTier || 'PROFESSIONAL';
-    const isolationTier: IsolationTier = dto.isolationTier || (planTier === 'ENTERPRISE' ? 'DEDICATED_CLUSTER' : 'SHARED_RLS');
+    const isolationTier: IsolationTier =
+      dto.isolationTier || (planTier === 'ENTERPRISE' ? 'DEDICATED_CLUSTER' : 'SHARED_RLS');
     const subdomain = dto.subdomain ? dto.subdomain.toLowerCase() : tenantCode.toLowerCase();
     const region = dto.region || 'singapore';
     const channelModules = dto.channelModules || ['DMS_CORE', 'SFA', 'VAN_SALES', 'TRADE_SCHEMES'];

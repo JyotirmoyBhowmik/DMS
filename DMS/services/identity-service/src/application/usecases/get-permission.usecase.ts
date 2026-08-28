@@ -1,5 +1,8 @@
 import { PermissionRepository } from '../../domain/repositories/permission.repository.js';
-import { PermissionAggregate, PermissionDomainError } from '../../domain/entities/permission.entity.js';
+import {
+  PermissionAggregate,
+  PermissionDomainError,
+} from '../../domain/entities/permission.entity.js';
 import { Principal } from './create-user.usecase.js';
 
 export class GetPermissionUseCase {

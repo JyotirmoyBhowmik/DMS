@@ -1,19 +1,9 @@
 import { CreateRoleDto, UpdateRoleDto } from '../../application/dtos/role.dto.js';
 import { RoleValidationError } from '../entities/role.entity.js';
 
-const ALLOWED_CREATE_KEYS = new Set([
-  'name',
-  'description',
-  'isSystem',
-  'idempotencyKey'
-]);
+const ALLOWED_CREATE_KEYS = new Set(['name', 'description', 'isSystem', 'idempotencyKey']);
 
-const ALLOWED_UPDATE_KEYS = new Set([
-  'name',
-  'description',
-  'status',
-  'version'
-]);
+const ALLOWED_UPDATE_KEYS = new Set(['name', 'description', 'status', 'version']);
 
 export function validateCreateRoleInput(rawInput: any): CreateRoleDto {
   if (!rawInput || typeof rawInput !== 'object') {
@@ -60,7 +50,10 @@ export function validateUpdateRoleInput(rawInput: any): UpdateRoleDto {
     }
   }
 
-  if (rawInput.version !== undefined && (typeof rawInput.version !== 'number' || rawInput.version < 1)) {
+  if (
+    rawInput.version !== undefined &&
+    (typeof rawInput.version !== 'number' || rawInput.version < 1)
+  ) {
     errors.version = 'version must be a positive integer >= 1';
   }
 

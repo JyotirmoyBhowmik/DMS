@@ -51,14 +51,16 @@ export class VerifyTokenUseCase {
 
     const verifier = createVerify('RSA-SHA256');
     verifier.update(signatureInput);
-    
+
     const isValid = verifier.verify(publicKey, signatureB64, 'base64url');
     if (!isValid) {
       throw new Error('Invalid JWT signature');
     }
 
     // Decode and parse payload claims
-    const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf8')) as DecodedClaims;
+    const payload = JSON.parse(
+      Buffer.from(payloadB64, 'base64url').toString('utf8'),
+    ) as DecodedClaims;
 
     // Check expiration boundaries
     const now = Math.floor(Date.now() / 1000);

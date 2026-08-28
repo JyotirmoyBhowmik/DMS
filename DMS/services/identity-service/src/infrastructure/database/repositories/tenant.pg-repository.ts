@@ -1,11 +1,17 @@
-import { TenantRepository, ListTenantsOptions } from '../../../domain/repositories/tenant.repository.js';
+import {
+  TenantRepository,
+  ListTenantsOptions,
+} from '../../../domain/repositories/tenant.repository.js';
 import { TenantAggregate, TenantDomainError } from '../../../domain/entities/tenant.entity.js';
 
 export class TenantPgRepository implements TenantRepository {
   private static globalInMemoryDb = new Map<string, TenantAggregate>();
   private inMemoryDb: Map<string, TenantAggregate>;
 
-  constructor(private readonly dbPool?: any, sharedStore?: Map<string, TenantAggregate>) {
+  constructor(
+    private readonly dbPool?: any,
+    sharedStore?: Map<string, TenantAggregate>,
+  ) {
     this.inMemoryDb = sharedStore || TenantPgRepository.globalInMemoryDb;
   }
 
@@ -25,9 +31,16 @@ export class TenantPgRepository implements TenantRepository {
             RETURNING *;
           `;
           const values = [
-            tenant.id, tenant.tenantId, tenant.name, tenant.code, tenant.domain || null,
-            tenant.status || 'ACTIVE', tenant.idempotencyKey || null, tenant.version || 1,
-            tenant.createdAt || new Date(), tenant.updatedAt || new Date()
+            tenant.id,
+            tenant.tenantId,
+            tenant.name,
+            tenant.code,
+            tenant.domain || null,
+            tenant.status || 'ACTIVE',
+            tenant.idempotencyKey || null,
+            tenant.version || 1,
+            tenant.createdAt || new Date(),
+            tenant.updatedAt || new Date(),
           ];
           await client.query(query, values);
         } finally {
@@ -73,7 +86,9 @@ export class TenantPgRepository implements TenantRepository {
       try {
         const client = await this.dbPool.connect();
         try {
-          const res = await client.query('SELECT * FROM identity_tenants WHERE LOWER(name) = $1', [normalized]);
+          const res = await client.query('SELECT * FROM identity_tenants WHERE LOWER(name) = $1', [
+            normalized,
+          ]);
           if (res.rows.length === 0) return null;
           return this.mapRowToEntity(res.rows[0]);
         } finally {
@@ -98,7 +113,9 @@ export class TenantPgRepository implements TenantRepository {
     if (this.dbPool && typeof this.dbPool.connect === 'function') {
       const client = await this.dbPool.connect();
       try {
-        const res = await client.query('SELECT * FROM identity_tenants WHERE code = $1', [normalized]);
+        const res = await client.query('SELECT * FROM identity_tenants WHERE code = $1', [
+          normalized,
+        ]);
         if (res.rows.length === 0) return null;
         return this.mapRowToEntity(res.rows[0]);
       } finally {
@@ -121,7 +138,10 @@ export class TenantPgRepository implements TenantRepository {
       try {
         const client = await this.dbPool.connect();
         try {
-          const res = await client.query('SELECT * FROM identity_tenants WHERE LOWER(subdomain) = $1 OR LOWER(code) = $1', [normalized]);
+          const res = await client.query(
+            'SELECT * FROM identity_tenants WHERE LOWER(subdomain) = $1 OR LOWER(code) = $1',
+            [normalized],
+          );
           if (res.rows.length === 0) return null;
           return this.mapRowToEntity(res.rows[0]);
         } finally {
@@ -148,7 +168,10 @@ export class TenantPgRepository implements TenantRepository {
       try {
         const client = await this.dbPool.connect();
         try {
-          const res = await client.query('SELECT * FROM identity_tenants WHERE LOWER(custom_domain) = $1 OR LOWER(domain) = $1', [normalized]);
+          const res = await client.query(
+            'SELECT * FROM identity_tenants WHERE LOWER(custom_domain) = $1 OR LOWER(domain) = $1',
+            [normalized],
+          );
           if (res.rows.length === 0) return null;
           return this.mapRowToEntity(res.rows[0]);
         } finally {
@@ -168,7 +191,10 @@ export class TenantPgRepository implements TenantRepository {
     return null;
   }
 
-  async list(tenantId?: string, options?: ListTenantsOptions): Promise<{ items: TenantAggregate[]; total: number }> {
+  async list(
+    tenantId?: string,
+    options?: ListTenantsOptions,
+  ): Promise<{ items: TenantAggregate[]; total: number }> {
     const page = options?.page || 1;
     const limit = Math.min(options?.limit || 20, 100);
     const offset = (page - 1) * limit;
@@ -188,12 +214,16 @@ export class TenantPgRepository implements TenantRepository {
           query += ` AND LOWER(name) LIKE $${params.length}`;
         }
 
-        query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+        query +=
+          ' ORDER BY created_at DESC LIMIT $' +
+          (params.length + 1) +
+          ' OFFSET $' +
+          (params.length + 2);
         params.push(limit, offset);
 
         const res = await client.query(query, params);
         const countRes = await client.query('SELECT COUNT(*) FROM identity_tenants');
-        
+
         return {
           items: res.rows.map((row: any) => this.mapRowToEntity(row)),
           total: parseInt(countRes.rows[0].count, 10),
@@ -205,15 +235,15 @@ export class TenantPgRepository implements TenantRepository {
 
     let items = Array.from(this.inMemoryDb.values());
     if (tenantId) {
-      items = items.filter(t => t.id === tenantId || t.tenantId === tenantId);
+      items = items.filter((t) => t.id === tenantId || t.tenantId === tenantId);
     }
 
     if (options?.status) {
-      items = items.filter(t => t.status === options.status);
+      items = items.filter((t) => t.status === options.status);
     }
     if (options?.searchName) {
       const q = options.searchName.toLowerCase();
-      items = items.filter(t => t.name.toLowerCase().includes(q));
+      items = items.filter((t) => t.name.toLowerCase().includes(q));
     }
 
     const total = items.length;
@@ -233,9 +263,13 @@ export class TenantPgRepository implements TenantRepository {
       throw new TenantDomainError(`Tenant with id '${tenant.id}' not found`);
     }
 
-    if (existing.version !== undefined && tenant.version !== undefined && existing.version !== tenant.version) {
+    if (
+      existing.version !== undefined &&
+      tenant.version !== undefined &&
+      existing.version !== tenant.version
+    ) {
       throw new TenantDomainError(
-        `Optimistic concurrency conflict for Tenant '${tenant.id}': expected v${tenant.version}, found v${existing.version}`
+        `Optimistic concurrency conflict for Tenant '${tenant.id}': expected v${tenant.version}, found v${existing.version}`,
       );
     }
 
@@ -264,7 +298,13 @@ export class TenantPgRepository implements TenantRepository {
             WHERE id = $4 AND version = $5
             RETURNING *;
           `;
-          await client.query(query, [tenant.name, tenant.domain || null, tenant.status, tenant.id, tenant.version]);
+          await client.query(query, [
+            tenant.name,
+            tenant.domain || null,
+            tenant.status,
+            tenant.id,
+            tenant.version,
+          ]);
         } finally {
           client.release();
         }

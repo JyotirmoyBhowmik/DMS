@@ -1,5 +1,9 @@
 import { TenantRepository } from '../../domain/repositories/tenant.repository.js';
-import { TenantAggregate, TenantDomainError, TenantStatus } from '../../domain/entities/tenant.entity.js';
+import {
+  TenantAggregate,
+  TenantDomainError,
+  TenantStatus,
+} from '../../domain/entities/tenant.entity.js';
 import { UpdateTenantDto } from '../dtos/tenant.dto.js';
 import { validateUpdateTenantInput } from '../../domain/validation/tenant.validation.js';
 import { Principal } from './create-user.usecase.js';
@@ -10,7 +14,12 @@ export class UpdateTenantUseCase {
 
   constructor(private readonly repository: TenantRepository) {}
 
-  async execute(principal: Principal, tenantEntityId: string, dto: UpdateTenantDto, correlationId?: string): Promise<TenantAggregate> {
+  async execute(
+    principal: Principal,
+    tenantEntityId: string,
+    dto: UpdateTenantDto,
+    correlationId?: string,
+  ): Promise<TenantAggregate> {
     if (!principal || !principal.tenantId) {
       throw new TenantDomainError('Forbidden: Valid principal and tenantId are required');
     }
@@ -33,7 +42,7 @@ export class UpdateTenantUseCase {
 
     if (dto.version !== undefined && existing.version !== dto.version) {
       throw new TenantDomainError(
-        `Optimistic concurrency conflict for Tenant '${tenantEntityId}': expected v${dto.version}, found v${existing.version}`
+        `Optimistic concurrency conflict for Tenant '${tenantEntityId}': expected v${dto.version}, found v${existing.version}`,
       );
     }
 
