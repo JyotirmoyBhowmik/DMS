@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useId, isValidElement, cloneElement } from 'react';
 
 export interface FormFieldProps {
   label: string;
@@ -6,11 +6,19 @@ export interface FormFieldProps {
   hint?: string;
 }
 
-export const FormField: React.FC<FormFieldProps> = ({
-  label,
-  children,
-  hint,
-}) => {
+export const FormField: React.FC<FormFieldProps> = ({ label, children, hint }) => {
+  const generatedId = useId();
+
+  // Find the first valid element child and clone it with the generated id
+  // if it doesn't already have one
+  let childWithId = children;
+  let childId = generatedId;
+
+  if (isValidElement(children)) {
+    childId = children.props.id || generatedId;
+    childWithId = cloneElement(children, { id: childId } as React.HTMLAttributes<HTMLElement>);
+  }
+
   return (
     <div
       style={{
@@ -22,6 +30,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       }}
     >
       <label
+        htmlFor={childId}
         style={{
           fontSize: '12px',
           fontWeight: 600,
@@ -32,7 +41,7 @@ export const FormField: React.FC<FormFieldProps> = ({
         {label}
       </label>
 
-      {children}
+      {childWithId}
 
       {hint && (
         <span
