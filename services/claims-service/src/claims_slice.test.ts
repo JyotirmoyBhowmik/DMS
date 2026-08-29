@@ -7,6 +7,7 @@ import { createSign } from 'node:crypto';
 import { PostgresDatabaseClient, PgDriver, MigrationRunner, ConcurrencyError, EntityNotFoundError } from '@dms/pkg-database';
 import { loadConfigSync } from '@dms/pkg-config';
 import { ClaimEntity } from './domain/entities/claim.entity.js';
+import { Claim } from './domain/entities/claim.js';
 import { ClaimAggregate } from './domain/aggregates/claim.aggregate.js';
 import { ClaimPgRepository } from './infrastructure/database/repositories/claim.pg-repository.js';
 import { GatewayController } from '../../api-gateway/src/presentation/rest/controllers/gateway.controller.js';
@@ -167,7 +168,8 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     // 3. Update (Optimistic Locking success)
     saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
+    const updated = new Claim({...saved.toJSON(), status: "validated", version: 2});
+    await claimRepo.update(updated, tenantA);
     assert.strictEqual(updated.version, 2);
     assert.strictEqual(updated.status, 'validated');
 
@@ -175,7 +177,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     saved.version = 1; // stale version
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(new Claim({...saved.toJSON(), version: 1}), tenantA);
       },
 
       (err: any) => {
