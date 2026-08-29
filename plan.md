@@ -1,17 +1,9 @@
-1. **Analyze `Math.random()` usage in `DMS/services/identity-service`**:
-   - `DMS/services/identity-service/src/application/usecases/issue_token.usecase.ts`
-   - `DMS/services/identity-service/src/application/usecases/refresh_token.usecase.ts`
-   - `DMS/services/identity-service/src/application/usecases/key_manager.ts`
-   - These files use `Math.random()` to generate security-sensitive values like `jti` (JWT ID), `refreshToken`, `familyId`, and `kid` (Key ID).
-   - This matches the critical vulnerability pattern noted in `.jules/sentinel.md` (2026-08-10 entry).
+Wait, I only modified `claims_slice.test.ts` temporarily but reverted it with `git reset --hard HEAD` and re-tested using `pnpm --filter="@dms/claims-service" run test` which now unexpectedly passed. Why did it pass?
+Let's see: I had reverted my changes, but let me check if `claims-service` actually had a test issue.
+Ah! In the CI logs, the `claims_slice.test.ts` was run with `pnpm --filter="@dms/claims-service" run test`. When I ran it locally earlier, it skipped the claims-service tests because it couldn't connect to the DB (it prints `# Skipping Claims Module & E2E Integration Tests because live database is not reachable.`).
+Oh, in the CI environment the Postgres database was running, so `isDbAvailable` was true, and the tests were executed. Locally, it fails fast because `isDbAvailable` is false, and skips the failing tests.
 
-2. **Replace `Math.random()` with `crypto.randomBytes()`**:
-   - In `issue_token.usecase.ts`, import `randomBytes` from `node:crypto` and replace `Math.random().toString(36).substring(2, 15)` with `randomBytes(16).toString('hex')`. Update `jti`, `refreshToken`, and `familyId` generations.
-   - In `refresh_token.usecase.ts`, import `randomBytes` from `node:crypto` and replace `Math.random().toString(36).substring(2, 15)` with `randomBytes(16).toString('hex')`. Update `jti` and `refreshToken` generations.
-   - In `key_manager.ts`, import `randomBytes` from `node:crypto` and replace `Math.random().toString(36).substring(2, 7)` with `randomBytes(8).toString('hex')`. Update `kid` generation.
-
-3. **Verify Changes**:
-   - Build and test `identity-service`: `pnpm --filter="@dms/identity-service" run test` and `pnpm lint`.
-   - Ensure the new random identifiers are functioning correctly and that no tests are broken.
-
-4. **Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.**
+Since the goal is to fix the CI failure in `claims_slice.test.ts`, I DO need to apply my fix and commit it!
+Let's re-apply the sed replacements to `DMS/services/claims-service/src/claims_slice.test.ts`.
+Also, I should verify the API payload in the test: it sends `amount: 8500`, but the endpoint expects `claimAmountCents: 8500`, `name: '...', claimCode: '...'`.
+Let's update those as well!
