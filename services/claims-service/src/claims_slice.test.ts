@@ -148,23 +148,26 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+    const domainClaim = new Claim({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      name: 'Test Claim',
+      claimCode: 'CLM-001',
+      claimAmountCents: 12000,
+      approvedAmountCents: 0,
+      status: 'SUBMITTED',
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(domainClaim, tenantA);
 
     // 2. Find
-    const saved = await claimRepo.findById(tenantA, entity.id);
+    const saved = await claimRepo.findById(tenantA, domainClaim.id);
     assert.ok(saved);
-    assert.strictEqual(saved.id, entity.id);
+    assert.strictEqual(saved.id, domainClaim.id);
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
@@ -188,7 +191,8 @@ describe('Claims Module & E2E Integration Tests', () => {
     // 5. Verify RLS Isolation
     await assert.rejects(
       async () => {
-        await claimRepo.findById(tenantB, entity.id);
+        const found = await claimRepo.findById(tenantB, domainClaim.id);
+        if (!found) throw new EntityNotFoundError('Claim', { id: domainClaim.id });
       },
       (err: any) => {
         return err instanceof EntityNotFoundError;
