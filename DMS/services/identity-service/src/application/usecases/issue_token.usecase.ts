@@ -1,4 +1,4 @@
-import { createSign } from 'node:crypto';
+import { createSign, randomBytes } from 'node:crypto';
 import { deriveFromPassphrase } from '@dms/pkg-crypto';
 import { StructuredLogger } from '@dms/pkg-logger';
 import { KeyManager } from './key_manager.js';
@@ -76,7 +76,7 @@ export class IssueTokenUseCase {
       aud: config.security.jwtAudience,
       iat,
       exp,
-      jti: Math.random().toString(36).substring(2, 15),
+      jti: randomBytes(16).toString('hex'),
     };
 
     if (scope) {
@@ -103,8 +103,8 @@ export class IssueTokenUseCase {
     const accessToken = `${signatureInput}.${signature}`;
 
     // Refresh token with rotation family tracking
-    const refreshToken = 'rt-' + Math.random().toString(36).substring(2, 15) + '-' + Math.random().toString(36).substring(2, 15);
-    const familyId = 'fam-' + Math.random().toString(36).substring(2, 15);
+    const refreshToken = 'rt-' + randomBytes(16).toString('hex') + '-' + randomBytes(16).toString('hex');
+    const familyId = 'fam-' + randomBytes(16).toString('hex');
 
     const expiresAt = Date.now() + 7 * 24 * 3600 * 1000; // 7 days
 
