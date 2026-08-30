@@ -55,7 +55,15 @@ export class MFADeviceOfflineCache {
   }
 
   enqueueMutation(deviceId: string, action: 'CREATE' | 'UPDATE' | 'DELETE', payload: Partial<MFADeviceCacheRecord>): PendingMutation {
-    const mutationId = `mut-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    let randStr: string;
+    try {
+      const array = new Uint8Array(4);
+      globalThis.crypto.getRandomValues(array);
+      randStr = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    } catch (e) {
+      randStr = Math.random().toString(36).substring(2, 7);
+    }
+    const mutationId = `mut-${Date.now()}-${randStr}`;
     const mutation: PendingMutation = {
       mutationId,
       deviceId,

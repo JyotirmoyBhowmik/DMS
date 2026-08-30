@@ -105,7 +105,17 @@ export class SessionManager {
     }
 
     const timestamp = new Date().toISOString();
-    const nonce = Math.random().toString(36).substring(2, 15);
+    let nonce: string;
+
+    try {
+      // 🛡️ Sentinel: Use cryptographically secure randomness for nonce generation to prevent token predictability
+      const array = new Uint8Array(16);
+      globalThis.crypto.getRandomValues(array);
+      nonce = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    } catch (e) {
+      // Fallback to Math.random() if Web Crypto API is completely unavailable
+      nonce = Math.random().toString(36).substring(2, 15);
+    }
 
     const parts: CanonicalRequestParts = {
       method,
