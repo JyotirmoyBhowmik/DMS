@@ -8,6 +8,7 @@ import { PostgresDatabaseClient, PgDriver, MigrationRunner, ConcurrencyError, En
 import { loadConfigSync } from '@dms/pkg-config';
 import { ClaimEntity } from './domain/entities/claim.entity.js';
 import { ClaimAggregate } from './domain/aggregates/claim.aggregate.js';
+import { Claim } from './domain/entities/claim.js';
 import { ClaimPgRepository } from './infrastructure/database/repositories/claim.pg-repository.js';
 import { GatewayController } from '../../api-gateway/src/presentation/rest/controllers/gateway.controller.js';
 import { KeyManager } from '../../identity-service/src/application/usecases/key_manager.js';
@@ -147,51 +148,57 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+    const aggregate = new Claim({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      claimAmountCents: 12000,
+      approvedAmountCents: 0,
+      status: 'SUBMITTED',
+      name: 'Test Claim',
+      claimCode: 'CLM-003',
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(aggregate, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
-    assert.strictEqual(saved.id, entity.id);
-    assert.strictEqual(saved.version, 1);
+    const saved = await claimRepo.findById(tenantA, aggregate.id);
+    assert.strictEqual(saved!.id, aggregate.id);
+    assert.strictEqual(saved!.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
-    assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    const aggregateToUpdate = new Claim({
+       ...saved!.toJSON(),
+       status: 'UNDER_REVIEW',
+       version: 2
+    });
+
+    await claimRepo.update(aggregateToUpdate, tenantA);
+    const updated = await claimRepo.findById(tenantA, aggregate.id);
+    assert.strictEqual(updated!.version, 2);
+    assert.strictEqual(updated!.status, 'UNDER_REVIEW');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleAggregate = new Claim({
+       ...saved!.toJSON(),
+       version: 1
+    });
+
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleAggregate, tenantA);
       },
-
       (err: any) => {
-        return err instanceof ConcurrencyError;
+        return err.name === 'ConcurrencyError';
       }
     );
 
     // 5. Verify RLS Isolation
-    await assert.rejects(
-      async () => {
-        await claimRepo.findById(tenantB, entity.id);
-      },
-      (err: any) => {
-        return err instanceof EntityNotFoundError;
-      }
-    );
+    const isolatedResult = await claimRepo.findById(tenantB, aggregate.id);
+    assert.strictEqual(isolatedResult, null);
   });
 
   // ─── 3. E2E HAPPY PATH / API GATEWAY TEST ──────────────────────────────────
@@ -243,13 +250,15 @@ describe('Claims Module & E2E Integration Tests', () => {
         id: claimId,
         distributorId,
         schemeId,
-        amount: 8500,
+        claimAmountCents: 8500,
+        name: 'Integration Test Claim',
+        claimCode: 'INT-001'
       },
     });
 
     assert.strictEqual(createResult.status, 201);
     assert.strictEqual(createResult.body.success, true);
-    assert.strictEqual((createResult.body as any).status, 'raised');
+    assert.strictEqual((createResult.body as any).status, 'SUBMITTED');
 
     // 2. POST /api/v1/claims/:id/validate
     const validateResult = await gateway.handleRequest({
@@ -265,7 +274,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(validateResult.status, 200);
     assert.strictEqual(validateResult.body.success, true);
-    assert.strictEqual((validateResult.body as any).status, 'validated');
+    assert.strictEqual((validateResult.body as any).status, 'UNDER_REVIEW');
 
     // 3. POST /api/v1/claims/:id/approve
     const approveResult = await gateway.handleRequest({
@@ -281,7 +290,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(approveResult.status, 200);
     assert.strictEqual(approveResult.body.success, true);
-    assert.strictEqual((approveResult.body as any).status, 'approved');
+    assert.strictEqual((approveResult.body as any).status, 'APPROVED');
 
     // 4. POST /api/v1/claims/:id/settle
     const settleResult = await gateway.handleRequest({
@@ -300,7 +309,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(settleResult.status, 200);
     assert.strictEqual(settleResult.body.success, true);
-    assert.strictEqual(((settleResult.body as any).transaction).status, 'settled');
+    assert.strictEqual(((settleResult.body as any).transaction).status, 'SETTLED');
 
     // 5. Test Idempotency (Repeat settle request with same key)
     const settleRepeatResult = await gateway.handleRequest({
@@ -327,8 +336,8 @@ describe('Claims Module & E2E Integration Tests', () => {
       tenantA
     );
     assert.strictEqual(auditRows.rows.length, 4); // raised, validate, approve, settle
-    assert.strictEqual(auditRows.rows[0].action, 'raised');
-    assert.strictEqual(auditRows.rows[3].action, 'settle');
+    assert.strictEqual(auditRows.rows[0].action, 'SUBMITTED');
+    assert.strictEqual(auditRows.rows[3].action, 'SETTLED');
 
     const outboxRows = await db.query<any>(
       `SELECT * FROM claims_outbox WHERE aggregate_id = $1`,
@@ -336,7 +345,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       tenantA
     );
     assert.strictEqual(outboxRows.rows.length, 4);
-    assert.strictEqual(outboxRows.rows[0].event_type, 'claim.raised');
-    assert.strictEqual(outboxRows.rows[3].event_type, 'claim.settled');
+    assert.strictEqual(outboxRows.rows[0].event_type, 'claim.SUBMITTED');
+    assert.strictEqual(outboxRows.rows[3].event_type, 'claim.SETTLED');
   });
 });
