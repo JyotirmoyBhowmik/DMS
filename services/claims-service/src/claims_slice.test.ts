@@ -158,24 +158,42 @@ describe('Claims Module & E2E Integration Tests', () => {
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    const claimDomainAgg = new (await import('./domain/entities/claim.js')).Claim({
+      id: entity.id,
+      tenantId: entity.tenantId,
+      distributorId: entity.distributorId,
+      schemeId: entity.schemeId,
+      name: 'Test Claim',
+      claimCode: 'CLM-001',
+      claimAmountCents: entity.amount,
+      status: 'SUBMITTED',
+      version: 1
+    });
+    await claimRepo.save(claimDomainAgg, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
-    assert.strictEqual(saved.id, entity.id);
+    const saved = await claimRepo.findById(tenantA, claimDomainAgg.id);
+    assert.ok(saved);
+    assert.strictEqual(saved.id, claimDomainAgg.id);
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
+    saved.updateStatus('APPROVED', saved.claimAmountCents);
+    await claimRepo.update(saved, tenantA);
+    const updated = await claimRepo.findById(tenantA, claimDomainAgg.id);
+    assert.ok(updated);
     assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    assert.strictEqual(updated.status, 'APPROVED');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleClaim = new (await import('./domain/entities/claim.js')).Claim({
+      ...updated.toJSON(),
+      version: 1, // Stale version
+      status: 'SUBMITTED' // Using original status to simulate stale object
+    });
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleClaim, tenantA);
       },
 
       (err: any) => {
