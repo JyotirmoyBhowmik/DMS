@@ -158,7 +158,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(new Claim(entity) as any, tenantA);
 
     // 2. Find
     const saved: any = await claimRepo.findById(entity.id, tenantA);
