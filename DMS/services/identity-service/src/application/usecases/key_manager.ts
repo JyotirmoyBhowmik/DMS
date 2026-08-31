@@ -1,4 +1,4 @@
-import { generateKeyPairSync, createPublicKey } from 'node:crypto';
+import { generateKeyPairSync, createPublicKey, randomBytes } from 'node:crypto';
 
 export interface KeyRecord {
   kid: string;
@@ -35,7 +35,7 @@ export class KeyManager {
     });
 
     const now = Date.now();
-    const kid = `kid-${now}-${Math.random().toString(36).substring(2, 7)}`;
+    const kid = `kid-${now}-${randomBytes(8).toString('hex')}`;
     
     const newKey: KeyRecord = {
       kid,
