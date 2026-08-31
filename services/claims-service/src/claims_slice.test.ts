@@ -157,8 +157,10 @@ describe('Claims Module & E2E Integration Tests', () => {
       version: 1,
     });
 
+    const aggregate = new ClaimAggregate(entity);
+
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(aggregate as any, tenantA);
 
     // 2. Find
     const saved: any = await claimRepo.findById(tenantA, entity.id);
@@ -166,16 +168,21 @@ describe('Claims Module & E2E Integration Tests', () => {
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
+    const savedAggregate = new ClaimAggregate(new ClaimEntity(saved));
+    savedAggregate.validate();
+    const updated: any = await claimRepo.update(savedAggregate as any, tenantA);
     assert.strictEqual(updated.version, 2);
     assert.strictEqual(updated.status, 'validated');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleEntity = new ClaimEntity({
+        ...saved,
+        version: 1, // stale version
+    });
+    const staleAggregate = new ClaimAggregate(staleEntity);
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleAggregate as any, tenantA);
       },
 
       (err: any) => {
@@ -243,13 +250,13 @@ describe('Claims Module & E2E Integration Tests', () => {
         id: claimId,
         distributorId,
         schemeId,
-        amount: 8500,
+        name: 'Test Claim', claimCode: 'CLM-001', claimAmountCents: 8500,
       },
     });
 
     assert.strictEqual(createResult.status, 201);
     assert.strictEqual(createResult.body.success, true);
-    assert.strictEqual((createResult.body as any).status, 'raised');
+    assert.strictEqual((createResult.body as any).claim.status, 'SUBMITTED');
 
     // 2. POST /api/v1/claims/:id/validate
     const validateResult = await gateway.handleRequest({
