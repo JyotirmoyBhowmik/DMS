@@ -285,6 +285,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
                 </p>
               </div>
               <button
+                aria-label="Close login modal"
                 onClick={() => setShowLoginModal(false)}
                 style={{
                   border: 'none', backgroundColor: '#F1F5F9', cursor: 'pointer',
