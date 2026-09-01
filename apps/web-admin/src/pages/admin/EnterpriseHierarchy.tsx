@@ -336,6 +336,7 @@ export const EnterpriseHierarchy: React.FC<{ role: UserRole }> = ({ role }) => {
                 <p style={{ fontSize: '12px', color: tokens.colors.textMuted, margin: '2px 0 0' }}>Sales Rep ID: {selectedAgent.id}</p>
               </div>
               <button
+                aria-label="Close user details"
                 onClick={() => setSelectedAgent(null)}
                 style={{ border: 'none', background: 'transparent', fontSize: '20px', cursor: 'pointer', color: tokens.colors.textMuted }}
               >
