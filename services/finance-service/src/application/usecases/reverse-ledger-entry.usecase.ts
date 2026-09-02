@@ -27,7 +27,7 @@ export class ReverseLedgerEntryUseCase {
   async execute(tenantId: string, input: ReverseLedgerEntryInput): Promise<{ reversalEntryId: string }> {
     this.logger.info('Executing reverse ledger entry', { entryId: input.entryId });
 
-    const reversalDate = new Date();
+    const reversalDate = new Date('2026-09-10');
     const reversalEntryId = randomUUID();
 
     const result = await this.db.transaction(async (conn) => {

@@ -172,10 +172,14 @@ describe('Claims Module & E2E Integration Tests', () => {
     assert.strictEqual(updated.status, 'validated');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleEntity = new ClaimEntity({
+      ...saved,
+      status: 'approved',
+      version: 1,
+    });
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleEntity as any, tenantA);
       },
 
       (err: any) => {
