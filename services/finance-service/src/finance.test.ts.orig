@@ -268,14 +268,6 @@ describe('Finance Service - Unit Tests', () => {
         status: 'OPEN'
       }), tenantId);
 
-      await repo.savePeriod(new LedgerPeriod({
-        id: 'p3',
-        tenantId,
-        startDate: new Date('2026-09-01'),
-        endDate: new Date('2026-09-30'),
-        status: 'OPEN'
-      }), tenantId);
-
       await repo.saveAccount(new LedgerAccount({
         id: cashAccountId,
         tenantId,
@@ -311,7 +303,7 @@ describe('Finance Service - Unit Tests', () => {
       assert.ok(postRes.entryId);
       const savedEntry = await repo.findEntryById(postRes.entryId, tenantId);
       assert.strictEqual(savedEntry?.status, 'POSTED');
-      
+
       const cashAcc = await repo.findAccountById(cashAccountId, tenantId);
       const revAcc = await repo.findAccountById(revenueAccountId, tenantId);
       assert.strictEqual(cashAcc?.balance, 1200); // 1000 + 200

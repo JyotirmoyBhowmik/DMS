@@ -1,0 +1,17 @@
+--- services/finance-service/src/finance.test.ts
++++ services/finance-service/src/finance.test.ts
+@@ -265,6 +265,14 @@
+         status: 'OPEN'
+       }), tenantId);
+
++      await repo.savePeriod(new LedgerPeriod({
++        id: 'p3',
++        tenantId,
++        startDate: new Date('2026-09-01'),
++        endDate: new Date('2026-09-30'),
++        status: 'OPEN'
++      }), tenantId);
++
+       await repo.saveAccount(new LedgerAccount({
+         id: cashAccountId,
+         tenantId,
