@@ -147,15 +147,13 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new Claim({
+    const entity = new ClaimEntity({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      claimAmountCents: 12000,
-      name: "Test Claim",
-      claimCode: "CLM-001",
-      status: 'SUBMITTED',
+      amount: 12000,
+      status: 'raised',
       version: 1,
     });
 
@@ -168,20 +166,20 @@ describe('Claims Module & E2E Integration Tests', () => {
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.updateStatus('UNDER_REVIEW');
+    saved.status = 'validated';
     const updated: any = await claimRepo.update(saved, tenantA);
     assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'UNDER_REVIEW');
+    assert.strictEqual(updated.status, 'validated');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    const staleEntity = new Claim({
-      ...saved.toJSON(),
-      status: 'APPROVED',
+    const staleEntity = new ClaimEntity({
+      ...saved,
+      status: 'approved',
       version: 1,
     });
     await assert.rejects(
       async () => {
-        await claimRepo.update(staleEntity, tenantA);
+        await claimRepo.update(staleEntity as any, tenantA);
       },
 
       (err: any) => {
