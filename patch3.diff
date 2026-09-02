@@ -1,0 +1,14 @@
+--- services/claims-service/src/claims_slice.test.ts
++++ services/claims-service/src/claims_slice.test.ts
+@@ -176,14 +176,14 @@
+
+     // 4. Update with stale version (Optimistic Locking failure)
+     const staleClaim = new Claim({
+       ...saved.toJSON(),
+-      version: 1 // Simulate staleness
++      version: 2 // Simulate staleness: the updated entity is version 2, so to trigger optimistic locking, existing version is 2, new version needs to be such that existing.version !== new.version - 1, and new.version > 1. If we provide version 2, it bypasses the "data.version > 1" check? Wait, if data.version = 2, then data.version > 1 is true. existing.version is 2. 2 !== 2 - 1 -> 2 !== 1 (true), so it throws ConcurrencyError.
+     });
+     await assert.rejects(
+       async () => {
+         await claimRepo.update(staleClaim, tenantA);
+       },

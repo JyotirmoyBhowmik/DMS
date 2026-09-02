@@ -178,7 +178,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     // 4. Update with stale version (Optimistic Locking failure)
     const staleClaim = new Claim({
       ...saved.toJSON(),
-      version: 1 // Simulate staleness
+      version: 2 // Simulate staleness: the updated entity is version 2, so a save with version 2 means existing.version (2) !== data.version - 1 (1)
     });
     await assert.rejects(
       async () => {
