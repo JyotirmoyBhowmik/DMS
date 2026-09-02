@@ -7,7 +7,6 @@ import { createSign } from 'node:crypto';
 import { PostgresDatabaseClient, PgDriver, MigrationRunner, ConcurrencyError, EntityNotFoundError } from '@dms/pkg-database';
 import { loadConfigSync } from '@dms/pkg-config';
 import { ClaimEntity } from './domain/entities/claim.entity.js';
-import { Claim } from './domain/entities/claim.js';
 import { ClaimAggregate } from './domain/aggregates/claim.aggregate.js';
 import { ClaimPgRepository } from './infrastructure/database/repositories/claim.pg-repository.js';
 import { GatewayController } from '../../api-gateway/src/presentation/rest/controllers/gateway.controller.js';
@@ -45,7 +44,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       const systemMigrationsDir = existsSync(join(rootDir, 'db/migrations/system'))
         ? join(rootDir, 'db/migrations/system')
         : join(rootDir, '../../db/migrations/system');
-      
+
       const claimsMigrationsDir = existsSync(join(rootDir, 'db/migrations/claims'))
         ? join(rootDir, 'db/migrations/claims')
         : join(rootDir, '../../db/migrations/claims');
@@ -134,11 +133,11 @@ describe('Claims Module & E2E Integration Tests', () => {
       status: 'validated',
     });
     const aggregate2 = new ClaimAggregate(entity2);
-    
+
     // Approve
     aggregate2.approve();
     assert.strictEqual(entity2.status, 'approved');
-    
+
     // Settle (Full Settlement)
     aggregate2.settle(5000);
     assert.strictEqual(entity2.status, 'settled');
@@ -148,20 +147,18 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new Claim({
+    const entity = new ClaimEntity({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      name: 'Test Claim',
-      claimCode: 'CLM-TEST-001',
-      claimAmountCents: 12000,
-      status: 'SUBMITTED',
+      amount: 12000,
+      status: 'raised',
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity, tenantA);
+    await claimRepo.save(entity as any, tenantA);
 
     // 2. Find
     const saved: any = await claimRepo.findById(tenantA, entity.id);
@@ -169,20 +166,16 @@ describe('Claims Module & E2E Integration Tests', () => {
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.updateStatus('UNDER_REVIEW');
-    await claimRepo.update(saved, tenantA);
-    const updated: any = await claimRepo.findById(tenantA, entity.id);
+    saved.status = 'validated';
+    const updated: any = await claimRepo.update(saved, tenantA);
     assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'UNDER_REVIEW');
+    assert.strictEqual(updated.status, 'validated');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    const staleClaim = new Claim({
-      ...saved.toJSON(),
-      version: 2 // Simulate staleness: the updated entity is version 2, so a save with version 2 means existing.version (2) !== data.version - 1 (1)
-    });
+    saved.version = 1; // stale version
     await assert.rejects(
       async () => {
-        await claimRepo.update(staleClaim, tenantA);
+        await claimRepo.update(saved, tenantA);
       },
 
       (err: any) => {
@@ -207,7 +200,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     // Insert mock active scheme so validation succeeds
 
     await db.query(
-      `INSERT INTO schemes (id, tenant_id, name, type, status, rules, created_at, updated_at) 
+      `INSERT INTO schemes (id, tenant_id, name, type, status, rules, created_at, updated_at)
        VALUES ($1, $2, 'Test Scheme', 'volume_discount', 'active', '{}', NOW(), NOW())`,
       [schemeId, tenantA]
     );
@@ -216,7 +209,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     const keyRecord = KeyManager.getInstance().getSigningKey();
     const iat = Math.floor(Date.now() / 1000);
     const exp = iat + 3600;
-    
+
     const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT', kid: keyRecord.kid })).toString('base64url');
     const payload = Buffer.from(JSON.stringify({
       sub: 'distributor-user-uuid',

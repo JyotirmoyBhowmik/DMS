@@ -7,3 +7,6 @@
 ## 2026-08-24 - Array Filter Optimization in React
 **Learning:** Inside React functional components, recalculating `.toLowerCase()` multiple times per item within list filtering callbacks causes redundant string allocations and memory bloat on each render.
 **Action:** Always hoist string manipulations like `search.toLowerCase()` outside of loops (e.g. `filter` or `map`) inside `useMemo` to reduce layout thrashing.
+## 2025-10-24 - React useMemo combined filtering loop
+**Learning:** Performing multiple `.filter` loops on a single array per render introduces unnecessary `O(N)` CPU iteration overhead, scaling poorly for large lists of domain entities like sales orders or integration queues.
+**Action:** Combine multiple independent `.filter` or `.reduce` passes over the same array into a single explicit loop inside a `useMemo` hook to minimize iteration and memory allocation during re-renders.
