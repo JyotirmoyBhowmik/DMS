@@ -7,3 +7,6 @@
 ## 2026-08-24 - Array Filter Optimization in React
 **Learning:** Inside React functional components, recalculating `.toLowerCase()` multiple times per item within list filtering callbacks causes redundant string allocations and memory bloat on each render.
 **Action:** Always hoist string manipulations like `search.toLowerCase()` outside of loops (e.g. `filter` or `map`) inside `useMemo` to reduce layout thrashing.
+## 2026-08-25 - SyncQueue array processing optimization
+**Learning:** React components (like `SyncQueue.tsx`) frequently iterating over the same arrays multiple times with `.filter()` blocks trigger unnecessary allocations and CPU cycles on every render, leading to layout thrashing.
+**Action:** Replace multiple redundant array iterations with a single `.reduce()` or `O(n)` traversal pass wrapped in `useMemo` that destructures required variables at once.

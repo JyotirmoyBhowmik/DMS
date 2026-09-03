@@ -13,7 +13,7 @@ export class ClaimPgRepository {
   async save(claim: Claim, _tenantId?: string): Promise<void> {
     ClaimPgRepository.inMemoryStore.set(claim.id, claim);
     try {
-      const data = claim.toJSON();
+      const data = typeof claim.toJSON === 'function' ? claim.toJSON() : (claim as any);
       await this.db.query(
         `INSERT INTO claims
           (id, tenant_id, distributor_id, scheme_id, name, claim_code, claim_amount_cents, approved_amount_cents, status, version)
@@ -31,7 +31,7 @@ export class ClaimPgRepository {
   }
 
   async update(claim: Claim, tenantId?: string): Promise<void> {
-    const data = claim.toJSON();
+    const data = typeof claim.toJSON === 'function' ? claim.toJSON() : (claim as any);
 
     // First let's check optimistic locking, because simple save() via INSERT ... ON CONFLICT
     // wouldn't enforce version concurrency conflict properly.

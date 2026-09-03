@@ -27,7 +27,6 @@ export class ReverseLedgerEntryUseCase {
   async execute(tenantId: string, input: ReverseLedgerEntryInput): Promise<{ reversalEntryId: string }> {
     this.logger.info('Executing reverse ledger entry', { entryId: input.entryId });
 
-    const reversalDate = new Date();
     const reversalEntryId = randomUUID();
 
     const result = await this.db.transaction(async (conn) => {
@@ -58,7 +57,8 @@ export class ReverseLedgerEntryUseCase {
         throw new Error(`Ledger entry ${input.entryId} is already in REVERSED status, but no reversal entry was found.`);
       }
 
-      // 2. Fetch accounting period for reversal date
+      // 2. Fetch accounting period for reversal date (use original entry's posted date to ensure we reverse within same/open period)
+      const reversalDate = originalEntry.postedAt;
       const period = await txRepo.findPeriodByDate(reversalDate, tenantId);
 
       // 3. Fetch accounts and populate map
