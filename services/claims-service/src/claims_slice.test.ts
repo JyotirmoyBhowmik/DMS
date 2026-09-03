@@ -267,7 +267,7 @@ describe('Claims Module & E2E Integration Tests', () => {
         id: claimId,
         distributorId,
         schemeId,
-        amount: 8500,
+        name: "Test Claim", claimCode: "TEST-123", claimAmountCents: 8500,
       },
     });
 
