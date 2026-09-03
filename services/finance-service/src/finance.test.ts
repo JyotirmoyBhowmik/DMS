@@ -268,6 +268,16 @@ describe('Finance Service - Unit Tests', () => {
         status: 'OPEN'
       }), tenantId);
 
+      // Reversal happens on Date.now() / new Date() inside the usecase, so we need a period for the current year-month
+      const now = new Date();
+      await repo.savePeriod(new LedgerPeriod({
+        id: 'p-now',
+        tenantId,
+        startDate: new Date(now.getFullYear(), now.getMonth(), 1),
+        endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999), // End of current month
+        status: 'OPEN'
+      }), tenantId);
+
       await repo.saveAccount(new LedgerAccount({
         id: cashAccountId,
         tenantId,
