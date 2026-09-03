@@ -8,6 +8,7 @@ import { PostgresDatabaseClient, PgDriver, MigrationRunner, ConcurrencyError, En
 import { loadConfigSync } from '@dms/pkg-config';
 import { ClaimEntity } from './domain/entities/claim.entity.js';
 import { ClaimAggregate } from './domain/aggregates/claim.aggregate.js';
+import { Claim } from './domain/entities/claim.js';
 import { ClaimPgRepository } from './infrastructure/database/repositories/claim.pg-repository.js';
 import { GatewayController } from '../../api-gateway/src/presentation/rest/controllers/gateway.controller.js';
 import { KeyManager } from '../../identity-service/src/application/usecases/key_manager.js';
@@ -147,35 +148,58 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+    const entity = new Claim({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      name: 'Test Claim',
+      claimCode: 'TEST-123',
+      claimAmountCents: 12000,
+      status: 'SUBMITTED',
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(entity, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
+    const saved = await claimRepo.findById(tenantA, entity.id) as Claim;
     assert.strictEqual(saved.id, entity.id);
-    assert.strictEqual(saved.version, 1);
+    assert.strictEqual((saved as any)._version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
-    assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    const updatedClaim = new Claim({
+      id: saved.id,
+      tenantId: saved.tenantId,
+      distributorId: saved.distributorId,
+      schemeId: saved.schemeId,
+      name: 'Test Claim',
+      claimCode: 'TEST-123',
+      claimAmountCents: 12000,
+      status: 'UNDER_REVIEW',
+      version: 2,
+    });
+    await claimRepo.update(updatedClaim, tenantA);
+    const updated = await claimRepo.findById(tenantA, entity.id);
+    assert.strictEqual((updated as any)._version, 2);
+    assert.strictEqual((updated as any)._status, 'UNDER_REVIEW');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleClaim = new Claim({
+      id: saved.id,
+      tenantId: saved.tenantId,
+      distributorId: saved.distributorId,
+      schemeId: saved.schemeId,
+      name: 'Test Claim',
+      claimCode: 'TEST-123',
+      claimAmountCents: 12000,
+      status: 'UNDER_REVIEW',
+      version: 1, // stale version
+    });
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleClaim, tenantA);
       },
 
       (err: any) => {
@@ -243,7 +267,7 @@ describe('Claims Module & E2E Integration Tests', () => {
         id: claimId,
         distributorId,
         schemeId,
-        amount: 8500,
+        name: "Test Claim", claimCode: "TEST-123", claimAmountCents: 8500,
       },
     });
 
