@@ -1,4 +1,4 @@
-import { createSign } from 'node:crypto';
+import { createSign, randomUUID } from 'node:crypto';
 import { deriveFromPassphrase } from '@dms/pkg-crypto';
 import { StructuredLogger } from '@dms/pkg-logger';
 import { KeyManager } from './key_manager.js';
@@ -31,7 +31,12 @@ export class IssueTokenUseCase {
     mfaCode?: string,
     scope?: TokenScopeClaims,
   ): Promise<TokenPair> {
-    this.logger.info('Issuing RS256 JWT token pair for user', { email, tenantId, hasSso: !!ssoToken, hasMfa: !!mfaCode });
+    this.logger.info('Issuing RS256 JWT token pair for user', {
+      email,
+      tenantId,
+      hasSso: !!ssoToken,
+      hasMfa: !!mfaCode,
+    });
 
     // Single Sign-On (SSO) OIDC verification hook
     if (ssoToken) {
@@ -60,13 +65,14 @@ export class IssueTokenUseCase {
       }
     }
 
-
     const iat = Math.floor(Date.now() / 1000);
     const exp = iat + 3600; // 1 hour access token
 
     const keyRecord = KeyManager.getInstance().getSigningKey();
 
-    const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT', kid: keyRecord.kid })).toString('base64url');
+    const header = Buffer.from(
+      JSON.stringify({ alg: 'RS256', typ: 'JWT', kid: keyRecord.kid }),
+    ).toString('base64url');
     const payloadBody: Record<string, unknown> = {
       sub: email,
       email,
@@ -76,7 +82,7 @@ export class IssueTokenUseCase {
       aud: config.security.jwtAudience,
       iat,
       exp,
-      jti: Math.random().toString(36).substring(2, 15),
+      jti: randomUUID(),
     };
 
     if (scope) {
@@ -103,8 +109,8 @@ export class IssueTokenUseCase {
     const accessToken = `${signatureInput}.${signature}`;
 
     // Refresh token with rotation family tracking
-    const refreshToken = 'rt-' + Math.random().toString(36).substring(2, 15) + '-' + Math.random().toString(36).substring(2, 15);
-    const familyId = 'fam-' + Math.random().toString(36).substring(2, 15);
+    const refreshToken = `rt-${randomUUID()}`;
+    const familyId = `fam-${randomUUID()}`;
 
     const expiresAt = Date.now() + 7 * 24 * 3600 * 1000; // 7 days
 
