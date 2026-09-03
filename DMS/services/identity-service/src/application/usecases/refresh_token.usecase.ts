@@ -1,4 +1,4 @@
-import { createSign } from 'node:crypto';
+import { createSign, randomUUID } from 'node:crypto';
 import { StructuredLogger } from '@dms/pkg-logger';
 import { TokenPair } from './issue_token.usecase.js';
 import { RefreshTokenRepository } from '../../domain/repositories/refresh_token.repository.js';
@@ -27,7 +27,9 @@ export class RefreshTokenUseCase {
     }
 
     if (meta.isUsed) {
-      this.logger.warn('Token reuse detected! Revoking entire family.', { familyId: meta.familyId });
+      this.logger.warn('Token reuse detected! Revoking entire family.', {
+        familyId: meta.familyId,
+      });
       const familyTokens = await this.refreshTokenRepo.findByFamilyId(meta.familyId, tenantId);
       for (const token of familyTokens) {
         await this.refreshTokenRepo.delete(token.token, tenantId);
@@ -38,7 +40,7 @@ export class RefreshTokenUseCase {
     meta.isUsed = true;
     await this.refreshTokenRepo.update(meta, tenantId);
 
-    const nextRefreshToken = 'rt-' + Math.random().toString(36).substring(2, 15) + '-' + Math.random().toString(36).substring(2, 15);
+    const nextRefreshToken = `rt-${randomUUID()}`;
     const expiresAt = Date.now() + 7 * 24 * 3600 * 1000;
 
     const newMeta = new RefreshToken();
@@ -63,7 +65,9 @@ export class RefreshTokenUseCase {
     const exp = iat + 3600;
     const keyRecord = KeyManager.getInstance().getSigningKey();
 
-    const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT', kid: keyRecord.kid })).toString('base64url');
+    const header = Buffer.from(
+      JSON.stringify({ alg: 'RS256', typ: 'JWT', kid: keyRecord.kid }),
+    ).toString('base64url');
     const payloadBody: Record<string, unknown> = {
       sub: meta.userId,
       email: meta.userId,
@@ -73,7 +77,7 @@ export class RefreshTokenUseCase {
       aud: config.security.jwtAudience,
       iat,
       exp,
-      jti: Math.random().toString(36).substring(2, 15),
+      jti: randomUUID(),
     };
 
     if (scope) {
