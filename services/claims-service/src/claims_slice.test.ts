@@ -8,6 +8,7 @@ import { PostgresDatabaseClient, PgDriver, MigrationRunner, ConcurrencyError, En
 import { loadConfigSync } from '@dms/pkg-config';
 import { ClaimEntity } from './domain/entities/claim.entity.js';
 import { ClaimAggregate } from './domain/aggregates/claim.aggregate.js';
+import { Claim } from './domain/entities/claim.js';
 import { ClaimPgRepository } from './infrastructure/database/repositories/claim.pg-repository.js';
 import { GatewayController } from '../../api-gateway/src/presentation/rest/controllers/gateway.controller.js';
 import { KeyManager } from '../../identity-service/src/application/usecases/key_manager.js';
@@ -147,37 +148,68 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+    const claim = new Claim({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      name: 'Test Claim',
+      claimCode: 'CLM-003',
+      claimAmountCents: 12000,
+      status: 'SUBMITTED',
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(claim, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
-    assert.strictEqual(saved.id, entity.id);
-    assert.strictEqual(saved.version, 1);
+    const saved = await claimRepo.findById(tenantA, claim.id);
+    assert.ok(saved);
+    assert.strictEqual(saved.id, claim.id);
+    assert.strictEqual(saved.toJSON().version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
-    assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    saved.updateStatus('UNDER_REVIEW');
+    await claimRepo.update(saved, tenantA);
+    const updated = await claimRepo.findById(tenantA, claim.id);
+    assert.ok(updated);
+    assert.strictEqual(updated.toJSON().version, 2);
+    assert.strictEqual(updated.toJSON().status, 'UNDER_REVIEW');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleClaim = new Claim({
+        id: claim.id,
+        tenantId: tenantA,
+        distributorId,
+        schemeId,
+        name: 'Test Claim',
+        claimCode: 'CLM-003',
+        claimAmountCents: 12000,
+        status: 'UNDER_REVIEW',
+        version: 2 // Stale version (server has v2, so we submit v2 to fail concurrency, simulating starting from v1. Wait, concurrency logic checks if existing.version !== data.version - 1)
+    });
+    staleClaim.updateStatus('APPROVED', 10000);
+    // So staleClaim version becomes 2. The existing is 2. The update checks: if (existing.version !== data.version - 1)
+    // 2 !== 2 - 1 (2 !== 1) which throws. Wait, Claim.updateStatus() increments version.
+    // If we start at version 1 and updateStatus(), version becomes 2.
+
+    const veryStaleClaim = new Claim({
+      id: claim.id,
+      tenantId: tenantA,
+      distributorId,
+      schemeId,
+      name: 'Test Claim',
+      claimCode: 'CLM-003',
+      claimAmountCents: 12000,
+      status: 'UNDER_REVIEW',
+      version: 2, // Needs to be >1 to trigger check
+    });
+
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(veryStaleClaim, tenantA);
       },
-
       (err: any) => {
         return err instanceof ConcurrencyError;
       }
@@ -186,7 +218,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     // 5. Verify RLS Isolation
     await assert.rejects(
       async () => {
-        await claimRepo.findById(tenantB, entity.id);
+        await claimRepo.findById(tenantB, claim.id);
       },
       (err: any) => {
         return err instanceof EntityNotFoundError;
