@@ -7,3 +7,8 @@
 **Vulnerability:** Weak PRNG (`Math.random()`) used for generating secure nonces in React Native apps, allowing for predictable values.
 **Learning:** React Native lacks built-in support for `globalThis.crypto.randomUUID()` without specialized polyfills (like `react-native-get-random-values`), which can lead to silent fallback to `Math.random()`. `globalThis.crypto.getRandomValues()` is generally more robust for mobile environments.
 **Prevention:** In React Native, prefer `getRandomValues()` over `randomUUID()`. Always include a fallback for unsupported environments to prevent app crashes while gracefully degrading security.
+
+## 2026-09-04 - Predictable Nonce Generation in API Requests
+**Vulnerability:** Use of `Math.random()` to generate nonces for API requests in `session_manager.ts` and message IDs in `rabbitmq.ts`.
+**Learning:** `Math.random()` generates predictable sequences, making request signatures vulnerable to replay attacks or collision, especially critical in security contexts like API request signing.
+**Prevention:** Use a CSPRNG. In React Native environments, prefer `globalThis.crypto.getRandomValues()` with a safe fallback to prevent crashes if Web Crypto API is completely unavailable. For Node.js environments (like message brokers), use `node:crypto.randomUUID()`.

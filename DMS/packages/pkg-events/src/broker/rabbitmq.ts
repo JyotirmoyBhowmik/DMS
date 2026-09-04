@@ -1,5 +1,6 @@
 import net from 'node:net';
 import amqp from 'amqplib';
+import { randomUUID } from 'node:crypto';
 
 export interface BrokerConfig {
   host?: string;
@@ -112,7 +113,13 @@ export class MessageBrokerClient {
         await this.connect();
         // Re-establish subscriptions
         for (const sub of this.subscriptions.values()) {
-          await this.setupSubscription(sub.exchange, sub.queue, sub.routingKey, sub.handler, sub.options);
+          await this.setupSubscription(
+            sub.exchange,
+            sub.queue,
+            sub.routingKey,
+            sub.handler,
+            sub.options,
+          );
         }
       } catch {
         this.handleDisconnect();
@@ -143,7 +150,7 @@ export class MessageBrokerClient {
   async publish(
     topic: string,
     message: unknown,
-    options?: { exchangeName?: string }
+    options?: { exchangeName?: string },
   ): Promise<{ success: boolean; messageId: string }> {
     await this.connect();
     if (!this.channel) {
@@ -151,7 +158,7 @@ export class MessageBrokerClient {
     }
 
     const exchange = options?.exchangeName || this.config.exchange || 'dms.events';
-    const msgId = 'msg-' + Math.random().toString(36).substring(2, 15);
+    const msgId = 'msg-' + randomUUID();
 
     // Ensure exchange is asserted
     await this.channel.assertExchange(exchange, 'topic', { durable: true });
@@ -173,7 +180,7 @@ export class MessageBrokerClient {
           } else {
             resolve({ success: true, messageId: msgId });
           }
-        }
+        },
       );
     });
   }
@@ -184,7 +191,7 @@ export class MessageBrokerClient {
   async subscribe(
     topic: string,
     handler: (msg: unknown) => Promise<void>,
-    options?: { queueName?: string; exchangeName?: string; dlqName?: string; maxRetries?: number }
+    options?: { queueName?: string; exchangeName?: string; dlqName?: string; maxRetries?: number },
   ): Promise<void> {
     await this.connect();
     if (!this.channel) {
@@ -237,7 +244,7 @@ export class MessageBrokerClient {
     queue: string,
     topic: string,
     handler: (msg: unknown) => Promise<void>,
-    options?: { maxRetries?: number }
+    options?: { maxRetries?: number },
   ): Promise<void> {
     if (!this.channel) return;
 
