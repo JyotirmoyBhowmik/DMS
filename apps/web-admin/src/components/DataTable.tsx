@@ -8,14 +8,62 @@ export interface DataTableProps<T> {
   emptyMessage?: string;
 }
 
+function DataTableRow<T extends Record<string, any>>({
+  row,
+  columns,
+  onRowClick,
+}: {
+  row: T;
+  columns: ColumnDef<T>[];
+  onRowClick?: (row: T) => void;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <tr
+      onClick={() => onRowClick && onRowClick(row)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        borderBottom: '1px solid #E2E8F0',
+        backgroundColor: isHovered ? '#F8FAFC' : 'transparent',
+        cursor: onRowClick ? 'pointer' : 'default',
+        transition: 'background-color 0.15s ease',
+      }}
+    >
+      {columns.map((col, colIndex) => {
+        let content: ReactNode;
+
+        if (col.render) {
+          content = col.render(row);
+        } else {
+          const val = row[col.key as keyof T];
+          content = val !== undefined && val !== null ? String(val) : '';
+        }
+
+        return (
+          <td
+            key={String(col.key) || colIndex}
+            style={{
+              padding: '12px 16px',
+              color: '#334155',
+              verticalAlign: 'middle',
+            }}
+          >
+            {content}
+          </td>
+        );
+      })}
+    </tr>
+  );
+}
+
 export function DataTable<T extends Record<string, any>>({
   columns,
   data,
   onRowClick,
   emptyMessage = 'No data available',
 }: DataTableProps<T>): React.ReactElement {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
   return (
     <div
       style={{
@@ -76,48 +124,14 @@ export function DataTable<T extends Record<string, any>>({
               </td>
             </tr>
           ) : (
-            data.map((row, rowIndex) => {
-              const isHovered = hoveredIndex === rowIndex;
-
-              return (
-                <tr
-                  key={rowIndex}
-                  onClick={() => onRowClick && onRowClick(row)}
-                  onMouseEnter={() => setHoveredIndex(rowIndex)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                  style={{
-                    borderBottom: '1px solid #E2E8F0',
-                    backgroundColor: isHovered ? '#F8FAFC' : 'transparent',
-                    cursor: onRowClick ? 'pointer' : 'default',
-                    transition: 'background-color 0.15s ease',
-                  }}
-                >
-                  {columns.map((col, colIndex) => {
-                    let content: ReactNode;
-
-                    if (col.render) {
-                      content = col.render(row);
-                    } else {
-                      const val = row[col.key as keyof T];
-                      content = val !== undefined && val !== null ? String(val) : '';
-                    }
-
-                    return (
-                      <td
-                        key={String(col.key) || colIndex}
-                        style={{
-                          padding: '12px 16px',
-                          color: '#334155',
-                          verticalAlign: 'middle',
-                        }}
-                      >
-                        {content}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })
+            data.map((row, rowIndex) => (
+              <DataTableRow
+                key={rowIndex}
+                row={row}
+                columns={columns}
+                onRowClick={onRowClick}
+              />
+            ))
           )}
         </tbody>
       </table>
