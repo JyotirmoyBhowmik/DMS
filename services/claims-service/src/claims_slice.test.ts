@@ -170,7 +170,8 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     // 3. Update (Optimistic Locking success)
     saved.updateStatus('UNDER_REVIEW');
-    const updated = await claimRepo.update(saved as any, tenantA) as unknown as Claim;
+    await claimRepo.update(saved as any, tenantA);
+    const updated = await claimRepo.findById(tenantA, saved.id) as Claim;
     assert.strictEqual(updated.version, 2);
     assert.strictEqual(updated.status, 'UNDER_REVIEW');
 
