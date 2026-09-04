@@ -7,3 +7,7 @@
 ## 2026-08-24 - Array Filter Optimization in React
 **Learning:** Inside React functional components, recalculating `.toLowerCase()` multiple times per item within list filtering callbacks causes redundant string allocations and memory bloat on each render.
 **Action:** Always hoist string manipulations like `search.toLowerCase()` outside of loops (e.g. `filter` or `map`) inside `useMemo` to reduce layout thrashing.
+
+## 2024-05-24 - Unnecessary Hover State Renders
+**Learning:** Storing hover state in a parent component state (like `hoveredIndex`) for large lists causes unnecessary re-renders of the entire table on every mouse enter/leave. This is a common React performance anti-pattern.
+**Action:** Extract list items (like table rows) into separate components and localize the state (e.g. `isHovered`) to the child component so that only the hovered item re-renders.
