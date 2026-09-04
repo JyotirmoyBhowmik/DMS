@@ -268,6 +268,15 @@ describe('Finance Service - Unit Tests', () => {
         status: 'OPEN'
       }), tenantId);
 
+      const now = new Date();
+      await repo.savePeriod(new LedgerPeriod({
+        id: 'p-current',
+        tenantId,
+        startDate: new Date(now.getFullYear(), now.getMonth(), 1),
+        endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999),
+        status: 'OPEN'
+      }), tenantId);
+
       await repo.saveAccount(new LedgerAccount({
         id: cashAccountId,
         tenantId,
