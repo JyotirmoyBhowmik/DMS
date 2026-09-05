@@ -5,7 +5,10 @@ import { LedgerAccount } from './domain/entities/ledger-account.entity.js';
 import { LedgerPeriod } from './domain/entities/ledger-period.entity.js';
 import { LedgerEntry } from './domain/entities/ledger-entry.entity.js';
 import { LedgerPosting } from './domain/entities/ledger-posting.entity.js';
-import { LedgerEntryAggregate, CreditLimitExceededError } from './domain/aggregates/ledger-entry.aggregate.js';
+import {
+  LedgerEntryAggregate,
+  CreditLimitExceededError,
+} from './domain/aggregates/ledger-entry.aggregate.js';
 import { LedgerRepository, AgingReportBucket } from './domain/repositories/ledger.repository.js';
 import { PostLedgerEntryUseCase } from './application/usecases/post-ledger-entry.usecase.js';
 import { ReverseLedgerEntryUseCase } from './application/usecases/reverse-ledger-entry.usecase.js';
@@ -21,21 +24,33 @@ describe('Finance Service - Unit Tests', () => {
         tenantId,
         referenceType: 'MANUAL',
         referenceId: 'ref-1',
-        postings: []
+        postings: [],
       });
       const agg = new LedgerEntryAggregate(entry);
-      assert.throws(() => agg.validateInvariants(), /Ledger entry must contain at least one posting/);
+      assert.throws(
+        () => agg.validateInvariants(),
+        /Ledger entry must contain at least one posting/,
+      );
 
       const entryOnePosting = new LedgerEntry({
         tenantId,
         referenceType: 'MANUAL',
         referenceId: 'ref-1',
         postings: [
-          new LedgerPosting({ id: 'p1', tenantId, accountId: cashAccountId, type: 'DEBIT', amount: 100 })
-        ]
+          new LedgerPosting({
+            id: 'p1',
+            tenantId,
+            accountId: cashAccountId,
+            type: 'DEBIT',
+            amount: 100,
+          }),
+        ],
       });
       const aggOne = new LedgerEntryAggregate(entryOnePosting);
-      assert.throws(() => aggOne.validateInvariants(), /Double-entry ledger requires at least two postings/);
+      assert.throws(
+        () => aggOne.validateInvariants(),
+        /Double-entry ledger requires at least two postings/,
+      );
     });
 
     test('Should throw error if total debits do not equal total credits', () => {
@@ -44,9 +59,21 @@ describe('Finance Service - Unit Tests', () => {
         referenceType: 'MANUAL',
         referenceId: 'ref-1',
         postings: [
-          new LedgerPosting({ id: 'p1', tenantId, accountId: cashAccountId, type: 'DEBIT', amount: 100 }),
-          new LedgerPosting({ id: 'p2', tenantId, accountId: revenueAccountId, type: 'CREDIT', amount: 90 })
-        ]
+          new LedgerPosting({
+            id: 'p1',
+            tenantId,
+            accountId: cashAccountId,
+            type: 'DEBIT',
+            amount: 100,
+          }),
+          new LedgerPosting({
+            id: 'p2',
+            tenantId,
+            accountId: revenueAccountId,
+            type: 'CREDIT',
+            amount: 90,
+          }),
+        ],
       });
       const agg = new LedgerEntryAggregate(entry);
       assert.throws(() => agg.validateInvariants(), /Double-entry ledger is out of balance/);
@@ -58,7 +85,7 @@ describe('Finance Service - Unit Tests', () => {
         tenantId,
         startDate: new Date('2026-06-01'),
         endDate: new Date('2026-06-30'),
-        status: 'OPEN'
+        status: 'OPEN',
       });
 
       const cashAccount = new LedgerAccount({
@@ -68,7 +95,7 @@ describe('Finance Service - Unit Tests', () => {
         name: 'Cash',
         type: 'ASSET',
         balance: 500,
-        creditLimit: 600 // creditLimit 600 for ASSET means balance cannot exceed 600
+        creditLimit: 600, // creditLimit 600 for ASSET means balance cannot exceed 600
       });
 
       const revenueAccount = new LedgerAccount({
@@ -77,12 +104,12 @@ describe('Finance Service - Unit Tests', () => {
         accountNumber: '4000',
         name: 'Revenue',
         type: 'REVENUE',
-        balance: -500 // Credit balances are negative
+        balance: -500, // Credit balances are negative
       });
 
       const accounts = new Map<string, LedgerAccount>([
         [cashAccountId, cashAccount],
-        [revenueAccountId, revenueAccount]
+        [revenueAccountId, revenueAccount],
       ]);
 
       // Attempt debiting 200 (attempted cash balance 500 + 200 = 700 > 600)
@@ -92,9 +119,21 @@ describe('Finance Service - Unit Tests', () => {
         referenceId: 'ref-1',
         postedAt: new Date('2026-06-15'),
         postings: [
-          new LedgerPosting({ id: 'p1', tenantId, accountId: cashAccountId, type: 'DEBIT', amount: 200 }),
-          new LedgerPosting({ id: 'p2', tenantId, accountId: revenueAccountId, type: 'CREDIT', amount: 200 })
-        ]
+          new LedgerPosting({
+            id: 'p1',
+            tenantId,
+            accountId: cashAccountId,
+            type: 'DEBIT',
+            amount: 200,
+          }),
+          new LedgerPosting({
+            id: 'p2',
+            tenantId,
+            accountId: revenueAccountId,
+            type: 'CREDIT',
+            amount: 200,
+          }),
+        ],
       });
 
       const agg = new LedgerEntryAggregate(entry);
@@ -107,7 +146,7 @@ describe('Finance Service - Unit Tests', () => {
         tenantId,
         startDate: new Date('2026-06-01'),
         endDate: new Date('2026-06-30'),
-        status: 'CLOSED'
+        status: 'CLOSED',
       });
 
       const cashAccount = new LedgerAccount({
@@ -116,7 +155,7 @@ describe('Finance Service - Unit Tests', () => {
         accountNumber: '1000',
         name: 'Cash',
         type: 'ASSET',
-        balance: 0
+        balance: 0,
       });
 
       const revenueAccount = new LedgerAccount({
@@ -125,12 +164,12 @@ describe('Finance Service - Unit Tests', () => {
         accountNumber: '4000',
         name: 'Revenue',
         type: 'REVENUE',
-        balance: 0
+        balance: 0,
       });
 
       const accounts = new Map<string, LedgerAccount>([
         [cashAccountId, cashAccount],
-        [revenueAccountId, revenueAccount]
+        [revenueAccountId, revenueAccount],
       ]);
 
       const entry = new LedgerEntry({
@@ -139,13 +178,28 @@ describe('Finance Service - Unit Tests', () => {
         referenceId: 'ref-1',
         postedAt: new Date('2026-06-15'),
         postings: [
-          new LedgerPosting({ id: 'p1', tenantId, accountId: cashAccountId, type: 'DEBIT', amount: 100 }),
-          new LedgerPosting({ id: 'p2', tenantId, accountId: revenueAccountId, type: 'CREDIT', amount: 100 })
-        ]
+          new LedgerPosting({
+            id: 'p1',
+            tenantId,
+            accountId: cashAccountId,
+            type: 'DEBIT',
+            amount: 100,
+          }),
+          new LedgerPosting({
+            id: 'p2',
+            tenantId,
+            accountId: revenueAccountId,
+            type: 'CREDIT',
+            amount: 100,
+          }),
+        ],
       });
 
       const agg = new LedgerEntryAggregate(entry);
-      assert.throws(() => agg.validate(periodClosed, accounts), /Accounting period for date .* is CLOSED/);
+      assert.throws(
+        () => agg.validate(periodClosed, accounts),
+        /Accounting period for date .* is CLOSED/,
+      );
 
       // Period open but date is outside
       const periodOpen = new LedgerPeriod({
@@ -153,7 +207,7 @@ describe('Finance Service - Unit Tests', () => {
         tenantId,
         startDate: new Date('2026-06-01'),
         endDate: new Date('2026-06-30'),
-        status: 'OPEN'
+        status: 'OPEN',
       });
       const entryOutside = new LedgerEntry({
         tenantId,
@@ -161,12 +215,27 @@ describe('Finance Service - Unit Tests', () => {
         referenceId: 'ref-1',
         postedAt: new Date('2026-07-01'),
         postings: [
-          new LedgerPosting({ id: 'p1', tenantId, accountId: cashAccountId, type: 'DEBIT', amount: 100 }),
-          new LedgerPosting({ id: 'p2', tenantId, accountId: revenueAccountId, type: 'CREDIT', amount: 100 })
-        ]
+          new LedgerPosting({
+            id: 'p1',
+            tenantId,
+            accountId: cashAccountId,
+            type: 'DEBIT',
+            amount: 100,
+          }),
+          new LedgerPosting({
+            id: 'p2',
+            tenantId,
+            accountId: revenueAccountId,
+            type: 'CREDIT',
+            amount: 100,
+          }),
+        ],
       });
       const aggOutside = new LedgerEntryAggregate(entryOutside);
-      assert.throws(() => aggOutside.validate(periodOpen, accounts), /The period does not contain entry date/);
+      assert.throws(
+        () => aggOutside.validate(periodOpen, accounts),
+        /The period does not contain entry date/,
+      );
     });
   });
 
@@ -179,7 +248,10 @@ describe('Finance Service - Unit Tests', () => {
       async findAccountById(id: string, tenantId: string): Promise<LedgerAccount | null> {
         return this.accounts.get(id) || null;
       }
-      async findAccountByNumber(accountNumber: string, tenantId: string): Promise<LedgerAccount | null> {
+      async findAccountByNumber(
+        accountNumber: string,
+        tenantId: string,
+      ): Promise<LedgerAccount | null> {
         for (const a of this.accounts.values()) {
           if (a.accountNumber === accountNumber) return a;
         }
@@ -224,7 +296,11 @@ describe('Finance Service - Unit Tests', () => {
       async findEntryById(id: string, tenantId: string): Promise<LedgerEntry | null> {
         return this.entries.get(id) || null;
       }
-      async findEntryByRef(refType: string, refId: string, tenantId: string): Promise<LedgerEntry | null> {
+      async findEntryByRef(
+        refType: string,
+        refId: string,
+        tenantId: string,
+      ): Promise<LedgerEntry | null> {
         for (const e of this.entries.values()) {
           if (e.referenceType === refType && e.referenceId === refId) return e;
         }
@@ -235,11 +311,13 @@ describe('Finance Service - Unit Tests', () => {
         return entry;
       }
 
-      async getTrialBalance(tenantId: string): Promise<{ accountNumber: string; name: string; balance: number }[]> {
-        return Array.from(this.accounts.values()).map(a => ({
+      async getTrialBalance(
+        tenantId: string,
+      ): Promise<{ accountNumber: string; name: string; balance: number }[]> {
+        return Array.from(this.accounts.values()).map((a) => ({
           accountNumber: a.accountNumber,
           name: a.name,
-          balance: a.balance
+          balance: a.balance,
         }));
       }
       async getOutstandingAging(tenantId: string): Promise<Record<string, AgingReportBucket>> {
@@ -252,39 +330,58 @@ describe('Finance Service - Unit Tests', () => {
       const db = new PostgresDatabaseClient(new InMemoryDriver());
 
       // Seed Period and Accounts
-      await repo.savePeriod(new LedgerPeriod({
-        id: 'p1',
+      await repo.savePeriod(
+        new LedgerPeriod({
+          id: 'p1',
+          tenantId,
+          startDate: new Date('2026-06-01'),
+          endDate: new Date('2026-06-30'),
+          status: 'OPEN',
+        }),
         tenantId,
-        startDate: new Date('2026-06-01'),
-        endDate: new Date('2026-06-30'),
-        status: 'OPEN'
-      }), tenantId);
+      );
 
-      await repo.savePeriod(new LedgerPeriod({
-        id: 'p2',
-        tenantId,
-        startDate: new Date('2026-08-01'),
-        endDate: new Date('2026-08-31'),
-        status: 'OPEN'
-      }), tenantId);
+      const now = new Date();
+      const currentYear = now.getUTCFullYear();
+      const currentMonth = now.getUTCMonth();
 
-      await repo.saveAccount(new LedgerAccount({
-        id: cashAccountId,
-        tenantId,
-        accountNumber: '1000',
-        name: 'Cash',
-        type: 'ASSET',
-        balance: 1000
-      }), tenantId);
+      const p2Start = new Date(Date.UTC(currentYear, currentMonth, 1));
+      const p2End = new Date(Date.UTC(currentYear, currentMonth + 1, 0));
 
-      await repo.saveAccount(new LedgerAccount({
-        id: revenueAccountId,
+      await repo.savePeriod(
+        new LedgerPeriod({
+          id: 'p2',
+          tenantId,
+          startDate: p2Start,
+          endDate: p2End,
+          status: 'OPEN',
+        }),
         tenantId,
-        accountNumber: '4000',
-        name: 'Revenue',
-        type: 'REVENUE',
-        balance: -1000
-      }), tenantId);
+      );
+
+      await repo.saveAccount(
+        new LedgerAccount({
+          id: cashAccountId,
+          tenantId,
+          accountNumber: '1000',
+          name: 'Cash',
+          type: 'ASSET',
+          balance: 1000,
+        }),
+        tenantId,
+      );
+
+      await repo.saveAccount(
+        new LedgerAccount({
+          id: revenueAccountId,
+          tenantId,
+          accountNumber: '4000',
+          name: 'Revenue',
+          type: 'REVENUE',
+          balance: -1000,
+        }),
+        tenantId,
+      );
 
       // Post Entry
       const postUseCase = new PostLedgerEntryUseCase(db, repo);
@@ -296,14 +393,14 @@ describe('Finance Service - Unit Tests', () => {
         idempotencyKey: 'idemp-key-1',
         postings: [
           { accountId: cashAccountId, type: 'DEBIT', amount: 200 },
-          { accountId: revenueAccountId, type: 'CREDIT', amount: 200 }
-        ]
+          { accountId: revenueAccountId, type: 'CREDIT', amount: 200 },
+        ],
       });
 
       assert.ok(postRes.entryId);
       const savedEntry = await repo.findEntryById(postRes.entryId, tenantId);
       assert.strictEqual(savedEntry?.status, 'POSTED');
-      
+
       const cashAcc = await repo.findAccountById(cashAccountId, tenantId);
       const revAcc = await repo.findAccountById(revenueAccountId, tenantId);
       assert.strictEqual(cashAcc?.balance, 1200); // 1000 + 200
@@ -314,7 +411,7 @@ describe('Finance Service - Unit Tests', () => {
       const reverseRes = await reverseUseCase.execute(tenantId, {
         entryId: postRes.entryId,
         reversalDescription: 'Customer order reversal',
-        idempotencyKey: 'idemp-key-2'
+        idempotencyKey: 'idemp-key-2',
       });
 
       assert.ok(reverseRes.reversalEntryId);

@@ -5,3 +5,7 @@
 ## 2024-05-24 - FormField auto-linking
 **Learning:** Wrapper components with labels need to automatically associate the label with the child input using htmlFor and ID. Also aria-describedby for hints.
 **Action:** Use useId() and React.cloneElement() to inject an ID into the child if it doesn't have one, and link it to the label and hint.
+
+## 2024-05-25 - Ledger Period temporal issue in test
+**Learning:** Hardcoding a strict ledger period in `finance.test.ts` (e.g. `2026-08-01` to `2026-08-31`) causes the test to fail when `ReverseLedgerEntryUseCase` executes `new Date()` outside of this range, resulting in an "No accounting period defined for the entry date" error (a temporal time bomb test).
+**Action:** Always dynamically generate mocked periods for the current month when the code under test validates against `new Date()`.
