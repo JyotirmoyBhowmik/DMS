@@ -9,3 +9,7 @@
 ## 2024-05-25 - Ledger Period temporal issue in test
 **Learning:** Hardcoding a strict ledger period in `finance.test.ts` (e.g. `2026-08-01` to `2026-08-31`) causes the test to fail when `ReverseLedgerEntryUseCase` executes `new Date()` outside of this range, resulting in an "No accounting period defined for the entry date" error (a temporal time bomb test).
 **Action:** Always dynamically generate mocked periods for the current month when the code under test validates against `new Date()`.
+
+## 2024-05-25 - Instantiating Domain Aggregates for concurrency tests
+**Learning:** Bypassing domain invariants by directly modifying `version` property on database entities to test concurrency conflicts in repositories (like `ClaimPgRepository`) will fail. Repositories expect the aggregate method `.toJSON()` to correctly resolve values.
+**Action:** When testing optimistic locking, instantiate a full aggregate object (e.g. `Claim`) passing the specific stale `version` required. Ensure you observe the specific aggregate's enum/union types (e.g. 'SUBMITTED' rather than legacy entity statuses like 'raised').
