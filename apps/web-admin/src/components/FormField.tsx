@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useId } from 'react';
 
 export interface FormFieldProps {
   label: string;
@@ -6,11 +6,24 @@ export interface FormFieldProps {
   hint?: string;
 }
 
-export const FormField: React.FC<FormFieldProps> = ({
-  label,
-  children,
-  hint,
-}) => {
+export const FormField: React.FC<FormFieldProps> = ({ label, children, hint }) => {
+  const generatedId = useId();
+  const hintId = `${generatedId}-hint`;
+
+  let child = children;
+  let elementId: string | undefined = undefined;
+
+  if (React.isValidElement(children)) {
+    elementId = children.props.id || generatedId;
+    const childProps: any = { id: elementId };
+    if (hint) {
+      childProps['aria-describedby'] = children.props['aria-describedby']
+        ? `${children.props['aria-describedby']} ${hintId}`
+        : hintId;
+    }
+    child = React.cloneElement(children as React.ReactElement<any>, childProps);
+  }
+
   return (
     <div
       style={{
@@ -22,6 +35,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       }}
     >
       <label
+        htmlFor={elementId}
         style={{
           fontSize: '12px',
           fontWeight: 600,
@@ -32,10 +46,11 @@ export const FormField: React.FC<FormFieldProps> = ({
         {label}
       </label>
 
-      {children}
+      {child}
 
       {hint && (
         <span
+          id={hintId}
           style={{
             fontSize: '12px',
             color: '#64748B',
