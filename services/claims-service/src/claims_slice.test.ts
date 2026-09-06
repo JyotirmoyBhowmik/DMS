@@ -8,6 +8,7 @@ import { PostgresDatabaseClient, PgDriver, MigrationRunner, ConcurrencyError, En
 import { loadConfigSync } from '@dms/pkg-config';
 import { ClaimEntity } from './domain/entities/claim.entity.js';
 import { ClaimAggregate } from './domain/aggregates/claim.aggregate.js';
+import { Claim } from './domain/entities/claim.js';
 import { ClaimPgRepository } from './infrastructure/database/repositories/claim.pg-repository.js';
 import { GatewayController } from '../../api-gateway/src/presentation/rest/controllers/gateway.controller.js';
 import { KeyManager } from '../../identity-service/src/application/usecases/key_manager.js';
@@ -147,35 +148,62 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+    const domain = new Claim({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      name: 'Test Claim',
+      claimCode: 'CLM-000000000300',
+      claimAmountCents: 12000,
+      status: 'SUBMITTED',
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(domain, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
-    assert.strictEqual(saved.id, entity.id);
+    const saved: any = await claimRepo.findById(tenantA, domain.id);
+    assert.strictEqual(saved.id, domain.id);
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
+    // The repository needs a Domain Aggregate (Claim) which has .toJSON(), not a raw saved entity map.
+    const domainToUpdate = new Claim({
+      id: saved.id,
+      tenantId: saved.tenantId,
+      distributorId: saved.distributorId,
+      schemeId: saved.schemeId,
+      name: saved.name,
+      claimCode: saved.claimCode,
+      claimAmountCents: saved.claimAmountCents,
+      approvedAmountCents: saved.approvedAmountCents,
+      status: 'UNDER_REVIEW', // transitioning via props
+      version: 2
+    });
+
+    await claimRepo.update(domainToUpdate, tenantA);
+    const updated: any = await claimRepo.findById(tenantA, domain.id);
     assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    assert.strictEqual(updated.status, 'UNDER_REVIEW');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleDomain = new Claim({
+      id: saved.id,
+      tenantId: saved.tenantId,
+      distributorId: saved.distributorId,
+      schemeId: saved.schemeId,
+      name: saved.name,
+      claimCode: saved.claimCode,
+      claimAmountCents: saved.claimAmountCents,
+      approvedAmountCents: saved.approvedAmountCents,
+      status: 'UNDER_REVIEW',
+      version: 2 // Stale version simulating concurrency conflict. Existing version in DB is 2. The repo expects data.version - 1 === existing.version. So 2 - 1 = 1, but existing is 2.
+    });
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleDomain, tenantA);
       },
 
       (err: any) => {
@@ -186,7 +214,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     // 5. Verify RLS Isolation
     await assert.rejects(
       async () => {
-        await claimRepo.findById(tenantB, entity.id);
+        await claimRepo.findById(tenantB, domain.id);
       },
       (err: any) => {
         return err instanceof EntityNotFoundError;

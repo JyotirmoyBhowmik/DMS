@@ -1,0 +1,3 @@
+## 2026-09-06 - Accessible Form Wrappers
+**Learning:** When building generic form wrapper components (e.g., `<FormField>`), it is easy to forget associating the `<label>` with the input child, which hurts accessibility. React's `useId()` combined with `React.cloneElement()` provides an elegant way to automatically link `htmlFor` to `id` and safely assign `aria-describedby` to hint text, making any generic form field wrapper inherently accessible without manual ID management.
+**Action:** Always use `useId()` and `React.cloneElement()` in generic form field wrappers to automatically manage `id`, `htmlFor`, and `aria-describedby` linkages.
