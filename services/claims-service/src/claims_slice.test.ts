@@ -148,22 +148,24 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+    const domain = new Claim({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      name: 'Test Claim',
+      claimCode: 'CLM-000000000300',
+      claimAmountCents: 12000,
+      status: 'SUBMITTED',
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(domain, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
-    assert.strictEqual(saved.id, entity.id);
+    const saved: any = await claimRepo.findById(tenantA, domain.id);
+    assert.strictEqual(saved.id, domain.id);
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
@@ -177,14 +179,14 @@ describe('Claims Module & E2E Integration Tests', () => {
       claimCode: saved.claimCode,
       claimAmountCents: saved.claimAmountCents,
       approvedAmountCents: saved.approvedAmountCents,
-      status: 'validated' as any, // transitioning via props
+      status: 'UNDER_REVIEW', // transitioning via props
       version: 2
     });
 
     await claimRepo.update(domainToUpdate, tenantA);
-    const updated: any = await claimRepo.findById(tenantA, entity.id);
+    const updated: any = await claimRepo.findById(tenantA, domain.id);
     assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    assert.strictEqual(updated.status, 'UNDER_REVIEW');
 
     // 4. Update with stale version (Optimistic Locking failure)
     const staleDomain = new Claim({
@@ -196,7 +198,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       claimCode: saved.claimCode,
       claimAmountCents: saved.claimAmountCents,
       approvedAmountCents: saved.approvedAmountCents,
-      status: 'validated' as any,
+      status: 'UNDER_REVIEW',
       version: 2 // Stale version simulating concurrency conflict. Existing version in DB is 2. The repo expects data.version - 1 === existing.version. So 2 - 1 = 1, but existing is 2.
     });
     await assert.rejects(
@@ -212,7 +214,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     // 5. Verify RLS Isolation
     await assert.rejects(
       async () => {
-        await claimRepo.findById(tenantB, entity.id);
+        await claimRepo.findById(tenantB, domain.id);
       },
       (err: any) => {
         return err instanceof EntityNotFoundError;
