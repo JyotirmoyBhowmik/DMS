@@ -18,7 +18,7 @@ export class VaultSecretStore {
    */
   async storeTenantErpCredentials(
     tenantId: string,
-    credentials: ErpConnectionConfig
+    credentials: ErpConnectionConfig,
   ): Promise<void> {
     const vaultPath = `secret/data/tenants/${tenantId}/erp`;
     const serialized = JSON.stringify(credentials);
@@ -65,7 +65,7 @@ export class VaultSecretStore {
         });
 
         if (response.ok) {
-          const json = await response.json() as any;
+          const json = (await response.json()) as any;
           return json?.data?.data as ErpConnectionConfig;
         }
       }
@@ -80,13 +80,20 @@ export class VaultSecretStore {
       const decrypted = this.decryptAesGcm(encrypted);
       return JSON.parse(decrypted) as ErpConnectionConfig;
     } catch (err: any) {
-      this.logger.error(`Failed to decrypt tenant ERP credentials`, { tenantId, error: err.message });
+      this.logger.error(`Failed to decrypt tenant ERP credentials`, {
+        tenantId,
+        error: err.message,
+      });
       return null;
     }
   }
 
   private encryptAesGcm(plainText: string): string {
-    const key = crypto.scryptSync('dms-vault-secret-key-32-chars-long', 'salt', 32);
+    const secretKey = process.env.VAULT_SECRET_KEY;
+    if (!secretKey) {
+      throw new Error('VAULT_SECRET_KEY environment variable is required for encryption');
+    }
+    const key = crypto.scryptSync(secretKey, 'salt', 32);
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
     let encrypted = cipher.update(plainText, 'utf8', 'hex');
@@ -97,11 +104,31 @@ export class VaultSecretStore {
 
   private decryptAesGcm(cipherText: string): string {
     const [ivHex, authTagHex, encryptedHex] = cipherText.split(':');
-    const key = crypto.scryptSync('dms-vault-secret-key-32-chars-long', 'salt', 32);
-    const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(ivHex, 'hex'));
-    decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
-    let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    return decrypted;
+    const secretKey = process.env.VAULT_SECRET_KEY;
+
+    if (secretKey) {
+      try {
+        const key = crypto.scryptSync(secretKey, 'salt', 32);
+        const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(ivHex, 'hex'));
+        decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
+        let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        return decrypted;
+      } catch (err) {
+        // Fallback to legacy key if decryption with current key fails
+      }
+    }
+
+    // Legacy fallback for backward compatibility
+    const legacyKey = crypto.scryptSync('dms-vault-secret-key-32-chars-long', 'salt', 32);
+    const decipherLegacy = crypto.createDecipheriv(
+      'aes-256-gcm',
+      legacyKey,
+      Buffer.from(ivHex, 'hex'),
+    );
+    decipherLegacy.setAuthTag(Buffer.from(authTagHex, 'hex'));
+    let decryptedLegacy = decipherLegacy.update(encryptedHex, 'hex', 'utf8');
+    decryptedLegacy += decipherLegacy.final('utf8');
+    return decryptedLegacy;
   }
 }
