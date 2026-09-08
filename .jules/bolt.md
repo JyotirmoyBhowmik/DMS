@@ -13,3 +13,6 @@
 ## 2026-09-08 - Dynamic Date Time Bombs
 **Learning:** Hardcoding static temporal values (e.g., `new Date('2026-06-15')`) in test suites alongside dynamic validators like `new Date()` inside domain rules leads to temporal test failures (time bombs) when the system time progresses out of the mocked periods.
 **Action:** When mocking periods/dates, specifically inside `LedgerPeriod` testing, dynamically generate the periods relative to the current system date/month (e.g., using `new Date().toISOString().slice(0, 7)`) to prevent temporal test failures.
+## 2026-09-08 - E2E Schema Tests
+**Learning:** Hardcoding expected status strings (e.g., `'raised'`, `'validated'`) in tests checking API outputs will fail when the domain aggregates enforce updated union type structures (e.g., `'SUBMITTED'`, `'UNDER_REVIEW'`).
+**Action:** When migrating domain entities to stronger enums/union types, you must systematically update assertions within all E2E API tests and outbox/audit checks to match the new strictly serialized payload states.
