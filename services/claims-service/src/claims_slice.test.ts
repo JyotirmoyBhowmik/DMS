@@ -7,6 +7,7 @@ import { createSign } from 'node:crypto';
 import { PostgresDatabaseClient, PgDriver, MigrationRunner, ConcurrencyError, EntityNotFoundError } from '@dms/pkg-database';
 import { loadConfigSync } from '@dms/pkg-config';
 import { ClaimEntity } from './domain/entities/claim.entity.js';
+import { Claim } from './domain/entities/claim.js';
 import { ClaimAggregate } from './domain/aggregates/claim.aggregate.js';
 import { ClaimPgRepository } from './infrastructure/database/repositories/claim.pg-repository.js';
 import { GatewayController } from '../../api-gateway/src/presentation/rest/controllers/gateway.controller.js';
@@ -158,24 +159,49 @@ describe('Claims Module & E2E Integration Tests', () => {
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    const claimToSave = new Claim({
+      id: entity.id,
+      tenantId: tenantA,
+      distributorId,
+      schemeId,
+      claimCode: 'CLM-003',
+      name: 'Test Claim',
+      claimAmountCents: 12000,
+      status: 'SUBMITTED',
+      version: 1,
+    });
+    await claimRepo.save(claimToSave, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
+    const saved = await claimRepo.findById(tenantA, entity.id);
+    if (!saved) throw new Error('Not found');
     assert.strictEqual(saved.id, entity.id);
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
-    assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    saved.updateStatus('UNDER_REVIEW');
+    await claimRepo.update(saved, tenantA);
+    const updated = await claimRepo.findById(tenantA, saved.id) as Claim;
+    assert.strictEqual(updated.toJSON().version, 2);
+    assert.strictEqual(updated.toJSON().status, 'UNDER_REVIEW');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const json = saved.toJSON();
+    const staleAggregate = new Claim({
+      id: json.id,
+      tenantId: tenantA,
+      distributorId,
+      schemeId,
+      claimCode: json.claimCode,
+      name: json.name,
+      claimAmountCents: json.claimAmountCents,
+      status: json.status,
+      version: 2, // stale
+    });
+
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleAggregate, tenantA);
       },
 
       (err: any) => {
@@ -243,13 +269,15 @@ describe('Claims Module & E2E Integration Tests', () => {
         id: claimId,
         distributorId,
         schemeId,
-        amount: 8500,
+        claimCode: 'CLM-E2E-1',
+        name: 'E2E Claim',
+        claimAmountCents: 8500,
       },
     });
 
     assert.strictEqual(createResult.status, 201);
     assert.strictEqual(createResult.body.success, true);
-    assert.strictEqual((createResult.body as any).status, 'raised');
+    assert.strictEqual((createResult.body as any).status, 'SUBMITTED');
 
     // 2. POST /api/v1/claims/:id/validate
     const validateResult = await gateway.handleRequest({
@@ -265,7 +293,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(validateResult.status, 200);
     assert.strictEqual(validateResult.body.success, true);
-    assert.strictEqual((validateResult.body as any).status, 'validated');
+    assert.strictEqual((validateResult.body as any).status, 'UNDER_REVIEW');
 
     // 3. POST /api/v1/claims/:id/approve
     const approveResult = await gateway.handleRequest({
@@ -281,7 +309,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(approveResult.status, 200);
     assert.strictEqual(approveResult.body.success, true);
-    assert.strictEqual((approveResult.body as any).status, 'approved');
+    assert.strictEqual((approveResult.body as any).status, 'APPROVED');
 
     // 4. POST /api/v1/claims/:id/settle
     const settleResult = await gateway.handleRequest({
@@ -327,7 +355,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       tenantA
     );
     assert.strictEqual(auditRows.rows.length, 4); // raised, validate, approve, settle
-    assert.strictEqual(auditRows.rows[0].action, 'raised');
+    assert.strictEqual(auditRows.rows[0].action, 'SUBMITTED');
     assert.strictEqual(auditRows.rows[3].action, 'settle');
 
     const outboxRows = await db.query<any>(
@@ -336,7 +364,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       tenantA
     );
     assert.strictEqual(outboxRows.rows.length, 4);
-    assert.strictEqual(outboxRows.rows[0].event_type, 'claim.raised');
+    assert.strictEqual(outboxRows.rows[0].event_type, 'claim.SUBMITTED');
     assert.strictEqual(outboxRows.rows[3].event_type, 'claim.settled');
   });
 });
