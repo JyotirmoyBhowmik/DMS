@@ -10,3 +10,6 @@
 ## 2026-09-08 - Sync Queue Multiple Array Passes
 **Learning:** React functional components that calculate multiple derived states (e.g., pending, failed, synced totals) using independent `.filter()` array passes on every render will cause significant layout thrashing and O(3N) overhead, especially in long lists.
 **Action:** Combine multiple independent array passes into a single O(N) traversal loop inside a `useMemo` block to minimize iteration overhead, allocations, and re-renders without breaking readability.
+## 2026-09-08 - Dynamic Date Time Bombs
+**Learning:** Hardcoding static temporal values (e.g., `new Date('2026-06-15')`) in test suites alongside dynamic validators like `new Date()` inside domain rules leads to temporal test failures (time bombs) when the system time progresses out of the mocked periods.
+**Action:** When mocking periods/dates, specifically inside `LedgerPeriod` testing, dynamically generate the periods relative to the current system date/month (e.g., using `new Date().toISOString().slice(0, 7)`) to prevent temporal test failures.
