@@ -1,3 +1,4 @@
+import { Claim } from "./domain/entities/claim.js";
 import { test, describe, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import { existsSync } from 'node:fs';
