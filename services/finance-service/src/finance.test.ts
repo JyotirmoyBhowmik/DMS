@@ -263,8 +263,8 @@ describe('Finance Service - Unit Tests', () => {
       await repo.savePeriod(new LedgerPeriod({
         id: 'p2',
         tenantId,
-        startDate: new Date('2026-08-01'),
-        endDate: new Date('2026-08-31'),
+        startDate: new Date('2026-09-01'),
+        endDate: new Date('2026-09-30'),
         status: 'OPEN'
       }), tenantId);
 
