@@ -1,3 +1,4 @@
+import { Claim } from "./domain/entities/claim.js";
 import { test, describe, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import { existsSync } from 'node:fs';
@@ -166,16 +167,16 @@ describe('Claims Module & E2E Integration Tests', () => {
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
+    const updatedClaim = new Claim(Object.assign({}, saved.toJSON(), { status: 'validated', version: 2 }));
+    const updated: any = await claimRepo.update(updatedClaim, tenantA);
     assert.strictEqual(updated.version, 2);
     assert.strictEqual(updated.status, 'validated');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleClaim = new Claim(Object.assign({}, saved.toJSON(), { version: 1 }));
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleClaim, tenantA);
       },
 
       (err: any) => {
