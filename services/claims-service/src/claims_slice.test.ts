@@ -185,7 +185,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       claimCode: 'CLM-001',
       claimAmountCents: 12000,
       status: 'UNDER_REVIEW',
-      version: 2, // stale, version 2 data passed to update where it will check DB and find version 2, and then 2 !== 2 - 1 (bypass is when data.version <= 1) Wait, no. Concurrency error logic: `if (existing.version !== data.version - 1) throw ConcurrencyError`. If existing is 2, and we pass data.version 2, 2 !== 2 - 1 -> throws.
+      version: 2,
     });
 
     await assert.rejects(

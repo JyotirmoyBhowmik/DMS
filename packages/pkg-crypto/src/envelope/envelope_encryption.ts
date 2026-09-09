@@ -28,6 +28,20 @@ export class EnvelopeEncryptionService {
     throw new Error('PLATFORM_KEK_SECRET environment variable is missing for encryption operations.');
   }
 
+  private static getLegacyPlatformKek(): Buffer {
+    if (process.env.LEGACY_PLATFORM_KEK_SECRET) {
+      if (!this.cachedLegacyPlatformKek) {
+        this.cachedLegacyPlatformKek = crypto.scryptSync(
+          process.env.LEGACY_PLATFORM_KEK_SECRET,
+          'platform-kek-salt',
+          32
+        );
+      }
+      return this.cachedLegacyPlatformKek;
+    }
+    throw new Error('LEGACY_PLATFORM_KEK_SECRET environment variable is missing for legacy decryption operations.');
+  }
+
   /**
    * Generates a 256-bit Data Encryption Key (DEK) for a specific tenant,
    * wraps it using the platform Key Encryption Key (KEK), and returns the DEK.
@@ -107,9 +121,6 @@ export class EnvelopeEncryptionService {
    */
   static unwrapDekWithKek(wrapped: WrappedDek): Buffer {
     try {
-      // First try the new key (which may be missing if not set)
-      // We pass false to avoid throwing if not set? No, wait.
-      // If process.env.PLATFORM_KEK_SECRET is set, we try that.
       if (process.env.PLATFORM_KEK_SECRET) {
         const newKek = this.getPlatformKek();
         const decipher = crypto.createDecipheriv('aes-256-gcm', newKek, Buffer.from(wrapped.ivHex, 'hex'));
@@ -129,19 +140,5 @@ export class EnvelopeEncryptionService {
     let decrypted = decipher.update(wrapped.encryptedDekHex, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return Buffer.from(decrypted, 'hex');
-  }
-
-  private static getLegacyPlatformKek(): Buffer {
-    if (process.env.LEGACY_PLATFORM_KEK_SECRET) {
-      if (!this.cachedLegacyPlatformKek) {
-        this.cachedLegacyPlatformKek = crypto.scryptSync(
-          process.env.LEGACY_PLATFORM_KEK_SECRET,
-          'platform-kek-salt',
-          32
-        );
-      }
-      return this.cachedLegacyPlatformKek;
-    }
-    throw new Error('LEGACY_PLATFORM_KEK_SECRET environment variable is missing for legacy decryption operations.');
   }
 }
