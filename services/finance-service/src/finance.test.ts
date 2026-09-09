@@ -249,24 +249,24 @@ describe('Finance Service - Unit Tests', () => {
 
     test('PostLedgerEntryUseCase and ReverseLedgerEntryUseCase execution flow', async () => {
       const repo = new MockLedgerRepository();
-      const db = new PostgresDatabaseClient(new InMemoryDriver());
+      const db = new PostgresDatabaseClient(new InMemoryDriver());      // Seed Period and Accounts
+      const now = new Date();
+      // Ensure we cover the current month, next month, and previous month
+      // to avoid any timezone/edge-case issues with "now".
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const firstDay = new Date(currentYear, currentMonth - 1, 1);
+      const lastDay = new Date(currentYear, currentMonth + 2, 0);
 
-      // Seed Period and Accounts
       await repo.savePeriod(new LedgerPeriod({
-        id: 'p1',
+        id: 'p_current',
         tenantId,
-        startDate: new Date('2026-06-01'),
-        endDate: new Date('2026-06-30'),
+        startDate: firstDay,
+        endDate: lastDay,
         status: 'OPEN'
       }), tenantId);
 
-      await repo.savePeriod(new LedgerPeriod({
-        id: 'p2',
-        tenantId,
-        startDate: new Date('2026-08-01'),
-        endDate: new Date('2026-08-31'),
-        status: 'OPEN'
-      }), tenantId);
+
 
       await repo.saveAccount(new LedgerAccount({
         id: cashAccountId,
@@ -292,7 +292,7 @@ describe('Finance Service - Unit Tests', () => {
         referenceType: 'ORDER',
         referenceId: 'order-123',
         description: 'Customer order payment',
-        postedAt: new Date('2026-06-10'),
+        postedAt: new Date(),
         idempotencyKey: 'idemp-key-1',
         postings: [
           { accountId: cashAccountId, type: 'DEBIT', amount: 200 },
