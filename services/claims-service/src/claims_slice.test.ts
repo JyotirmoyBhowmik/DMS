@@ -166,16 +166,20 @@ describe('Claims Module & E2E Integration Tests', () => {
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
+    saved.updateStatus('UNDER_REVIEW', 'admin', 'Validating claim');
     const updated: any = await claimRepo.update(saved, tenantA);
     assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
-
+    assert.strictEqual(updated.status, 'UNDER_REVIEW');
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    // Create a new aggregate instance based on the saved data to simulate a concurrent request
+    // with a stale version. The repo expects version > 1 to enforce concurrency.
+    const staleData = saved.toJSON();
+    staleData.version = 2; // Simulate a client sending version 2, while DB is now at version 2 (expecting 3)
+    const staleClaimEntity = new ClaimEntity(staleData);
+
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleClaimEntity as any, tenantA);
       },
 
       (err: any) => {
