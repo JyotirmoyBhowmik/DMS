@@ -9,12 +9,24 @@ export interface WrappedDek {
 }
 
 export class EnvelopeEncryptionService {
-  private static platformKek: Buffer = crypto.scryptSync(
-    process.env.PLATFORM_KEK_SECRET || 'dms-master-platform-kek-key-32b',
-    'platform-kek-salt',
-    32
-  );
+  private static cachedPlatformKek: Buffer | null = null;
+  private static cachedLegacyPlatformKek: Buffer | null = null;
   private static dekCache = new Map<string, Buffer>();
+
+  private static getPlatformKek(): Buffer {
+    if (process.env.PLATFORM_KEK_SECRET) {
+      if (!this.cachedPlatformKek) {
+        this.cachedPlatformKek = crypto.scryptSync(
+          process.env.PLATFORM_KEK_SECRET,
+          'platform-kek-salt',
+          32
+        );
+      }
+      return this.cachedPlatformKek;
+    }
+
+    throw new Error('PLATFORM_KEK_SECRET environment variable is missing for encryption operations.');
+  }
 
   /**
    * Generates a 256-bit Data Encryption Key (DEK) for a specific tenant,
@@ -74,7 +86,8 @@ export class EnvelopeEncryptionService {
    */
   static wrapDekWithKek(tenantId: string, dek: Buffer): WrappedDek {
     const iv = crypto.randomBytes(12);
-    const cipher = crypto.createCipheriv('aes-256-gcm', this.platformKek, iv);
+    const kek = this.getPlatformKek();
+    const cipher = crypto.createCipheriv('aes-256-gcm', kek, iv);
     let encrypted = cipher.update(dek.toString('hex'), 'utf8', 'hex');
     encrypted += cipher.final('hex');
     const authTag = cipher.getAuthTag().toString('hex');
@@ -86,5 +99,49 @@ export class EnvelopeEncryptionService {
       authTagHex: authTag,
       createdAt: new Date().toISOString(),
     };
+  }
+
+  /**
+   * Unwraps a tenant DEK with the platform KEK for Vault retrieval.
+   * Supports backward-compatibility for legacy wrapped keys if environment variable is missing.
+   */
+  static unwrapDekWithKek(wrapped: WrappedDek): Buffer {
+    try {
+      // First try the new key (which may be missing if not set)
+      // We pass false to avoid throwing if not set? No, wait.
+      // If process.env.PLATFORM_KEK_SECRET is set, we try that.
+      if (process.env.PLATFORM_KEK_SECRET) {
+        const newKek = this.getPlatformKek();
+        const decipher = crypto.createDecipheriv('aes-256-gcm', newKek, Buffer.from(wrapped.ivHex, 'hex'));
+        decipher.setAuthTag(Buffer.from(wrapped.authTagHex, 'hex'));
+        let decrypted = decipher.update(wrapped.encryptedDekHex, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        return Buffer.from(decrypted, 'hex');
+      }
+    } catch (e) {
+      // If decryption fails (e.g. auth tag mismatch), we fallback to the legacy key.
+    }
+
+    // Fallback to legacy KEK if not set or decryption failed
+    const legacyKek = this.getLegacyPlatformKek();
+    const decipher = crypto.createDecipheriv('aes-256-gcm', legacyKek, Buffer.from(wrapped.ivHex, 'hex'));
+    decipher.setAuthTag(Buffer.from(wrapped.authTagHex, 'hex'));
+    let decrypted = decipher.update(wrapped.encryptedDekHex, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return Buffer.from(decrypted, 'hex');
+  }
+
+  private static getLegacyPlatformKek(): Buffer {
+    if (process.env.LEGACY_PLATFORM_KEK_SECRET) {
+      if (!this.cachedLegacyPlatformKek) {
+        this.cachedLegacyPlatformKek = crypto.scryptSync(
+          process.env.LEGACY_PLATFORM_KEK_SECRET,
+          'platform-kek-salt',
+          32
+        );
+      }
+      return this.cachedLegacyPlatformKek;
+    }
+    throw new Error('LEGACY_PLATFORM_KEK_SECRET environment variable is missing for legacy decryption operations.');
   }
 }
