@@ -249,24 +249,22 @@ describe('Finance Service - Unit Tests', () => {
 
     test('PostLedgerEntryUseCase and ReverseLedgerEntryUseCase execution flow', async () => {
       const repo = new MockLedgerRepository();
-      const db = new PostgresDatabaseClient(new InMemoryDriver());
+      const db = new PostgresDatabaseClient(new InMemoryDriver());      // Seed Period and Accounts
 
-      // Seed Period and Accounts
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const firstDay = new Date(currentYear, currentMonth, 1);
+      const lastDay = new Date(currentYear, currentMonth + 1, 0);
+
       await repo.savePeriod(new LedgerPeriod({
-        id: 'p1',
+        id: 'p_current',
         tenantId,
-        startDate: new Date('2026-06-01'),
-        endDate: new Date('2026-06-30'),
+        startDate: firstDay,
+        endDate: lastDay,
         status: 'OPEN'
       }), tenantId);
 
-      await repo.savePeriod(new LedgerPeriod({
-        id: 'p2',
-        tenantId,
-        startDate: new Date('2026-08-01'),
-        endDate: new Date('2026-08-31'),
-        status: 'OPEN'
-      }), tenantId);
 
       await repo.saveAccount(new LedgerAccount({
         id: cashAccountId,
