@@ -13,11 +13,12 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"dist/**/*.test.js\"",
+    "test": "node --require dotenv/config --test \"dist/**/*.test.js\"",
     "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
+    "dotenv": "^17.4.2",
     "typescript": "^5.3.3"
   }
 }

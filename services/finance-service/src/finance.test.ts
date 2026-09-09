@@ -252,6 +252,11 @@ describe('Finance Service - Unit Tests', () => {
       const db = new PostgresDatabaseClient(new InMemoryDriver());
 
       // Seed Period and Accounts
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+
       await repo.savePeriod(new LedgerPeriod({
         id: 'p1',
         tenantId,
@@ -263,8 +268,8 @@ describe('Finance Service - Unit Tests', () => {
       await repo.savePeriod(new LedgerPeriod({
         id: 'p2',
         tenantId,
-        startDate: new Date('2026-08-01'),
-        endDate: new Date('2026-08-31'),
+        startDate: startOfMonth,
+        endDate: endOfMonth,
         status: 'OPEN'
       }), tenantId);
 

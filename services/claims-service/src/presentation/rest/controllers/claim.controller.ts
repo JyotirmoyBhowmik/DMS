@@ -116,10 +116,10 @@ export class ClaimController {
   // Alias methods for compatibility
   async handlePostClaim(body: any, headers: any, _extra?: any) { return this.handleCreate(body, headers); }
   async handleGetClaim(id: string, headers: any, _extra?: any) { return this.handleGet(id, headers); }
-  async handleValidateClaim(id: string, headers: any, _extra?: any) { return { statusCode: 200, body: { success: true } }; }
-  async handleApproveClaim(id: string, headers: any, _extra?: any) { return { statusCode: 200, body: { success: true } }; }
-  async handleRejectClaim(id: string, headers: any, _extra?: any) { return { statusCode: 200, body: { success: true } }; }
-  async handleSettleClaim(id: string, body: any, headers: any, _extra?: any) { return { statusCode: 200, body: { success: true } }; }
+  async handleValidateClaim(id: string, body: any, headers: any, _extra?: any) { return this.handleUpdate(id, { status: 'UNDER_REVIEW', ...body }, headers); }
+  async handleApproveClaim(id: string, body: any, headers: any, _extra?: any) { return this.handleUpdate(id, { status: 'APPROVED', ...body }, headers); }
+  async handleRejectClaim(id: string, body: any, headers: any, _extra?: any) { return this.handleUpdate(id, { status: 'REJECTED', ...body }, headers); }
+  async handleSettleClaim(id: string, body: any, headers: any, _extra?: any) { return this.handleUpdate(id, { status: 'SETTLED', ...body }, headers); }
   async handleListClaims(query: any, headers: any, _extra?: any) { return this.handleList(query, headers); }
 
 }
