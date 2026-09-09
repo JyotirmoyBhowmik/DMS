@@ -1,6 +1,6 @@
 // ── Landing Page (Pre-Auth) ──
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import type { UserRole } from '../../types';
 
 interface LandingPageProps {
@@ -14,6 +14,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
   const [password, setPassword] = useState('SecureP@ss123!');
   const [selectedRole, setSelectedRole] = useState<UserRole>('admin');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const loginModalTitleId = useId();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showLoginModal) {
+        setShowLoginModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showLoginModal]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +35,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#F8FAFC',
+        fontFamily: "'Inter', system-ui, sans-serif",
+      }}
+    >
       {/* Top Bar */}
       <header
         style={{
@@ -42,12 +59,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '36px', height: '36px', borderRadius: '8px',
-            backgroundColor: '#0F172A', color: '#FFFFFF',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: '800', fontSize: '18px',
-          }}>
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '8px',
+              backgroundColor: '#0F172A',
+              color: '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: '800',
+              fontSize: '18px',
+            }}
+          >
             D
           </div>
           <span style={{ fontWeight: '700', fontSize: '16px', color: '#0F172A' }}>
@@ -99,35 +124,62 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
         }}
       >
         <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 40px' }}>
-          <div style={{
-            display: 'inline-block', backgroundColor: '#EFF6FF', color: '#1D4ED8',
-            padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: '700',
-            marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '0.5px',
-          }}>
+          <div
+            style={{
+              display: 'inline-block',
+              backgroundColor: '#EFF6FF',
+              color: '#1D4ED8',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              fontSize: '12px',
+              fontWeight: '700',
+              marginBottom: '20px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
             19 Microservices • 29 Platform Nodes • Enterprise-Grade
           </div>
-          <h1 style={{
-            fontSize: '42px', fontWeight: '800', color: '#0F172A', lineHeight: 1.15,
-            marginBottom: '16px', letterSpacing: '-0.02em',
-          }}>
-            Integrated Distribution<br />
+          <h1
+            style={{
+              fontSize: '42px',
+              fontWeight: '800',
+              color: '#0F172A',
+              lineHeight: 1.15,
+              marginBottom: '16px',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            Integrated Distribution
+            <br />
             Management & Sales Force
           </h1>
-          <p style={{
-            fontSize: '17px', color: '#64748B', maxWidth: '600px', margin: '0 auto 40px',
-            lineHeight: 1.6,
-          }}>
-            End-to-end enterprise platform for FMCG distribution, field force automation,
-            trade promotions, invoicing, and AI-powered demand forecasting — with complete
-            multi-tenant isolation and offline-first mobile apps.
+          <p
+            style={{
+              fontSize: '17px',
+              color: '#64748B',
+              maxWidth: '600px',
+              margin: '0 auto 40px',
+              lineHeight: 1.6,
+            }}
+          >
+            End-to-end enterprise platform for FMCG distribution, field force automation, trade
+            promotions, invoicing, and AI-powered demand forecasting — with complete multi-tenant
+            isolation and offline-first mobile apps.
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
             <button
               onClick={() => setShowLoginModal(true)}
               style={{
-                padding: '14px 32px', borderRadius: '10px', border: 'none',
-                backgroundColor: '#0F172A', color: '#FFFFFF', cursor: 'pointer',
-                fontSize: '15px', fontWeight: '700', transition: 'all 0.15s ease',
+                padding: '14px 32px',
+                borderRadius: '10px',
+                border: 'none',
+                backgroundColor: '#0F172A',
+                color: '#FFFFFF',
+                cursor: 'pointer',
+                fontSize: '15px',
+                fontWeight: '700',
+                transition: 'all 0.15s ease',
               }}
             >
               Access Your Dashboard →
@@ -135,9 +187,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
             <button
               onClick={onDemoMode}
               style={{
-                padding: '14px 32px', borderRadius: '10px',
-                border: '1.5px solid #CBD5E1', backgroundColor: '#FFFFFF',
-                color: '#334155', cursor: 'pointer', fontSize: '15px', fontWeight: '600',
+                padding: '14px 32px',
+                borderRadius: '10px',
+                border: '1.5px solid #CBD5E1',
+                backgroundColor: '#FFFFFF',
+                color: '#334155',
+                cursor: 'pointer',
+                fontSize: '15px',
+                fontWeight: '600',
               }}
             >
               Interactive Demo
@@ -187,25 +244,50 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
             >
               <div
                 style={{
-                  width: '44px', height: '44px', borderRadius: '10px',
-                  backgroundColor: pillar.bgColor, display: 'flex',
-                  alignItems: 'center', justifyContent: 'center', fontSize: '22px',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '10px',
+                  backgroundColor: pillar.bgColor,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '22px',
                   marginBottom: '16px',
                 }}
               >
                 {pillar.icon}
               </div>
-              <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A', marginBottom: '10px' }}>
+              <h3
+                style={{
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#0F172A',
+                  marginBottom: '10px',
+                }}
+              >
                 {pillar.title}
               </h3>
-              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, marginBottom: '16px' }}>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: '#64748B',
+                  lineHeight: 1.6,
+                  marginBottom: '16px',
+                }}
+              >
                 {pillar.desc}
               </p>
-              <div style={{
-                fontSize: '11px', fontWeight: '600', color: pillar.color,
-                backgroundColor: pillar.bgColor, padding: '4px 10px',
-                borderRadius: '4px', display: 'inline-block',
-              }}>
+              <div
+                style={{
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  color: pillar.color,
+                  backgroundColor: pillar.bgColor,
+                  padding: '4px 10px',
+                  borderRadius: '4px',
+                  display: 'inline-block',
+                }}
+              >
                 {pillar.stats}
               </div>
             </div>
@@ -214,31 +296,56 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
       </section>
 
       {/* Platform Architecture Bar */}
-      <section style={{
-        maxWidth: '1100px', margin: '0 auto 60px', padding: '0 40px',
-      }}>
-        <div style={{
-          backgroundColor: '#0F172A', borderRadius: '12px', padding: '28px 32px',
-          color: '#FFFFFF',
-        }}>
+      <section
+        style={{
+          maxWidth: '1100px',
+          margin: '0 auto 60px',
+          padding: '0 40px',
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: '#0F172A',
+            borderRadius: '12px',
+            padding: '28px 32px',
+            color: '#FFFFFF',
+          }}
+        >
           <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '16px' }}>
             Platform Architecture
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {[
-              'identity-service', 'dms-core-service', 'sfa-service', 'pricing-service',
-              'schemes-service', 'finance-service', 'claims-service', 'file-service',
-              'notification-service', 'audit-service', 'config-service', 'report-service',
-              'integration-service', 'sync-service', 'forecasting-service', 'recommendation-service',
-              'ai-service', 'api-gateway', 'ai-gateway-service',
+              'identity-service',
+              'dms-core-service',
+              'sfa-service',
+              'pricing-service',
+              'schemes-service',
+              'finance-service',
+              'claims-service',
+              'file-service',
+              'notification-service',
+              'audit-service',
+              'config-service',
+              'report-service',
+              'integration-service',
+              'sync-service',
+              'forecasting-service',
+              'recommendation-service',
+              'ai-service',
+              'api-gateway',
+              'ai-gateway-service',
             ].map((s) => (
               <span
                 key={s}
                 style={{
-                  padding: '5px 12px', borderRadius: '6px',
+                  padding: '5px 12px',
+                  borderRadius: '6px',
                   backgroundColor: 'rgba(255,255,255,0.08)',
                   border: '1px solid rgba(255,255,255,0.12)',
-                  fontSize: '11px', fontFamily: 'monospace', fontWeight: '600',
+                  fontSize: '11px',
+                  fontFamily: 'monospace',
+                  fontWeight: '600',
                 }}
               >
                 {s}
@@ -251,8 +358,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
       {/* Footer */}
       <footer
         style={{
-          textAlign: 'center', padding: '24px', borderTop: '1px solid #E2E8F0',
-          color: '#94A3B8', fontSize: '12px',
+          textAlign: 'center',
+          padding: '24px',
+          borderTop: '1px solid #E2E8F0',
+          color: '#94A3B8',
+          fontSize: '12px',
         }}
       >
         © 2026 Enterprise DMS & SFA Platform
@@ -262,34 +372,67 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
       {showLoginModal && (
         <div
           style={{
-            position: 'fixed', inset: 0,
+            position: 'fixed',
+            inset: 0,
             backgroundColor: 'rgba(15, 23, 42, 0.5)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 1000, backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            backdropFilter: 'blur(4px)',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowLoginModal(false);
+            }
           }}
         >
+          {' '}
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={loginModalTitleId}
             style={{
-              backgroundColor: '#FFFFFF', borderRadius: '16px',
-              padding: '32px', width: '420px', maxWidth: '90vw',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              padding: '32px',
+              width: '420px',
+              maxWidth: '90vw',
               boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '24px',
+              }}
+            >
               <div>
-                <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#0F172A', margin: 0 }}>
+                {' '}
+                <h2
+                  id={loginModalTitleId}
+                  style={{ fontSize: '18px', fontWeight: '700', color: '#0F172A', margin: 0 }}
+                >
                   Sign In
                 </h2>
                 <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0' }}>
                   Enterprise DMS & SFA Platform
                 </p>
-              </div>
+              </div>{' '}
               <button
                 onClick={() => setShowLoginModal(false)}
+                aria-label="Close modal"
                 style={{
-                  border: 'none', backgroundColor: '#F1F5F9', cursor: 'pointer',
-                  width: '30px', height: '30px', borderRadius: '8px',
-                  fontSize: '16px', color: '#64748B',
+                  border: 'none',
+                  backgroundColor: '#F1F5F9',
+                  cursor: 'pointer',
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  color: '#64748B',
                 }}
               >
                 ✕
@@ -299,16 +442,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
             <form onSubmit={handleLogin}>
               {/* Email */}
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                {' '}
+                <label
+                  htmlFor="email-input"
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: '#334155',
+                    marginBottom: '6px',
+                  }}
+                >
                   Email Address
-                </label>
+                </label>{' '}
                 <input
+                  id="email-input"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  required
                   style={{
-                    width: '100%', padding: '10px 12px', borderRadius: '8px',
-                    border: '1px solid #CBD5E1', fontSize: '13px', outline: 'none',
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #CBD5E1',
+                    fontSize: '13px',
+                    outline: 'none',
                     boxSizing: 'border-box',
                   }}
                 />
@@ -316,16 +475,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
 
               {/* Password */}
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                {' '}
+                <label
+                  htmlFor="password-input"
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: '#334155',
+                    marginBottom: '6px',
+                  }}
+                >
                   Password
-                </label>
+                </label>{' '}
                 <input
+                  id="password-input"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
                   style={{
-                    width: '100%', padding: '10px 12px', borderRadius: '8px',
-                    border: '1px solid #CBD5E1', fontSize: '13px', outline: 'none',
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #CBD5E1',
+                    fontSize: '13px',
+                    outline: 'none',
                     boxSizing: 'border-box',
                   }}
                 />
@@ -333,14 +508,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
 
               {/* Role Selector */}
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                {' '}
+                <label
+                  id="role-selector-label"
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: '#334155',
+                    marginBottom: '6px',
+                  }}
+                >
                   Login As Role
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                <div
+                  role="group"
+                  aria-labelledby="role-selector-label"
+                  style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}
+                >
                   {(['admin', 'agent', 'distributor', 'auditor'] as UserRole[]).map((role) => (
                     <button
                       key={role}
                       type="button"
+                      aria-pressed={selectedRole === role}
                       onClick={() => setSelectedRole(role)}
                       style={{
                         padding: '8px 4px',
@@ -358,11 +548,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
                     </button>
                   ))}
                 </div>
-                <div style={{ fontSize: '11px', color: '#15803D', marginTop: '6px', fontWeight: '500' }}>
-                  {selectedRole === 'admin' && '✓ Full platform access — all modules & configuration'}
-                  {selectedRole === 'agent' && '✓ Field SFA view — beats, visits, van sales, my orders'}
-                  {selectedRole === 'distributor' && '✓ Distributor portal — my stock, invoices, claims'}
-                  {selectedRole === 'auditor' && '✓ Read-only audit view — all data, no write actions'}
+                <div
+                  style={{
+                    fontSize: '11px',
+                    color: '#15803D',
+                    marginTop: '6px',
+                    fontWeight: '500',
+                  }}
+                >
+                  {selectedRole === 'admin' &&
+                    '✓ Full platform access — all modules & configuration'}
+                  {selectedRole === 'agent' &&
+                    '✓ Field SFA view — beats, visits, van sales, my orders'}
+                  {selectedRole === 'distributor' &&
+                    '✓ Distributor portal — my stock, invoices, claims'}
+                  {selectedRole === 'auditor' &&
+                    '✓ Read-only audit view — all data, no write actions'}
                 </div>
               </div>
 
@@ -371,10 +572,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onDemoMode })
                 type="submit"
                 disabled={isLoggingIn}
                 style={{
-                  width: '100%', padding: '12px', borderRadius: '10px',
-                  border: 'none', backgroundColor: '#0F172A', color: '#FFFFFF',
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  backgroundColor: '#0F172A',
+                  color: '#FFFFFF',
                   cursor: isLoggingIn ? 'wait' : 'pointer',
-                  fontSize: '14px', fontWeight: '700',
+                  fontSize: '14px',
+                  fontWeight: '700',
                   opacity: isLoggingIn ? 0.7 : 1,
                 }}
               >
