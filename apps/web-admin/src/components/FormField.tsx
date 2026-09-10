@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useId, isValidElement, cloneElement } from 'react';
 
 export interface FormFieldProps {
   label: string;
@@ -6,11 +6,22 @@ export interface FormFieldProps {
   hint?: string;
 }
 
-export const FormField: React.FC<FormFieldProps> = ({
-  label,
-  children,
-  hint,
-}) => {
+export const FormField: React.FC<FormFieldProps> = ({ label, children, hint }) => {
+  const generatedId = useId();
+  const hintId = hint ? `${generatedId}-hint` : undefined;
+
+  let content = children;
+  if (isValidElement<{ id?: string; 'aria-describedby'?: string }>(children)) {
+    content = cloneElement(children, {
+      id: children.props.id || generatedId,
+      'aria-describedby': hintId,
+    });
+  }
+
+  const finalId = isValidElement<{ id?: string }>(children)
+    ? children.props.id || generatedId
+    : generatedId;
+
   return (
     <div
       style={{
@@ -22,6 +33,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       }}
     >
       <label
+        htmlFor={finalId}
         style={{
           fontSize: '12px',
           fontWeight: 600,
@@ -32,10 +44,11 @@ export const FormField: React.FC<FormFieldProps> = ({
         {label}
       </label>
 
-      {children}
+      {content}
 
       {hint && (
         <span
+          id={hintId}
           style={{
             fontSize: '12px',
             color: '#64748B',
