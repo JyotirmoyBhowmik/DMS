@@ -1,3 +1,6 @@
 ## 2024-05-18 - Modal Component Accessibility Requirements
 **Learning:** Custom UI dialogs/modals in the `@dms/web-admin` application require explicitly setting fundamental ARIA roles (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`) and implementing an Escape key event listener to close the modal, in order to comply with accessibility standards.
 **Action:** When building or updating custom modals, always include `role="dialog"`, `aria-modal="true"`, dynamic `aria-labelledby`, and ensure keyboard accessibility by binding 'Escape' to the modal's close functionality.
+## 2026-09-10 - FormField Component Accessibility Requirements
+**Learning:** When building generic form wrapper components (e.g., `<FormField>`), ensure accessibility by using `useId()` and `React.cloneElement()` (wrapped in a `React.isValidElement()` check) to automatically generate and link the `<label>`'s `htmlFor` attribute to the child element's `id`, and safely assign `aria-describedby` to link any associated hint text.
+**Action:** When creating form wrappers, always provide automatic accessible linking (htmlFor, aria-describedby) dynamically utilizing `useId` to prevent accessibility defects due to missed prop associations.
