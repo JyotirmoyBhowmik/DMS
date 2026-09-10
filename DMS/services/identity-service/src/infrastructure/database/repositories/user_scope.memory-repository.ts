@@ -1,5 +1,5 @@
 import type { TokenScopeClaims } from '@dms/pkg-tenant-scope';
-import type { UserScopeRepository } from '../../domain/repositories/user_scope.repository.js';
+import type { UserScopeRepository } from '../../../domain/repositories/user_scope.repository.js';
 
 export class InMemoryUserScopeRepository implements UserScopeRepository {
   private static store = new Map<string, TokenScopeClaims>();
