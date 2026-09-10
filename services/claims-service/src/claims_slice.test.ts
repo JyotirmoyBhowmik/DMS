@@ -177,10 +177,11 @@ describe('Claims Module & E2E Integration Tests', () => {
     assert.strictEqual(updated.status, 'UNDER_REVIEW');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    // Create a new instance with the stale version to simulate concurrency conflict
+    // Note: The concurrency check in update() enforces existing.version === data.version - 1
+    // We pass version 2 because existing is version 2, and 2 - 1 = 1. But existing is 2, not 1.
     const staleClaim = new Claim({
       ...saved.toJSON(),
-      version: 1, // stale version
+      version: 2, // will trigger check existing(2) !== stale(2) - 1
     });
 
     await assert.rejects(
