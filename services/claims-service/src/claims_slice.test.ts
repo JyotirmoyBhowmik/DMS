@@ -147,35 +147,45 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+
+    // We should be testing the Claim Domain Aggregate in the repository, not ClaimEntity
+    const { Claim } = await import('./domain/entities/claim.js');
+    const claim = Claim.create({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      name: 'Test Claim',
+      claimCode: 'CLM-000000000300',
+      claimAmountCents: 12000,
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(claim as any, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
-    assert.strictEqual(saved.id, entity.id);
+    const saved: any = await claimRepo.findById(tenantA, claim.id);
+    assert.strictEqual(saved.id, claim.id);
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
+    saved.updateStatus('UNDER_REVIEW'); // equivalent to 'validated'
+    await claimRepo.update(saved, tenantA);
+    const updated: any = await claimRepo.findById(tenantA, claim.id);
     assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    assert.strictEqual(updated.status, 'UNDER_REVIEW');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    // Create a new instance with the stale version to simulate concurrency conflict
+    const staleClaim = new Claim({
+      ...saved.toJSON(),
+      version: 1, // stale version
+    });
+
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleClaim, tenantA);
       },
 
       (err: any) => {
@@ -184,14 +194,8 @@ describe('Claims Module & E2E Integration Tests', () => {
     );
 
     // 5. Verify RLS Isolation
-    await assert.rejects(
-      async () => {
-        await claimRepo.findById(tenantB, entity.id);
-      },
-      (err: any) => {
-        return err instanceof EntityNotFoundError;
-      }
-    );
+    const notFound = await claimRepo.findById(tenantB, claim.id);
+    assert.strictEqual(notFound, null);
   });
 
   // ─── 3. E2E HAPPY PATH / API GATEWAY TEST ──────────────────────────────────
