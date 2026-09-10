@@ -260,11 +260,18 @@ describe('Finance Service - Unit Tests', () => {
         status: 'OPEN'
       }), tenantId);
 
+      // Dynamic period generation to avoid temporal test failures
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const startDate = new Date(currentYear, currentMonth, 1);
+      const endDate = new Date(currentYear, currentMonth + 1, 0); // Last day of current month
+
       await repo.savePeriod(new LedgerPeriod({
         id: 'p2',
         tenantId,
-        startDate: new Date('2026-08-01'),
-        endDate: new Date('2026-08-31'),
+        startDate: startDate,
+        endDate: endDate,
         status: 'OPEN'
       }), tenantId);
 
