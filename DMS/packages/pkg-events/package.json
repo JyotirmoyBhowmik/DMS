@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@dms/pkg-database": "workspace:^",
+    "@dms/pkg-logger": "workspace:^",
     "amqplib": "^2.0.1",
     "pg": "^8.21.0",
     "zod": "^3.22.4"

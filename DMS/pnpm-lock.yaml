@@ -149,6 +149,9 @@ importers:
       '@dms/pkg-database':
         specifier: workspace:^
         version: link:../pkg-database
+      '@dms/pkg-logger':
+        specifier: workspace:^
+        version: link:../pkg-logger
       amqplib:
         specifier: ^2.0.1
         version: 2.0.1
@@ -205,6 +208,12 @@ importers:
       reflect-metadata:
         specifier: ^0.2.1
         version: 0.2.2
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
+  packages/pkg-tenant-scope:
     devDependencies:
       typescript:
         specifier: ^5.3.3
@@ -573,6 +582,9 @@ importers:
       '@dms/pkg-rbac':
         specifier: workspace:*
         version: link:../../packages/pkg-rbac
+      '@dms/pkg-tenant-scope':
+        specifier: workspace:*
+        version: link:../../packages/pkg-tenant-scope
       '@dms/pkg-validation':
         specifier: workspace:*
         version: link:../../packages/pkg-validation
