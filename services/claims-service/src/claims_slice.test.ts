@@ -169,13 +169,14 @@ describe('Claims Module & E2E Integration Tests', () => {
     // 3. Update (Optimistic Locking success)
     const aggregateForUpdate = new ClaimAggregate(saved);
     aggregateForUpdate.validate();
-    const updated: any = await claimRepo.update(aggregateForUpdate as any, tenantA);
+    await claimRepo.update(aggregateForUpdate as any, tenantA);
+    const updated: any = await claimRepo.findById(tenantA, entity.id);
     assert.strictEqual(updated.version, 2);
     assert.strictEqual(updated.status, 'validated');
 
     // 4. Update with stale version (Optimistic Locking failure)
     const staleEntity = new ClaimEntity({
-      id: updated.id,
+      id: entity.id,
       tenantId: tenantA,
       distributorId,
       schemeId,
@@ -250,7 +251,9 @@ describe('Claims Module & E2E Integration Tests', () => {
         id: claimId,
         distributorId,
         schemeId,
-        amount: 8500,
+        name: 'E2E Test Claim',
+        claimCode: 'CLM-E2E-123',
+        claimAmountCents: 8500,
       },
     });
 
