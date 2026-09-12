@@ -9,18 +9,21 @@ export interface WrappedDek {
 }
 
 export class EnvelopeEncryptionService {
-  private static getPlatformKek(): Buffer {
-    const secret = process.env.PLATFORM_KEK_SECRET || process.env.LEGACY_PLATFORM_KEK_SECRET;
-    if (!secret) {
-      throw new Error(
-        'PLATFORM_KEK_SECRET or LEGACY_PLATFORM_KEK_SECRET environment variable is missing. Refusing to use insecure hardcoded secret.',
-      );
-    }
-    return crypto.scryptSync(secret, 'platform-kek-salt', 32);
-  }
-
-  private static platformKek: Buffer = EnvelopeEncryptionService.getPlatformKek();
+  private static _platformKek?: Buffer;
   private static dekCache = new Map<string, Buffer>();
+
+  private static getPlatformKek(): Buffer {
+    if (!EnvelopeEncryptionService._platformKek) {
+      const secret = process.env.PLATFORM_KEK_SECRET || process.env.LEGACY_PLATFORM_KEK_SECRET;
+      if (!secret) {
+        throw new Error(
+          'PLATFORM_KEK_SECRET or LEGACY_PLATFORM_KEK_SECRET environment variable is missing. Refusing to use insecure hardcoded secret.',
+        );
+      }
+      EnvelopeEncryptionService._platformKek = crypto.scryptSync(secret, 'platform-kek-salt', 32);
+    }
+    return EnvelopeEncryptionService._platformKek;
+  }
 
   /**
    * Generates a 256-bit Data Encryption Key (DEK) for a specific tenant,
@@ -82,7 +85,7 @@ export class EnvelopeEncryptionService {
    */
   static wrapDekWithKek(tenantId: string, dek: Buffer): WrappedDek {
     const iv = crypto.randomBytes(12);
-    const cipher = crypto.createCipheriv('aes-256-gcm', this.platformKek, iv);
+    const cipher = crypto.createCipheriv('aes-256-gcm', this.getPlatformKek(), iv);
     let encrypted = cipher.update(dek.toString('hex'), 'utf8', 'hex');
     encrypted += cipher.final('hex');
     const authTag = cipher.getAuthTag().toString('hex');
