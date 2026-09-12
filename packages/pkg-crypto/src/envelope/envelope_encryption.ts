@@ -9,11 +9,17 @@ export interface WrappedDek {
 }
 
 export class EnvelopeEncryptionService {
-  private static platformKek: Buffer = crypto.scryptSync(
-    process.env.PLATFORM_KEK_SECRET || 'dms-master-platform-kek-key-32b',
-    'platform-kek-salt',
-    32
-  );
+  private static getPlatformKek(): Buffer {
+    const secret = process.env.PLATFORM_KEK_SECRET || process.env.LEGACY_PLATFORM_KEK_SECRET;
+    if (!secret) {
+      throw new Error(
+        'PLATFORM_KEK_SECRET or LEGACY_PLATFORM_KEK_SECRET environment variable is missing. Refusing to use insecure hardcoded secret.',
+      );
+    }
+    return crypto.scryptSync(secret, 'platform-kek-salt', 32);
+  }
+
+  private static platformKek: Buffer = EnvelopeEncryptionService.getPlatformKek();
   private static dekCache = new Map<string, Buffer>();
 
   /**
@@ -37,7 +43,7 @@ export class EnvelopeEncryptionService {
     const dek = this.getOrCreateTenantDek(tenantId);
     const iv = crypto.randomBytes(12); // 96-bit IV for AES-GCM
     const cipher = crypto.createCipheriv('aes-256-gcm', dek, iv);
-    
+
     let encrypted = cipher.update(plainText, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     const authTag = cipher.getAuthTag().toString('hex');
@@ -57,7 +63,9 @@ export class EnvelopeEncryptionService {
     const [, , cipherTenantId, ivHex, authTagHex, encryptedHex] = parts;
 
     if (cipherTenantId !== tenantId) {
-      throw new Error(`Tenant mismatch during envelope decryption: expected ${tenantId}, found ${cipherTenantId}`);
+      throw new Error(
+        `Tenant mismatch during envelope decryption: expected ${tenantId}, found ${cipherTenantId}`,
+      );
     }
 
     const dek = this.getOrCreateTenantDek(tenantId);
