@@ -1,0 +1,1247 @@
+
+> @dms/finance-service@1.0.0 test /app/services/finance-service
+> node --test "dist/**/*.test.js"
+
+TAP version 13
+# {"timestamp":"2026-09-12T18:14:27.698Z","level":"INFO","message":"AgeingReport Audit log recorded: [AGEING_REPORT_CREATED] for AgeingReport:2db4c16d-e4e6-4092-ab52-dcfcee54bd73 by user-admin-ageing-1","service":"AgeingReportAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.700Z","level":"INFO","message":"AgeingReport Audit log recorded: [AGEING_REPORT_CREATED] for AgeingReport:38f2f070-61f5-4b21-91bb-c87d4a2913f1 by user-admin-ageing-1","service":"AgeingReportAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.703Z","level":"INFO","message":"AgeingReport Audit log recorded: [AGEING_REPORT_UPDATED_VERIFIED] for AgeingReport:38f2f070-61f5-4b21-91bb-c87d4a2913f1 by user-admin-ageing-1","service":"AgeingReportAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.705Z","level":"INFO","message":"AgeingReport Audit log recorded: [AGEING_REPORT_CREATED] for AgeingReport:57d8ff22-bf5b-4a0b-975c-48fc93b90e16 by user-admin-ageing-1","service":"AgeingReportAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.705Z","level":"INFO","message":"AgeingReport Audit log recorded: [AGEING_REPORT_CREATED] for AgeingReport:e56e6755-cbc9-40f2-b397-b5e215015d83 by user-tenant-b-ageing","service":"AgeingReportAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.706Z","level":"INFO","message":"AgeingReport Audit log recorded: [AGEING_REPORT_CREATED] for AgeingReport:f8cf765c-5c89-463b-b556-53ba7b673ba8 by admin-1","service":"AgeingReportAuditService"}
+# Subtest: AgeingReport Full Vertical Slice QA & Security Suite (Tasks 1356-1360)
+    # Subtest: Task 1357: AgeingReport Domain Entity & Invariants
+        # Subtest: enforces invariants: tenantId, distributorId, asOfDate, bucket totals
+        ok 1 - enforces invariants: tenantId, distributorId, asOfDate, bucket totals
+          ---
+          duration_ms: 4.158437
+          type: 'test'
+          ...
+        # Subtest: executes valid state transitions and rejects illegal ones
+        ok 2 - executes valid state transitions and rejects illegal ones
+          ---
+          duration_ms: 0.980768
+          type: 'test'
+          ...
+        1..2
+    ok 1 - Task 1357: AgeingReport Domain Entity & Invariants
+      ---
+      duration_ms: 6.194226
+      type: 'suite'
+      ...
+    # Subtest: AgeingReport Domain Validation Rules
+        # Subtest: validates Create input and rejects unknown fields
+        ok 1 - validates Create input and rejects unknown fields
+          ---
+          duration_ms: 0.690476
+          type: 'test'
+          ...
+        # Subtest: validates Update input and version field
+        ok 2 - validates Update input and version field
+          ---
+          duration_ms: 0.808373
+          type: 'test'
+          ...
+        1..2
+    ok 2 - AgeingReport Domain Validation Rules
+      ---
+      duration_ms: 1.888429
+      type: 'suite'
+      ...
+    # Subtest: Tasks 1359-1360: AgeingReport Use Cases & Audit Trail
+        # Subtest: executes CreateAgeingReportUseCase with idempotency & audit trail
+        ok 1 - executes CreateAgeingReportUseCase with idempotency & audit trail
+          ---
+          duration_ms: 2.263922
+          type: 'test'
+          ...
+        # Subtest: executes Get, Update and List use cases with optimistic locking
+        ok 2 - executes Get, Update and List use cases with optimistic locking
+          ---
+          duration_ms: 4.241724
+          type: 'test'
+          ...
+        # Subtest: rejects unauthorized principals
+        ok 3 - rejects unauthorized principals
+          ---
+          duration_ms: 0.53355
+          type: 'test'
+          ...
+        1..3
+    ok 3 - Tasks 1359-1360: AgeingReport Use Cases & Audit Trail
+      ---
+      duration_ms: 7.406132
+      type: 'suite'
+      ...
+    # Subtest: Task 1358: Repository RLS Isolation Proof
+        # Subtest: enforces tenant RLS isolation between Tenant A and Tenant B
+        ok 1 - enforces tenant RLS isolation between Tenant A and Tenant B
+          ---
+          duration_ms: 0.972878
+          type: 'test'
+          ...
+        1..1
+    ok 4 - Task 1358: Repository RLS Isolation Proof
+      ---
+      duration_ms: 1.118451
+      type: 'suite'
+      ...
+    # Subtest: AgeingReport Controller REST API & Security
+        # Subtest: handles controller CRUD endpoints with correct HTTP status codes
+        ok 1 - handles controller CRUD endpoints with correct HTTP status codes
+          ---
+          duration_ms: 1.008631
+          type: 'test'
+          ...
+        # Subtest: rejects unsupported content-type
+        ok 2 - rejects unsupported content-type
+          ---
+          duration_ms: 0.582494
+          type: 'test'
+          ...
+        1..2
+    ok 5 - AgeingReport Controller REST API & Security
+      ---
+      duration_ms: 1.740054
+      type: 'suite'
+      ...
+    1..5
+ok 1 - AgeingReport Full Vertical Slice QA & Security Suite (Tasks 1356-1360)
+  ---
+  duration_ms: 19.453921
+  type: 'suite'
+  ...
+# {"timestamp":"2026-09-12T18:14:27.699Z","level":"INFO","message":"Collection Audit log recorded: [COLLECTION_CREATED] for Collection:266c3191-9702-49b2-b028-bd46951068f4 by user-admin-col-1","service":"CollectionAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.701Z","level":"INFO","message":"Collection Audit log recorded: [COLLECTION_CREATED] for Collection:31c7b363-135b-42a8-b53d-7b717183129e by user-admin-col-1","service":"CollectionAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.702Z","level":"INFO","message":"Collection Audit log recorded: [COLLECTION_UPDATED_PENDING] for Collection:31c7b363-135b-42a8-b53d-7b717183129e by user-admin-col-1","service":"CollectionAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.703Z","level":"INFO","message":"Collection Audit log recorded: [COLLECTION_CREATED] for Collection:788f53bc-e535-4633-90fe-b3dfd3f82cd9 by user-admin-col-1","service":"CollectionAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.704Z","level":"INFO","message":"Collection Audit log recorded: [COLLECTION_CREATED] for Collection:218193e2-7ade-4bfd-b72d-1e946b7f3e9b by user-tenant-b-col","service":"CollectionAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.705Z","level":"INFO","message":"Collection Audit log recorded: [COLLECTION_CREATED] for Collection:22d71c13-27c3-41d6-aa8d-7a95503a550d by user-admin-col-1","service":"CollectionAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.705Z","level":"INFO","message":"Collection Audit log recorded: [COLLECTION_UPDATED_PENDING] for Collection:22d71c13-27c3-41d6-aa8d-7a95503a550d by user-admin-col-1","service":"CollectionAuditService"}
+# Subtest: Collection Full Vertical Slice QA & Security Suite (Tasks 1313-1320)
+    # Subtest: Tasks 1314 & 1319: Collection Domain Entity & Invariants
+        # Subtest: enforces invariants: tenantId, distributorId, collectionReference, amountCents > 0
+        ok 1 - enforces invariants: tenantId, distributorId, collectionReference, amountCents > 0
+          ---
+          duration_ms: 2.501145
+          type: 'test'
+          ...
+        # Subtest: executes valid state machine transitions (DRAFT -> PENDING -> COLLECTED) and rejects illegal ones
+        ok 2 - executes valid state machine transitions (DRAFT -> PENDING -> COLLECTED) and rejects illegal ones
+          ---
+          duration_ms: 0.719105
+          type: 'test'
+          ...
+        1..2
+    ok 1 - Tasks 1314 & 1319: Collection Domain Entity & Invariants
+      ---
+      duration_ms: 4.225912
+      type: 'suite'
+      ...
+    # Subtest: Task 1320: Collection Domain Validation Rules
+        # Subtest: validates Create collection input and rejects unknown fields
+        ok 1 - validates Create collection input and rejects unknown fields
+          ---
+          duration_ms: 0.834469
+          type: 'test'
+          ...
+        # Subtest: validates Update collection input and version field
+        ok 2 - validates Update collection input and version field
+          ---
+          duration_ms: 0.777925
+          type: 'test'
+          ...
+        1..2
+    ok 2 - Task 1320: Collection Domain Validation Rules
+      ---
+      duration_ms: 1.928157
+      type: 'suite'
+      ...
+    # Subtest: Tasks 1316-1319: Collection Use Cases & Audit Trail
+        # Subtest: executes CreateCollectionUseCase with idempotency, audit trail & uniqueness checks
+        ok 1 - executes CreateCollectionUseCase with idempotency, audit trail & uniqueness checks
+          ---
+          duration_ms: 3.03625
+          type: 'test'
+          ...
+        # Subtest: executes Get, Update and List use cases with optimistic locking
+        ok 2 - executes Get, Update and List use cases with optimistic locking
+          ---
+          duration_ms: 1.680711
+          type: 'test'
+          ...
+        # Subtest: rejects unauthorized principals
+        ok 3 - rejects unauthorized principals
+          ---
+          duration_ms: 0.478785
+          type: 'test'
+          ...
+        1..3
+    ok 3 - Tasks 1316-1319: Collection Use Cases & Audit Trail
+      ---
+      duration_ms: 5.544273
+      type: 'suite'
+      ...
+    # Subtest: Task 1315: Repository RLS Isolation Proof
+        # Subtest: enforces tenant RLS isolation between Tenant A and Tenant B
+        ok 1 - enforces tenant RLS isolation between Tenant A and Tenant B
+          ---
+          duration_ms: 0.869535
+          type: 'test'
+          ...
+        1..1
+    ok 4 - Task 1315: Repository RLS Isolation Proof
+      ---
+      duration_ms: 1.010671
+      type: 'suite'
+      ...
+    # Subtest: Collection Controller REST API & Security
+        # Subtest: handles controller CRUD endpoints with correct HTTP status codes
+        ok 1 - handles controller CRUD endpoints with correct HTTP status codes
+          ---
+          duration_ms: 1.59025
+          type: 'test'
+          ...
+        # Subtest: rejects unsupported content-type and handles SQL injection safety
+        ok 2 - rejects unsupported content-type and handles SQL injection safety
+          ---
+          duration_ms: 0.346876
+          type: 'test'
+          ...
+        1..2
+    ok 5 - Collection Controller REST API & Security
+      ---
+      duration_ms: 2.085098
+      type: 'suite'
+      ...
+    1..5
+ok 2 - Collection Full Vertical Slice QA & Security Suite (Tasks 1313-1320)
+  ---
+  duration_ms: 17.530214
+  type: 'suite'
+  ...
+# {"timestamp":"2026-09-12T18:14:27.700Z","level":"INFO","message":"CreditNote Audit log recorded: [CREDIT_NOTE_CREATED] for CreditNote:2b6580fc-8e15-487a-bbb6-53926d3e132f by user-admin-cn-1","service":"CreditNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.702Z","level":"INFO","message":"CreditNote Audit log recorded: [CREDIT_NOTE_CREATED] for CreditNote:d8e1cbe1-b27b-4c79-8853-e9a7e1e6b69c by user-admin-cn-1","service":"CreditNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.703Z","level":"INFO","message":"CreditNote Audit log recorded: [CREDIT_NOTE_UPDATED_APPROVED] for CreditNote:d8e1cbe1-b27b-4c79-8853-e9a7e1e6b69c by user-admin-cn-1","service":"CreditNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.705Z","level":"INFO","message":"CreditNote Audit log recorded: [CREDIT_NOTE_CREATED] for CreditNote:7a304b04-5ca8-4565-a704-5f4144a882d8 by user-admin-cn-1","service":"CreditNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.705Z","level":"INFO","message":"CreditNote Audit log recorded: [CREDIT_NOTE_UPDATED_APPROVED] for CreditNote:7a304b04-5ca8-4565-a704-5f4144a882d8 by user-admin-cn-1","service":"CreditNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.706Z","level":"INFO","message":"CreditNote Audit log recorded: [CREDIT_NOTE_CREATED] for CreditNote:73201195-8dd4-483e-9607-a9ca312e6691 by user-admin-cn-1","service":"CreditNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.706Z","level":"INFO","message":"CreditNote Audit log recorded: [CREDIT_NOTE_CREATED] for CreditNote:ddc95de2-d216-4438-9ec0-e119080be57c by user-tenant-b-cn","service":"CreditNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.707Z","level":"INFO","message":"CreditNote Audit log recorded: [CREDIT_NOTE_CREATED] for CreditNote:a218e58c-a5eb-4331-9493-fdc79ae0e95b by user-admin-cn-1","service":"CreditNoteAuditService"}
+# Subtest: CreditNote Full QA & Security Suite (Tasks 1261-1267)
+    # Subtest: Task 1261: DTO Mapping Boundary & Mass Assignment Protection
+        # Subtest: rejects extra unknown fields to prevent mass assignment
+        ok 1 - rejects extra unknown fields to prevent mass assignment
+          ---
+          duration_ms: 3.290831
+          type: 'test'
+          ...
+        1..1
+    ok 1 - Task 1261: DTO Mapping Boundary & Mass Assignment Protection
+      ---
+      duration_ms: 4.3174
+      type: 'suite'
+      ...
+    # Subtest: Task 1262: RBAC Granular Permissions & Default-Deny Policy
+        # Subtest: rejects unprivileged access (default-deny policy)
+        ok 1 - rejects unprivileged access (default-deny policy)
+          ---
+          duration_ms: 0.84603
+          type: 'test'
+          ...
+        # Subtest: denies privilege-escalation attempt when user lacks approval permission
+        ok 2 - denies privilege-escalation attempt when user lacks approval permission
+          ---
+          duration_ms: 2.303278
+          type: 'test'
+          ...
+        1..2
+    ok 2 - Task 1262: RBAC Granular Permissions & Default-Deny Policy
+      ---
+      duration_ms: 3.463914
+      type: 'suite'
+      ...
+    # Subtest: Task 1263: Audit Logging Verification
+        # Subtest: records tamper-evident audit records on credit note create & update
+        ok 1 - records tamper-evident audit records on credit note create & update
+          ---
+          duration_ms: 1.414334
+          type: 'test'
+          ...
+        1..1
+    ok 3 - Task 1263: Audit Logging Verification
+      ---
+      duration_ms: 1.651575
+      type: 'suite'
+      ...
+    # Subtest: Task 1264: Domain Aggregate Invariants & State Machine
+        # Subtest: enforces constructor invariants and state machine rules
+        ok 1 - enforces constructor invariants and state machine rules
+          ---
+          duration_ms: 0.852641
+          type: 'test'
+          ...
+        1..1
+    ok 4 - Task 1264: Domain Aggregate Invariants & State Machine
+      ---
+      duration_ms: 1.101888
+      type: 'suite'
+      ...
+    # Subtest: Task 1265: Use Cases Execution & Optimistic Concurrency
+        # Subtest: executes CRUD flow and rejects optimistic locking conflict
+        ok 1 - executes CRUD flow and rejects optimistic locking conflict
+          ---
+          duration_ms: 1.001015
+          type: 'test'
+          ...
+        1..1
+    ok 5 - Task 1265: Use Cases Execution & Optimistic Concurrency
+      ---
+      duration_ms: 1.135127
+      type: 'suite'
+      ...
+    # Subtest: Task 1266: Repository Integration & RLS Isolation Proof
+        # Subtest: proves Tenant A cannot read or mutate Tenant B credit note
+        ok 1 - proves Tenant A cannot read or mutate Tenant B credit note
+          ---
+          duration_ms: 1.013858
+          type: 'test'
+          ...
+        1..1
+    ok 6 - Task 1266: Repository Integration & RLS Isolation Proof
+      ---
+      duration_ms: 1.212394
+      type: 'suite'
+      ...
+    # Subtest: Task 1267: API Gateway Security Suite
+        # Subtest: handles controller CRUD endpoints and rejects invalid content-type
+        ok 1 - handles controller CRUD endpoints and rejects invalid content-type
+          ---
+          duration_ms: 0.669349
+          type: 'test'
+          ...
+        1..1
+    ok 7 - Task 1267: API Gateway Security Suite
+      ---
+      duration_ms: 0.776895
+      type: 'suite'
+      ...
+    1..7
+ok 3 - CreditNote Full QA & Security Suite (Tasks 1261-1267)
+  ---
+  duration_ms: 14.76719
+  type: 'suite'
+  ...
+# {"timestamp":"2026-09-12T18:14:27.811Z","level":"INFO","message":"DebitNote Audit log recorded: [DEBIT_NOTE_CREATED] for DebitNote:9fbb5120-3f28-4357-9770-8f17c2c32e7a by user-admin-dn-1","service":"DebitNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.813Z","level":"INFO","message":"DebitNote Audit log recorded: [DEBIT_NOTE_CREATED] for DebitNote:110e484f-e139-4a4e-ad20-ae004a2d07c7 by user-admin-dn-1","service":"DebitNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.814Z","level":"INFO","message":"DebitNote Audit log recorded: [DEBIT_NOTE_UPDATED_APPROVED] for DebitNote:110e484f-e139-4a4e-ad20-ae004a2d07c7 by user-admin-dn-1","service":"DebitNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.816Z","level":"INFO","message":"DebitNote Audit log recorded: [DEBIT_NOTE_CREATED] for DebitNote:76cb97b3-02aa-43e1-b73f-d5eb3a47d6cd by user-admin-dn-1","service":"DebitNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.817Z","level":"INFO","message":"DebitNote Audit log recorded: [DEBIT_NOTE_UPDATED_APPROVED] for DebitNote:76cb97b3-02aa-43e1-b73f-d5eb3a47d6cd by user-admin-dn-1","service":"DebitNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.818Z","level":"INFO","message":"DebitNote Audit log recorded: [DEBIT_NOTE_CREATED] for DebitNote:21625245-e773-466b-92cd-a93fbf1d156c by user-admin-dn-1","service":"DebitNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.818Z","level":"INFO","message":"DebitNote Audit log recorded: [DEBIT_NOTE_CREATED] for DebitNote:c77bfef6-3a46-499e-b05c-dc7110e4cdbc by user-tenant-b-dn","service":"DebitNoteAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.819Z","level":"INFO","message":"DebitNote Audit log recorded: [DEBIT_NOTE_CREATED] for DebitNote:c10e56ae-7e34-488f-914b-e5cd36b69118 by user-admin-dn-1","service":"DebitNoteAuditService"}
+# Subtest: DebitNote Full QA & Security Suite (Tasks 1281-1288)
+    # Subtest: Task 1282: DTO Mapping Boundary & Mass Assignment Protection
+        # Subtest: rejects extra unknown fields to prevent mass assignment
+        ok 1 - rejects extra unknown fields to prevent mass assignment
+          ---
+          duration_ms: 3.616284
+          type: 'test'
+          ...
+        1..1
+    ok 1 - Task 1282: DTO Mapping Boundary & Mass Assignment Protection
+      ---
+      duration_ms: 4.694675
+      type: 'suite'
+      ...
+    # Subtest: Task 1283: RBAC Granular Permissions & Default-Deny Policy
+        # Subtest: rejects unprivileged access (default-deny policy)
+        ok 1 - rejects unprivileged access (default-deny policy)
+          ---
+          duration_ms: 0.845761
+          type: 'test'
+          ...
+        # Subtest: denies privilege-escalation attempt when user lacks approval permission
+        ok 2 - denies privilege-escalation attempt when user lacks approval permission
+          ---
+          duration_ms: 2.226393
+          type: 'test'
+          ...
+        1..2
+    ok 2 - Task 1283: RBAC Granular Permissions & Default-Deny Policy
+      ---
+      duration_ms: 3.447251
+      type: 'suite'
+      ...
+    # Subtest: Task 1284: Audit Logging Verification
+        # Subtest: records tamper-evident audit records on debit note create & update
+        ok 1 - records tamper-evident audit records on debit note create & update
+          ---
+          duration_ms: 1.412467
+          type: 'test'
+          ...
+        1..1
+    ok 3 - Task 1284: Audit Logging Verification
+      ---
+      duration_ms: 1.675798
+      type: 'suite'
+      ...
+    # Subtest: Task 1285: Domain Aggregate Invariants & State Machine
+        # Subtest: enforces constructor invariants and state machine rules
+        ok 1 - enforces constructor invariants and state machine rules
+          ---
+          duration_ms: 0.896701
+          type: 'test'
+          ...
+        1..1
+    ok 4 - Task 1285: Domain Aggregate Invariants & State Machine
+      ---
+      duration_ms: 1.28999
+      type: 'suite'
+      ...
+    # Subtest: Task 1286: Use Cases Execution & Optimistic Concurrency
+        # Subtest: executes CRUD flow and rejects optimistic locking conflict
+        ok 1 - executes CRUD flow and rejects optimistic locking conflict
+          ---
+          duration_ms: 1.127354
+          type: 'test'
+          ...
+        1..1
+    ok 5 - Task 1286: Use Cases Execution & Optimistic Concurrency
+      ---
+      duration_ms: 1.26447
+      type: 'suite'
+      ...
+    # Subtest: Task 1287: Repository Integration & RLS Isolation Proof
+        # Subtest: proves Tenant A cannot read or mutate Tenant B debit note
+        ok 1 - proves Tenant A cannot read or mutate Tenant B debit note
+          ---
+          duration_ms: 0.999739
+          type: 'test'
+          ...
+        1..1
+    ok 6 - Task 1287: Repository Integration & RLS Isolation Proof
+      ---
+      duration_ms: 1.143547
+      type: 'suite'
+      ...
+    # Subtest: Task 1288: API Gateway Security Suite
+        # Subtest: handles controller CRUD endpoints and rejects invalid content-type
+        ok 1 - handles controller CRUD endpoints and rejects invalid content-type
+          ---
+          duration_ms: 0.773219
+          type: 'test'
+          ...
+        1..1
+    ok 7 - Task 1288: API Gateway Security Suite
+      ---
+      duration_ms: 0.891603
+      type: 'suite'
+      ...
+    1..7
+ok 4 - DebitNote Full QA & Security Suite (Tasks 1281-1288)
+  ---
+  duration_ms: 15.61423
+  type: 'suite'
+  ...
+# {"timestamp":"2026-09-12T18:14:27.811Z","level":"INFO","message":"Processing event [finance.einvoice.generated] id=evt-einv-100 for tenant=00000000-0000-0000-0000-000000000001","service":"EInvoiceEventConsumer"}
+# {"timestamp":"2026-09-12T18:14:27.812Z","level":"WARN","message":"Duplicate event ID 'evt-einv-100' skipped for tenant '00000000-0000-0000-0000-000000000001'","service":"EInvoiceEventConsumer"}
+# {"timestamp":"2026-09-12T18:14:27.812Z","level":"ERROR","message":"POISON_EVENT: Invalid event schema or missing envelope headers","service":"EInvoiceEventConsumer","event":{"id":"","name":"invalid","tenantId":"","occurredAt":""}}
+# {"timestamp":"2026-09-12T18:14:27.820Z","level":"INFO","message":"eInvoice Audit log recorded: [EINVOICE_CREATED] for eInvoice:21df2139-df74-4f4d-bd02-b3276eb15457 by user-admin-einv-1","service":"EInvoiceAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.820Z","level":"INFO","message":"eInvoice Audit log recorded: [EINVOICE_CREATED] for eInvoice:e9f72bad-2cae-475d-b095-53f08302f5e4 by user-admin-einv-1","service":"EInvoiceAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.821Z","level":"INFO","message":"eInvoice Audit log recorded: [EINVOICE_UPDATED_GENERATED] for eInvoice:e9f72bad-2cae-475d-b095-53f08302f5e4 by user-admin-einv-1","service":"EInvoiceAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.823Z","level":"INFO","message":"eInvoice Audit log recorded: [EINVOICE_CREATED] for eInvoice:a5bf30e5-b1c0-45db-88f9-49d9fd6f26b2 by user-admin-einv-1","service":"EInvoiceAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.823Z","level":"INFO","message":"eInvoice Audit log recorded: [EINVOICE_CREATED] for eInvoice:7cea918a-b45c-4a62-8497-8cfcc4e8b1cc by user-tenant-b-einv","service":"EInvoiceAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.825Z","level":"INFO","message":"eInvoice Audit log recorded: [EINVOICE_CREATED] for eInvoice:15348c42-dbe4-4ab6-a767-8076de3a0858 by admin-1","service":"EInvoiceAuditService"}
+# Subtest: eInvoice Full Vertical Slice QA & Security Suite (Tasks 1377-1387)
+    # Subtest: Task 1387: eInvoice Event Consumer & DLQ Handling
+        # Subtest: deduplicates events by ID and routes poison messages to DLQ
+        ok 1 - deduplicates events by ID and routes poison messages to DLQ
+          ---
+          duration_ms: 5.279354
+          type: 'test'
+          ...
+        1..1
+    ok 1 - Task 1387: eInvoice Event Consumer & DLQ Handling
+      ---
+      duration_ms: 6.185004
+      type: 'suite'
+      ...
+    # Subtest: Task 1378: eInvoice Domain Entity & Invariants
+        # Subtest: enforces constructor invariants: tenantId, invoiceId, irn, amounts >= 0
+        ok 1 - enforces constructor invariants: tenantId, invoiceId, irn, amounts >= 0
+          ---
+          duration_ms: 1.579777
+          type: 'test'
+          ...
+        # Subtest: executes valid state transitions and rejects illegal ones
+        ok 2 - executes valid state transitions and rejects illegal ones
+          ---
+          duration_ms: 0.727436
+          type: 'test'
+          ...
+        1..2
+    ok 2 - Task 1378: eInvoice Domain Entity & Invariants
+      ---
+      duration_ms: 2.588339
+      type: 'suite'
+      ...
+    # Subtest: eInvoice Domain Validation Rules
+        # Subtest: validates Create input and rejects unknown fields
+        ok 1 - validates Create input and rejects unknown fields
+          ---
+          duration_ms: 0.748822
+          type: 'test'
+          ...
+        # Subtest: validates Update input and version field
+        ok 2 - validates Update input and version field
+          ---
+          duration_ms: 0.65235
+          type: 'test'
+          ...
+        1..2
+    ok 3 - eInvoice Domain Validation Rules
+      ---
+      duration_ms: 1.653257
+      type: 'suite'
+      ...
+    # Subtest: Task 1380: eInvoice Use Cases & Audit Trail
+        # Subtest: executes CreateEInvoiceUseCase with idempotency & audit trail
+        ok 1 - executes CreateEInvoiceUseCase with idempotency & audit trail
+          ---
+          duration_ms: 1.092745
+          type: 'test'
+          ...
+        # Subtest: executes Get, Update and List use cases with optimistic locking
+        ok 2 - executes Get, Update and List use cases with optimistic locking
+          ---
+          duration_ms: 1.698179
+          type: 'test'
+          ...
+        # Subtest: rejects unauthorized principals
+        ok 3 - rejects unauthorized principals
+          ---
+          duration_ms: 0.366539
+          type: 'test'
+          ...
+        1..3
+    ok 4 - Task 1380: eInvoice Use Cases & Audit Trail
+      ---
+      duration_ms: 3.551736
+      type: 'suite'
+      ...
+    # Subtest: Task 1379: Repository RLS Isolation Proof
+        # Subtest: enforces tenant RLS isolation between Tenant A and Tenant B
+        ok 1 - enforces tenant RLS isolation between Tenant A and Tenant B
+          ---
+          duration_ms: 0.973015
+          type: 'test'
+          ...
+        1..1
+    ok 5 - Task 1379: Repository RLS Isolation Proof
+      ---
+      duration_ms: 1.525438
+      type: 'suite'
+      ...
+    # Subtest: eInvoice Controller REST API & Security
+        # Subtest: handles controller CRUD endpoints with correct HTTP status codes
+        ok 1 - handles controller CRUD endpoints with correct HTTP status codes
+          ---
+          duration_ms: 1.167178
+          type: 'test'
+          ...
+        # Subtest: rejects unsupported content-type
+        ok 2 - rejects unsupported content-type
+          ---
+          duration_ms: 1.262526
+          type: 'test'
+          ...
+        1..2
+    ok 6 - eInvoice Controller REST API & Security
+      ---
+      duration_ms: 2.627616
+      type: 'suite'
+      ...
+    1..6
+ok 5 - eInvoice Full Vertical Slice QA & Security Suite (Tasks 1377-1387)
+  ---
+  duration_ms: 19.595972
+  type: 'suite'
+  ...
+# {"timestamp":"2026-09-12T18:14:27.831Z","level":"INFO","message":"Processing event [finance.ewaybill.generated] id=evt-eway-100 for tenant=00000000-0000-0000-0000-000000000001","service":"EWayBillEventConsumer"}
+# {"timestamp":"2026-09-12T18:14:27.832Z","level":"WARN","message":"Duplicate event ID 'evt-eway-100' skipped for tenant '00000000-0000-0000-0000-000000000001'","service":"EWayBillEventConsumer"}
+# {"timestamp":"2026-09-12T18:14:27.832Z","level":"ERROR","message":"POISON_EVENT: Invalid event schema or missing envelope headers","service":"EWayBillEventConsumer","event":{"id":"","name":"invalid","tenantId":"","occurredAt":""}}
+# {"timestamp":"2026-09-12T18:14:27.839Z","level":"INFO","message":"eWayBill Audit log recorded: [EWAYBILL_CREATED] for eWayBill:8602ffe9-2921-4a89-b25f-e6cbe6910482 by user-admin-eway-1","service":"EWayBillAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.840Z","level":"INFO","message":"eWayBill Audit log recorded: [EWAYBILL_CREATED] for eWayBill:e3d1e79a-4bdf-46dc-ba5f-56a70f5baaeb by user-admin-eway-1","service":"EWayBillAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.841Z","level":"INFO","message":"eWayBill Audit log recorded: [EWAYBILL_UPDATED_ACTIVE] for eWayBill:e3d1e79a-4bdf-46dc-ba5f-56a70f5baaeb by user-admin-eway-1","service":"EWayBillAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.842Z","level":"INFO","message":"eWayBill Audit log recorded: [EWAYBILL_CREATED] for eWayBill:b3195a2f-e7ef-4c15-8fdb-44bea66b9e50 by user-admin-eway-1","service":"EWayBillAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.842Z","level":"INFO","message":"eWayBill Audit log recorded: [EWAYBILL_CREATED] for eWayBill:2411c95f-402d-41a2-bc59-6ed3f77a8369 by user-tenant-b-eway","service":"EWayBillAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.844Z","level":"INFO","message":"eWayBill Audit log recorded: [EWAYBILL_CREATED] for eWayBill:3c8e199f-64c8-4d89-8f85-f135369ef1f8 by admin-1","service":"EWayBillAuditService"}
+# Subtest: eWayBill Full Vertical Slice QA & Security Suite (Tasks 1399-1419)
+    # Subtest: Task 1408: eWayBill Event Consumer & DLQ Handling
+        # Subtest: deduplicates events by ID and routes poison messages to DLQ
+        ok 1 - deduplicates events by ID and routes poison messages to DLQ
+          ---
+          duration_ms: 7.285432
+          type: 'test'
+          ...
+        1..1
+    ok 1 - Task 1408: eWayBill Event Consumer & DLQ Handling
+      ---
+      duration_ms: 8.202937
+      type: 'suite'
+      ...
+    # Subtest: Task 1400: eWayBill Domain Entity & Invariants
+        # Subtest: enforces constructor invariants: tenantId, invoiceId, ewayBillNumber, distanceKm >= 0
+        ok 1 - enforces constructor invariants: tenantId, invoiceId, ewayBillNumber, distanceKm >= 0
+          ---
+          duration_ms: 1.437744
+          type: 'test'
+          ...
+        # Subtest: executes valid state transitions and rejects illegal ones
+        ok 2 - executes valid state transitions and rejects illegal ones
+          ---
+          duration_ms: 0.686692
+          type: 'test'
+          ...
+        1..2
+    ok 2 - Task 1400: eWayBill Domain Entity & Invariants
+      ---
+      duration_ms: 2.366165
+      type: 'suite'
+      ...
+    # Subtest: eWayBill Domain Validation Rules
+        # Subtest: validates Create input and rejects unknown fields
+        ok 1 - validates Create input and rejects unknown fields
+          ---
+          duration_ms: 0.836496
+          type: 'test'
+          ...
+        # Subtest: validates Update input and version field
+        ok 2 - validates Update input and version field
+          ---
+          duration_ms: 0.61495
+          type: 'test'
+          ...
+        1..2
+    ok 3 - eWayBill Domain Validation Rules
+      ---
+      duration_ms: 1.704531
+      type: 'suite'
+      ...
+    # Subtest: eWayBill Use Cases & Audit Trail
+        # Subtest: executes CreateEWayBillUseCase with idempotency & audit trail
+        ok 1 - executes CreateEWayBillUseCase with idempotency & audit trail
+          ---
+          duration_ms: 1.086228
+          type: 'test'
+          ...
+        # Subtest: executes Get, Update and List use cases with optimistic locking
+        ok 2 - executes Get, Update and List use cases with optimistic locking
+          ---
+          duration_ms: 1.683445
+          type: 'test'
+          ...
+        # Subtest: rejects unauthorized principals
+        ok 3 - rejects unauthorized principals
+          ---
+          duration_ms: 0.401176
+          type: 'test'
+          ...
+        1..3
+    ok 4 - eWayBill Use Cases & Audit Trail
+      ---
+      duration_ms: 3.560252
+      type: 'suite'
+      ...
+    # Subtest: Task 1399: Repository RLS Isolation Proof
+        # Subtest: enforces tenant RLS isolation between Tenant A and Tenant B
+        ok 1 - enforces tenant RLS isolation between Tenant A and Tenant B
+          ---
+          duration_ms: 1.01445
+          type: 'test'
+          ...
+        1..1
+    ok 5 - Task 1399: Repository RLS Isolation Proof
+      ---
+      duration_ms: 1.118023
+      type: 'suite'
+      ...
+    # Subtest: eWayBill Controller REST API & Security
+        # Subtest: handles controller CRUD endpoints with correct HTTP status codes
+        ok 1 - handles controller CRUD endpoints with correct HTTP status codes
+          ---
+          duration_ms: 1.094722
+          type: 'test'
+          ...
+        # Subtest: rejects unsupported content-type
+        ok 2 - rejects unsupported content-type
+          ---
+          duration_ms: 0.795315
+          type: 'test'
+          ...
+        1..2
+    ok 6 - eWayBill Controller REST API & Security
+      ---
+      duration_ms: 2.027067
+      type: 'suite'
+      ...
+    1..6
+ok 6 - eWayBill Full Vertical Slice QA & Security Suite (Tasks 1399-1419)
+  ---
+  duration_ms: 20.3276
+  type: 'suite'
+  ...
+# {"timestamp":"2026-09-12T18:14:28.007Z","level":"INFO","message":"Executing post ledger entry","service":"PostLedgerEntryUseCase","referenceType":"ORDER","referenceId":"order-123"}
+# Subtest: Finance Service - Unit Tests
+    # Subtest: LedgerEntryAggregate - Business Logic & Invariants
+        # Subtest: Should throw error if postings are empty or less than 2
+        ok 1 - Should throw error if postings are empty or less than 2
+          ---
+          duration_ms: 1.728472
+          type: 'test'
+          ...
+        # Subtest: Should throw error if total debits do not equal total credits
+        ok 2 - Should throw error if total debits do not equal total credits
+          ---
+          duration_ms: 0.428107
+          type: 'test'
+          ...
+        # Subtest: Should validate credit limit checks
+        ok 3 - Should validate credit limit checks
+          ---
+          duration_ms: 0.878941
+          type: 'test'
+          ...
+        # Subtest: Should throw error if period is closed or date is outside period
+        ok 4 - Should throw error if period is closed or date is outside period
+          ---
+          duration_ms: 0.780004
+          type: 'test'
+          ...
+        1..4
+    ok 1 - LedgerEntryAggregate - Business Logic & Invariants
+      ---
+      duration_ms: 4.849502
+      type: 'suite'
+      ...
+    # Subtest: Use Cases - In-Memory Tests
+        # Subtest: PostLedgerEntryUseCase and ReverseLedgerEntryUseCase execution flow
+        not ok 1 - PostLedgerEntryUseCase and ReverseLedgerEntryUseCase execution flow
+          ---
+          duration_ms: 3.944488
+          type: 'test'
+          location: '/app/services/finance-service/dist/services/finance-service/src/finance.test.js:234:30'
+          failureType: 'testCodeFailure'
+          error: 'No accounting period defined for the entry date 2026-06-10T00:00:00.000Z'
+          code: 'ERR_TEST_FAILURE'
+          stack: |-
+            LedgerEntryAggregate.validate (/app/services/finance-service/dist/services/finance-service/src/domain/aggregates/ledger-entry.aggregate.js:60:19)
+            /app/services/finance-service/dist/services/finance-service/src/application/usecases/post-ledger-entry.usecase.js:70:23
+            process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+            async PostgresDatabaseClient.transaction (/app/packages/pkg-database/dist/postgres/client.js:478:32)
+            async PostLedgerEntryUseCase.execute (/app/services/finance-service/dist/services/finance-service/src/application/usecases/post-ledger-entry.usecase.js:26:24)
+            async TestContext.<anonymous> (/app/services/finance-service/dist/services/finance-service/src/finance.test.js:270:29)
+            async Test.run (node:internal/test_runner/test:1054:7)
+            async Promise.all (index 0)
+            async Suite.run (node:internal/test_runner/test:1442:7)
+            async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+          ...
+        1..1
+    not ok 2 - Use Cases - In-Memory Tests
+      ---
+      duration_ms: 4.159932
+      type: 'suite'
+      location: '/app/services/finance-service/dist/services/finance-service/src/finance.test.js:159:30'
+      failureType: 'subtestsFailed'
+      error: '1 subtest failed'
+      code: 'ERR_TEST_FAILURE'
+      ...
+    1..2
+not ok 7 - Finance Service - Unit Tests
+  ---
+  duration_ms: 9.970997
+  type: 'suite'
+  location: '/app/services/finance-service/dist/services/finance-service/src/finance.test.js:16:26'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# {"timestamp":"2026-09-12T18:14:27.934Z","level":"INFO","message":"Audit log recorded: [INVOICE_CREATED] for Invoice:b2a4e27f-8ad4-4062-b536-3c8862538895 by user-admin-1","service":"InvoiceAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.937Z","level":"INFO","message":"Audit log recorded: [INVOICE_CREATED] for Invoice:def2ffa4-115b-49d2-8cb6-6198aa962b28 by user-admin-1","service":"InvoiceAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.938Z","level":"INFO","message":"Audit log recorded: [INVOICE_UPDATED_ISSUED] for Invoice:def2ffa4-115b-49d2-8cb6-6198aa962b28 by user-admin-1","service":"InvoiceAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.941Z","level":"INFO","message":"Audit log recorded: [INVOICE_CREATED] for Invoice:1884e95e-3442-4a06-9c25-db17d4c3495c by user-admin-1","service":"InvoiceAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.941Z","level":"INFO","message":"Audit log recorded: [INVOICE_UPDATED_ISSUED] for Invoice:1884e95e-3442-4a06-9c25-db17d4c3495c by user-admin-1","service":"InvoiceAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.942Z","level":"INFO","message":"Audit log recorded: [INVOICE_CREATED] for Invoice:baebdcb0-4dc0-43c3-af83-e89e1dc35078 by user-admin-1","service":"InvoiceAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.943Z","level":"INFO","message":"Audit log recorded: [INVOICE_CREATED] for Invoice:795b60b6-df09-4159-b543-392a6af39a2c by user-tenant-b","service":"InvoiceAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.944Z","level":"INFO","message":"Audit log recorded: [INVOICE_CREATED] for Invoice:55ae750e-1add-48b7-ab9e-f0ba82fbe838 by user-admin-1","service":"InvoiceAuditService"}
+# Subtest: Invoice Full QA & Security Suite (Tasks 1241-1246)
+    # Subtest: Task 1241: RBAC Granular Permissions & Default-Deny Policy
+        # Subtest: rejects unprivileged access (default-deny policy)
+        ok 1 - rejects unprivileged access (default-deny policy)
+          ---
+          duration_ms: 2.103096
+          type: 'test'
+          ...
+        # Subtest: denies privilege-escalation attempt when user lacks approval permission
+        ok 2 - denies privilege-escalation attempt when user lacks approval permission
+          ---
+          duration_ms: 2.919044
+          type: 'test'
+          ...
+        1..2
+    ok 1 - Task 1241: RBAC Granular Permissions & Default-Deny Policy
+      ---
+      duration_ms: 6.092612
+      type: 'suite'
+      ...
+    # Subtest: Task 1242: Audit Logging Verification
+        # Subtest: records tamper-evident audit records on invoice create & update
+        ok 1 - records tamper-evident audit records on invoice create & update
+          ---
+          duration_ms: 1.949031
+          type: 'test'
+          ...
+        1..1
+    ok 2 - Task 1242: Audit Logging Verification
+      ---
+      duration_ms: 2.125443
+      type: 'suite'
+      ...
+    # Subtest: Task 1243: Domain Invariants & State Machine Transitions
+        # Subtest: enforces required fields and non-negative monetary amounts
+        ok 1 - enforces required fields and non-negative monetary amounts
+          ---
+          duration_ms: 0.734078
+          type: 'test'
+          ...
+        # Subtest: calculates item totals and enforces valid state transitions
+        ok 2 - calculates item totals and enforces valid state transitions
+          ---
+          duration_ms: 0.972948
+          type: 'test'
+          ...
+        1..2
+    ok 3 - Task 1243: Domain Invariants & State Machine Transitions
+      ---
+      duration_ms: 1.954984
+      type: 'suite'
+      ...
+    # Subtest: Task 1244: Use Cases Execution & Optimistic Concurrency
+        # Subtest: executes CRUD flow and rejects optimistic locking conflict
+        ok 1 - executes CRUD flow and rejects optimistic locking conflict
+          ---
+          duration_ms: 1.199812
+          type: 'test'
+          ...
+        1..1
+    ok 4 - Task 1244: Use Cases Execution & Optimistic Concurrency
+      ---
+      duration_ms: 1.488223
+      type: 'suite'
+      ...
+    # Subtest: Task 1245: Repository Integration & RLS Isolation Proof
+        # Subtest: proves Tenant A cannot read or mutate Tenant B invoice
+        ok 1 - proves Tenant A cannot read or mutate Tenant B invoice
+          ---
+          duration_ms: 1.128924
+          type: 'test'
+          ...
+        1..1
+    ok 5 - Task 1245: Repository Integration & RLS Isolation Proof
+      ---
+      duration_ms: 1.329472
+      type: 'suite'
+      ...
+    # Subtest: Task 1246: API Gateway Security Suite
+        # Subtest: returns correct status envelopes and rejects security attack vectors
+        ok 1 - returns correct status envelopes and rejects security attack vectors
+          ---
+          duration_ms: 0.904839
+          type: 'test'
+          ...
+        1..1
+    ok 6 - Task 1246: API Gateway Security Suite
+      ---
+      duration_ms: 1.008338
+      type: 'suite'
+      ...
+    1..6
+ok 8 - Invoice Full QA & Security Suite (Tasks 1241-1246)
+  ---
+  duration_ms: 17.003778
+  type: 'suite'
+  ...
+# {"timestamp":"2026-09-12T18:14:27.949Z","level":"INFO","message":"Outstanding Audit log recorded: [OUTSTANDING_CREATED] for Outstanding:42d45631-aebd-4fca-9296-0a2eb5c79b5b by user-admin-out-1","service":"OutstandingAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.950Z","level":"INFO","message":"Outstanding Audit log recorded: [OUTSTANDING_CREATED] for Outstanding:86a2223b-e1db-4169-9f8e-af889bb41a17 by user-admin-out-1","service":"OutstandingAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.951Z","level":"INFO","message":"Outstanding Audit log recorded: [OUTSTANDING_UPDATED_PARTIAL] for Outstanding:86a2223b-e1db-4169-9f8e-af889bb41a17 by user-admin-out-1","service":"OutstandingAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.953Z","level":"INFO","message":"Outstanding Audit log recorded: [OUTSTANDING_CREATED] for Outstanding:a3a37c64-2fb9-4209-9341-e66fe9988f6d by user-admin-out-1","service":"OutstandingAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.953Z","level":"INFO","message":"Outstanding Audit log recorded: [OUTSTANDING_CREATED] for Outstanding:117a8437-7442-4904-a98e-395c4c11eb95 by user-tenant-b-out","service":"OutstandingAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.954Z","level":"INFO","message":"Outstanding Audit log recorded: [OUTSTANDING_CREATED] for Outstanding:cc2305ab-b4ea-406e-a4ae-1205d4791ebd by user-admin-out-1","service":"OutstandingAuditService"}
+# {"timestamp":"2026-09-12T18:14:27.955Z","level":"INFO","message":"Outstanding Audit log recorded: [OUTSTANDING_UPDATED_PARTIAL] for Outstanding:cc2305ab-b4ea-406e-a4ae-1205d4791ebd by user-admin-out-1","service":"OutstandingAuditService"}
+# Subtest: Outstanding Full Vertical Slice QA & Security Suite (Tasks 1335-1340)
+    # Subtest: Task 1336: Outstanding Domain Entity & State Machine
+        # Subtest: enforces invariants: tenantId, distributorId, outstandingReference, amountCents >= 0
+        ok 1 - enforces invariants: tenantId, distributorId, outstandingReference, amountCents >= 0
+          ---
+          duration_ms: 2.129665
+          type: 'test'
+          ...
+        # Subtest: executes valid state transitions (OPEN -> PARTIAL -> PAID) and rejects illegal ones
+        ok 2 - executes valid state transitions (OPEN -> PARTIAL -> PAID) and rejects illegal ones
+          ---
+          duration_ms: 2.017939
+          type: 'test'
+          ...
+        1..2
+    ok 1 - Task 1336: Outstanding Domain Entity & State Machine
+      ---
+      duration_ms: 5.150358
+      type: 'suite'
+      ...
+    # Subtest: Outstanding Domain Validation Rules
+        # Subtest: validates Create input and rejects unknown fields
+        ok 1 - validates Create input and rejects unknown fields
+          ---
+          duration_ms: 0.829366
+          type: 'test'
+          ...
+        # Subtest: validates Update input and version field
+        ok 2 - validates Update input and version field
+          ---
+          duration_ms: 0.670682
+          type: 'test'
+          ...
+        1..2
+    ok 2 - Outstanding Domain Validation Rules
+      ---
+      duration_ms: 1.812827
+      type: 'suite'
+      ...
+    # Subtest: Tasks 1338-1340: Outstanding Use Cases & Audit Trail
+        # Subtest: executes CreateOutstandingUseCase with idempotency, audit trail & uniqueness checks
+        ok 1 - executes CreateOutstandingUseCase with idempotency, audit trail & uniqueness checks
+          ---
+          duration_ms: 2.598461
+          type: 'test'
+          ...
+        # Subtest: executes Get, Update and List use cases with optimistic locking
+        ok 2 - executes Get, Update and List use cases with optimistic locking
+          ---
+          duration_ms: 1.665288
+          type: 'test'
+          ...
+        # Subtest: rejects unauthorized principals
+        ok 3 - rejects unauthorized principals
+          ---
+          duration_ms: 0.500547
+          type: 'test'
+          ...
+        1..3
+    ok 3 - Tasks 1338-1340: Outstanding Use Cases & Audit Trail
+      ---
+      duration_ms: 5.161017
+      type: 'suite'
+      ...
+    # Subtest: Task 1337: Repository RLS Isolation Proof
+        # Subtest: enforces tenant RLS isolation between Tenant A and Tenant B
+        ok 1 - enforces tenant RLS isolation between Tenant A and Tenant B
+          ---
+          duration_ms: 0.968948
+          type: 'test'
+          ...
+        1..1
+    ok 4 - Task 1337: Repository RLS Isolation Proof
+      ---
+      duration_ms: 1.095442
+      type: 'suite'
+      ...
+    # Subtest: Outstanding Controller REST API & Security
+        # Subtest: handles controller CRUD endpoints with correct HTTP status codes
+        ok 1 - handles controller CRUD endpoints with correct HTTP status codes
+          ---
+          duration_ms: 1.628948
+          type: 'test'
+          ...
+        # Subtest: rejects unsupported content-type
+        ok 2 - rejects unsupported content-type
+          ---
+          duration_ms: 0.314907
+          type: 'test'
+          ...
+        1..2
+    ok 5 - Outstanding Controller REST API & Security
+      ---
+      duration_ms: 2.087211
+      type: 'suite'
+      ...
+    1..5
+ok 9 - Outstanding Full Vertical Slice QA & Security Suite (Tasks 1335-1340)
+  ---
+  duration_ms: 16.433855
+  type: 'suite'
+  ...
+# {"timestamp":"2026-09-12T18:14:28.050Z","level":"INFO","message":"Processing event [finance.payment.completed] id=evt-pay-100 for tenant=d145055e-5f09-4dda-9ed9-7cb5f0c6e306","service":"PaymentEventConsumer"}
+# {"timestamp":"2026-09-12T18:14:28.050Z","level":"WARN","message":"Duplicate event ID 'evt-pay-100' skipped for tenant 'd145055e-5f09-4dda-9ed9-7cb5f0c6e306'","service":"PaymentEventConsumer"}
+# {"timestamp":"2026-09-12T18:14:28.051Z","level":"ERROR","message":"POISON_EVENT: Invalid event schema or missing envelope headers","service":"PaymentEventConsumer","event":{"id":"","name":"invalid"}}
+# {"timestamp":"2026-09-12T18:14:28.056Z","level":"INFO","message":"Payment Audit log recorded: [PAYMENT_CREATED] for Payment:813b2fec-1026-482e-b454-741d087837e0 by user-admin-pay-1","service":"PaymentAuditService"}
+# {"timestamp":"2026-09-12T18:14:28.057Z","level":"INFO","message":"Payment Audit log recorded: [PAYMENT_CREATED] for Payment:a6339392-93e0-43eb-a44f-a5dc513813f5 by user-admin-pay-1","service":"PaymentAuditService"}
+# {"timestamp":"2026-09-12T18:14:28.058Z","level":"INFO","message":"Payment Audit log recorded: [PAYMENT_UPDATED_PROCESSING] for Payment:a6339392-93e0-43eb-a44f-a5dc513813f5 by user-admin-pay-1","service":"PaymentAuditService"}
+# {"timestamp":"2026-09-12T18:14:28.060Z","level":"INFO","message":"Payment Audit log recorded: [PAYMENT_CREATED] for Payment:6328ccef-cd1d-415a-822e-c25eb184d81b by user-admin-pay-1","service":"PaymentAuditService"}
+# {"timestamp":"2026-09-12T18:14:28.060Z","level":"INFO","message":"Payment Audit log recorded: [PAYMENT_UPDATED_PROCESSING] for Payment:6328ccef-cd1d-415a-822e-c25eb184d81b by user-admin-pay-1","service":"PaymentAuditService"}
+# {"timestamp":"2026-09-12T18:14:28.061Z","level":"INFO","message":"Payment Audit log recorded: [PAYMENT_CREATED] for Payment:00b67226-2eb9-485d-aa32-9d938186ed15 by user-admin-pay-1","service":"PaymentAuditService"}
+# {"timestamp":"2026-09-12T18:14:28.061Z","level":"INFO","message":"Payment Audit log recorded: [PAYMENT_CREATED] for Payment:2998a6b2-fcf4-4511-8fc1-63864d690475 by user-tenant-b-pay","service":"PaymentAuditService"}
+# {"timestamp":"2026-09-12T18:14:28.063Z","level":"INFO","message":"Payment Audit log recorded: [PAYMENT_CREATED] for Payment:bf294bff-cb90-4518-b49f-5221a9281b84 by user-admin-pay-1","service":"PaymentAuditService"}
+# Subtest: Payment Full QA, Security & Consumer Suite (Tasks 1301-1310)
+    # Subtest: Task 1301: Payment Event Consumer & DLQ Handling
+        # Subtest: deduplicates events by ID and routes poison messages to DLQ
+        ok 1 - deduplicates events by ID and routes poison messages to DLQ
+          ---
+          duration_ms: 3.686631
+          type: 'test'
+          ...
+        1..1
+    ok 1 - Task 1301: Payment Event Consumer & DLQ Handling
+      ---
+      duration_ms: 4.54419
+      type: 'suite'
+      ...
+    # Subtest: Task 1304: DTO Mapping Boundary & Mass Assignment Protection
+        # Subtest: rejects extra unknown fields to prevent mass assignment
+        ok 1 - rejects extra unknown fields to prevent mass assignment
+          ---
+          duration_ms: 0.95169
+          type: 'test'
+          ...
+        1..1
+    ok 2 - Task 1304: DTO Mapping Boundary & Mass Assignment Protection
+      ---
+      duration_ms: 1.243701
+      type: 'suite'
+      ...
+    # Subtest: Task 1305: RBAC Granular Permissions & Default-Deny Policy
+        # Subtest: rejects unprivileged access (default-deny policy)
+        ok 1 - rejects unprivileged access (default-deny policy)
+          ---
+          duration_ms: 0.980192
+          type: 'test'
+          ...
+        # Subtest: denies privilege-escalation attempt when user lacks approval permission
+        ok 2 - denies privilege-escalation attempt when user lacks approval permission
+          ---
+          duration_ms: 1.467251
+          type: 'test'
+          ...
+        1..2
+    ok 3 - Task 1305: RBAC Granular Permissions & Default-Deny Policy
+      ---
+      duration_ms: 2.739722
+      type: 'suite'
+      ...
+    # Subtest: Task 1306: Audit Logging Verification
+        # Subtest: records tamper-evident audit records on payment create & update
+        ok 1 - records tamper-evident audit records on payment create & update
+          ---
+          duration_ms: 1.35797
+          type: 'test'
+          ...
+        1..1
+    ok 4 - Task 1306: Audit Logging Verification
+      ---
+      duration_ms: 1.677335
+      type: 'suite'
+      ...
+    # Subtest: Task 1307: Domain Aggregate Invariants & State Machine
+        # Subtest: enforces constructor invariants and state machine rules
+        ok 1 - enforces constructor invariants and state machine rules
+          ---
+          duration_ms: 0.675206
+          type: 'test'
+          ...
+        1..1
+    ok 5 - Task 1307: Domain Aggregate Invariants & State Machine
+      ---
+      duration_ms: 0.833252
+      type: 'suite'
+      ...
+    # Subtest: Task 1308: Use Cases Execution & Optimistic Concurrency
+        # Subtest: executes CRUD flow and rejects optimistic locking conflict
+        ok 1 - executes CRUD flow and rejects optimistic locking conflict
+          ---
+          duration_ms: 0.880443
+          type: 'test'
+          ...
+        1..1
+    ok 6 - Task 1308: Use Cases Execution & Optimistic Concurrency
+      ---
+      duration_ms: 0.980627
+      type: 'suite'
+      ...
+    # Subtest: Task 1309: Repository Integration & RLS Isolation Proof
+        # Subtest: proves Tenant A cannot read or mutate Tenant B payment
+        ok 1 - proves Tenant A cannot read or mutate Tenant B payment
+          ---
+          duration_ms: 1.407411
+          type: 'test'
+          ...
+        1..1
+    ok 7 - Task 1309: Repository Integration & RLS Isolation Proof
+      ---
+      duration_ms: 1.521568
+      type: 'suite'
+      ...
+    # Subtest: Task 1310: API Gateway Security Suite
+        # Subtest: handles controller CRUD endpoints and rejects invalid content-type
+        ok 1 - handles controller CRUD endpoints and rejects invalid content-type
+          ---
+          duration_ms: 1.000667
+          type: 'test'
+          ...
+        1..1
+    ok 8 - Task 1310: API Gateway Security Suite
+      ---
+      duration_ms: 1.101085
+      type: 'suite'
+      ...
+    1..8
+ok 10 - Payment Full QA, Security & Consumer Suite (Tasks 1301-1310)
+  ---
+  duration_ms: 15.981083
+  type: 'suite'
+  ...
+# {"timestamp":"2026-09-12T18:14:28.066Z","level":"INFO","message":"Processing event [finance.tax_filing.filed] id=evt-tax-100 for tenant=00000000-0000-0000-0000-000000000001","service":"TaxFilingEventConsumer"}
+# {"timestamp":"2026-09-12T18:14:28.067Z","level":"WARN","message":"Duplicate event ID 'evt-tax-100' skipped for tenant '00000000-0000-0000-0000-000000000001'","service":"TaxFilingEventConsumer"}
+# {"timestamp":"2026-09-12T18:14:28.067Z","level":"ERROR","message":"POISON_EVENT: Invalid event schema or missing envelope headers","service":"TaxFilingEventConsumer","event":{"id":"","name":"invalid","tenantId":"","occurredAt":""}}
+# {"timestamp":"2026-09-12T18:14:28.075Z","level":"INFO","message":"TaxFiling Audit log recorded: [TAX_FILING_CREATED] for TaxFiling:afbb75ef-7bd5-42fe-b57c-bb8287009b39 by user-admin-tax-1","service":"TaxFilingAuditService"}
+# {"timestamp":"2026-09-12T18:14:28.075Z","level":"INFO","message":"TaxFiling Audit log recorded: [TAX_FILING_CREATED] for TaxFiling:920e9993-242f-4fbf-8a95-30c5fbbedcfb by user-admin-tax-1","service":"TaxFilingAuditService"}
+# {"timestamp":"2026-09-12T18:14:28.076Z","level":"INFO","message":"TaxFiling Audit log recorded: [TAX_FILING_UPDATED_FILED] for TaxFiling:920e9993-242f-4fbf-8a95-30c5fbbedcfb by user-admin-tax-1","service":"TaxFilingAuditService"}
+# {"timestamp":"2026-09-12T18:14:28.078Z","level":"INFO","message":"TaxFiling Audit log recorded: [TAX_FILING_CREATED] for TaxFiling:870ca15f-76b0-427c-8abf-90677d0814f2 by user-admin-tax-1","service":"TaxFilingAuditService"}
+# {"timestamp":"2026-09-12T18:14:28.078Z","level":"INFO","message":"TaxFiling Audit log recorded: [TAX_FILING_CREATED] for TaxFiling:0cf685be-0174-4da3-b197-656968914a04 by user-tenant-b-tax","service":"TaxFilingAuditService"}
+# {"timestamp":"2026-09-12T18:14:28.079Z","level":"INFO","message":"TaxFiling Audit log recorded: [TAX_FILING_CREATED] for TaxFiling:84d1828e-f338-42e7-9baa-661279198ee1 by admin-1","service":"TaxFilingAuditService"}
+# Subtest: TaxFiling Full Vertical Slice QA & Security Suite (Tasks 1421-1440)
+    # Subtest: Task 1429: TaxFiling Event Consumer & DLQ Handling
+        # Subtest: deduplicates events by ID and routes poison messages to DLQ
+        ok 1 - deduplicates events by ID and routes poison messages to DLQ
+          ---
+          duration_ms: 4.813575
+          type: 'test'
+          ...
+        1..1
+    ok 1 - Task 1429: TaxFiling Event Consumer & DLQ Handling
+      ---
+      duration_ms: 5.850183
+      type: 'suite'
+      ...
+    # Subtest: Task 1420: TaxFiling Domain Entity & Invariants
+        # Subtest: enforces constructor invariants: tenantId, period, taxType, amounts >= 0
+        ok 1 - enforces constructor invariants: tenantId, period, taxType, amounts >= 0
+          ---
+          duration_ms: 1.479171
+          type: 'test'
+          ...
+        # Subtest: executes valid state transitions and rejects illegal ones
+        ok 2 - executes valid state transitions and rejects illegal ones
+          ---
+          duration_ms: 0.677108
+          type: 'test'
+          ...
+        1..2
+    ok 2 - Task 1420: TaxFiling Domain Entity & Invariants
+      ---
+      duration_ms: 2.395783
+      type: 'suite'
+      ...
+    # Subtest: TaxFiling Domain Validation Rules
+        # Subtest: validates Create input and rejects unknown fields
+        ok 1 - validates Create input and rejects unknown fields
+          ---
+          duration_ms: 0.763372
+          type: 'test'
+          ...
+        # Subtest: validates Update input and version field
+        ok 2 - validates Update input and version field
+          ---
+          duration_ms: 0.576733
+          type: 'test'
+          ...
+        1..2
+    ok 3 - TaxFiling Domain Validation Rules
+      ---
+      duration_ms: 1.632135
+      type: 'suite'
+      ...
+    # Subtest: TaxFiling Use Cases & Audit Trail
+        # Subtest: executes CreateTaxFilingUseCase with idempotency & audit trail
+        ok 1 - executes CreateTaxFilingUseCase with idempotency & audit trail
+          ---
+          duration_ms: 1.176041
+          type: 'test'
+          ...
+        # Subtest: executes Get, Update and List use cases with optimistic locking
+        ok 2 - executes Get, Update and List use cases with optimistic locking
+          ---
+          duration_ms: 1.62535
+          type: 'test'
+          ...
+        # Subtest: rejects unauthorized principals
+        ok 3 - rejects unauthorized principals
+          ---
+          duration_ms: 0.386863
+          type: 'test'
+          ...
+        1..3
+    ok 4 - TaxFiling Use Cases & Audit Trail
+      ---
+      duration_ms: 3.60099
+      type: 'suite'
+      ...
+    # Subtest: Repository RLS Isolation Proof
+        # Subtest: enforces tenant RLS isolation between Tenant A and Tenant B
+        ok 1 - enforces tenant RLS isolation between Tenant A and Tenant B
+          ---
+          duration_ms: 1.034371
+          type: 'test'
+          ...
+        1..1
+    ok 5 - Repository RLS Isolation Proof
+      ---
+      duration_ms: 1.136535
+      type: 'suite'
+      ...
+    # Subtest: TaxFiling Controller REST API & Security
+        # Subtest: handles controller CRUD endpoints with correct HTTP status codes
+        ok 1 - handles controller CRUD endpoints with correct HTTP status codes
+          ---
+          duration_ms: 1.088664
+          type: 'test'
+          ...
+        # Subtest: rejects unsupported content-type
+        ok 2 - rejects unsupported content-type
+          ---
+          duration_ms: 0.592268
+          type: 'test'
+          ...
+        1..2
+    ok 6 - TaxFiling Controller REST API & Security
+      ---
+      duration_ms: 1.81951
+      type: 'suite'
+      ...
+    1..6
+ok 11 - TaxFiling Full Vertical Slice QA & Security Suite (Tasks 1421-1440)
+  ---
+  duration_ms: 17.842817
+  type: 'suite'
+  ...
+1..11
+# tests 101
+# suites 74
+# pass 100
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 515.207836
+/app/services/finance-service:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @dms/finance-service@1.0.0 test: `node --test "dist/**/*.test.js"`
+Exit status 1
