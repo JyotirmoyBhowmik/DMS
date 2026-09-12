@@ -18,7 +18,7 @@ export class VaultSecretStore {
    */
   async storeTenantErpCredentials(
     tenantId: string,
-    credentials: ErpConnectionConfig
+    credentials: ErpConnectionConfig,
   ): Promise<void> {
     const vaultPath = `secret/data/tenants/${tenantId}/erp`;
     const serialized = JSON.stringify(credentials);
@@ -65,7 +65,7 @@ export class VaultSecretStore {
         });
 
         if (response.ok) {
-          const json = await response.json() as any;
+          const json = (await response.json()) as any;
           return json?.data?.data as ErpConnectionConfig;
         }
       }
@@ -80,13 +80,26 @@ export class VaultSecretStore {
       const decrypted = this.decryptAesGcm(encrypted);
       return JSON.parse(decrypted) as ErpConnectionConfig;
     } catch (err: any) {
-      this.logger.error(`Failed to decrypt tenant ERP credentials`, { tenantId, error: err.message });
+      this.logger.error(`Failed to decrypt tenant ERP credentials`, {
+        tenantId,
+        error: err.message,
+      });
       return null;
     }
   }
 
+  private getAesKey(): Buffer {
+    const secret = process.env.VAULT_FALLBACK_SECRET;
+    if (!secret) {
+      throw new Error(
+        'VAULT_FALLBACK_SECRET environment variable is missing. Refusing to use insecure hardcoded secret.',
+      );
+    }
+    return crypto.scryptSync(secret, 'salt', 32);
+  }
+
   private encryptAesGcm(plainText: string): string {
-    const key = crypto.scryptSync('dms-vault-secret-key-32-chars-long', 'salt', 32);
+    const key = this.getAesKey();
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
     let encrypted = cipher.update(plainText, 'utf8', 'hex');
@@ -97,7 +110,7 @@ export class VaultSecretStore {
 
   private decryptAesGcm(cipherText: string): string {
     const [ivHex, authTagHex, encryptedHex] = cipherText.split(':');
-    const key = crypto.scryptSync('dms-vault-secret-key-32-chars-long', 'salt', 32);
+    const key = this.getAesKey();
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(ivHex, 'hex'));
     decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
     let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
