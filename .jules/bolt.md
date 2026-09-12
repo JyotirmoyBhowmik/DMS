@@ -7,3 +7,6 @@
 ## 2026-08-24 - Array Filter Optimization in React
 **Learning:** Inside React functional components, recalculating `.toLowerCase()` multiple times per item within list filtering callbacks causes redundant string allocations and memory bloat on each render.
 **Action:** Always hoist string manipulations like `search.toLowerCase()` outside of loops (e.g. `filter` or `map`) inside `useMemo` to reduce layout thrashing.
+## 2024-05-18 - AdminDashboard Array Filter Anti-pattern
+**Learning:** Found a specific codebase pattern where `O(N)` `Array.prototype.filter` methods were being evaluated directly inside of `Array.prototype.map` render loops for potentially large telemetry datasets like `salesOrders`. This creates an `O(N*M)` complexity (where M is the map iteration count, e.g. 7 for days of the week). When React re-renders the dashboard, this causes unnecessary main thread CPU spikes and garbage collection thrashing.
+**Action:** Always inspect array iterations inside JSX map blocks. If they loop over the same large dataset repeatedly, hoist the computation into a `useMemo` block that traverses the dataset once `O(N)` to pre-calculate buckets or counts.
