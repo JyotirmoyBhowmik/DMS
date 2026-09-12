@@ -158,7 +158,8 @@ describe('Claims Module & E2E Integration Tests', () => {
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    const aggregateForSave = new ClaimAggregate(entity);
+    await claimRepo.save(aggregateForSave as any, tenantA);
 
     // 2. Find
     const saved: any = await claimRepo.findById(tenantA, entity.id);
@@ -166,21 +167,28 @@ describe('Claims Module & E2E Integration Tests', () => {
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
+    const aggregateForUpdate = new ClaimAggregate(saved);
+    aggregateForUpdate.validate();
+    await claimRepo.update(aggregateForUpdate as any, tenantA);
+    const updated: any = await claimRepo.findById(tenantA, entity.id);
     assert.strictEqual(updated.version, 2);
     assert.strictEqual(updated.status, 'validated');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleEntity = new ClaimEntity({
+      id: entity.id,
+      tenantId: tenantA,
+      distributorId,
+      schemeId,
+      amount: 12000,
+      status: 'validated',
+      version: 1, // stale
+    });
+    const staleAggregate = new ClaimAggregate(staleEntity);
+    staleAggregate.approve(); // valid transition
     await assert.rejects(
-      async () => {
-        await claimRepo.update(saved, tenantA);
-      },
-
-      (err: any) => {
-        return err instanceof ConcurrencyError;
-      }
+      async () => await claimRepo.update(staleAggregate as any, tenantA),
+      { name: 'ConcurrencyError' }
     );
 
     // 5. Verify RLS Isolation
@@ -243,7 +251,9 @@ describe('Claims Module & E2E Integration Tests', () => {
         id: claimId,
         distributorId,
         schemeId,
-        amount: 8500,
+        name: 'E2E Test Claim',
+        claimCode: 'CLM-E2E-123',
+        claimAmountCents: 8500,
       },
     });
 

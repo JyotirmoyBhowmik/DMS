@@ -56,8 +56,8 @@ describe('Finance Service - Unit Tests', () => {
       const period = new LedgerPeriod({
         id: 'period-1',
         tenantId,
-        startDate: new Date('2026-06-01'),
-        endDate: new Date('2026-06-30'),
+        startDate: new Date('2026-09-01'),
+        endDate: new Date('2026-09-30'),
         status: 'OPEN'
       });
 
@@ -90,7 +90,7 @@ describe('Finance Service - Unit Tests', () => {
         tenantId,
         referenceType: 'MANUAL',
         referenceId: 'ref-1',
-        postedAt: new Date('2026-06-15'),
+        postedAt: new Date('2026-09-11'),
         postings: [
           new LedgerPosting({ id: 'p1', tenantId, accountId: cashAccountId, type: 'DEBIT', amount: 200 }),
           new LedgerPosting({ id: 'p2', tenantId, accountId: revenueAccountId, type: 'CREDIT', amount: 200 })
@@ -137,7 +137,7 @@ describe('Finance Service - Unit Tests', () => {
         tenantId,
         referenceType: 'MANUAL',
         referenceId: 'ref-1',
-        postedAt: new Date('2026-06-15'),
+        postedAt: new Date('2026-09-11'),
         postings: [
           new LedgerPosting({ id: 'p1', tenantId, accountId: cashAccountId, type: 'DEBIT', amount: 100 }),
           new LedgerPosting({ id: 'p2', tenantId, accountId: revenueAccountId, type: 'CREDIT', amount: 100 })
@@ -151,8 +151,8 @@ describe('Finance Service - Unit Tests', () => {
       const periodOpen = new LedgerPeriod({
         id: 'period-2',
         tenantId,
-        startDate: new Date('2026-06-01'),
-        endDate: new Date('2026-06-30'),
+        startDate: new Date('2026-09-01'),
+        endDate: new Date('2026-09-30'),
         status: 'OPEN'
       });
       const entryOutside = new LedgerEntry({
@@ -252,11 +252,11 @@ describe('Finance Service - Unit Tests', () => {
       const db = new PostgresDatabaseClient(new InMemoryDriver());
 
       // Seed Period and Accounts
-      await repo.savePeriod(new LedgerPeriod({
-        id: 'p1',
+            await repo.savePeriod(new LedgerPeriod({
+        id: 'p-dynamic',
         tenantId,
-        startDate: new Date('2026-06-01'),
-        endDate: new Date('2026-06-30'),
+        startDate: new Date('2026-09-01'),
+        endDate: new Date('2026-09-30'),
         status: 'OPEN'
       }), tenantId);
 
@@ -292,7 +292,7 @@ describe('Finance Service - Unit Tests', () => {
         referenceType: 'ORDER',
         referenceId: 'order-123',
         description: 'Customer order payment',
-        postedAt: new Date('2026-06-10'),
+        postedAt: new Date('2026-09-11'),
         idempotencyKey: 'idemp-key-1',
         postings: [
           { accountId: cashAccountId, type: 'DEBIT', amount: 200 },

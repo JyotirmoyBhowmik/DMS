@@ -1,0 +1,254 @@
+
+> @dms/claims-service@1.0.0 test /app/services/claims-service
+> node --test "dist/**/*.test.js"
+
+TAP version 13
+# {"timestamp":"2026-09-12T18:35:41.819Z","level":"INFO","message":"Created ClaimReconciliation 9b8aaefd-c958-41ac-b901-c2abdbfce757 for tenant 2a1b25d8-b236-41e3-a3f5-c5b8b96900da","service":"CreateClaimReconciliationUseCase"}
+# {"timestamp":"2026-09-12T18:35:41.821Z","level":"INFO","message":"Updated ClaimReconciliation 9b8aaefd-c958-41ac-b901-c2abdbfce757 for tenant 2a1b25d8-b236-41e3-a3f5-c5b8b96900da","service":"UpdateClaimReconciliationUseCase"}
+# Subtest: ClaimReconciliation Full Vertical Slice Unit & Repo Tests
+    # Subtest: ClaimReconciliation Domain Aggregate Invariants
+        # Subtest: validates totalClaimedCents range and state machine transitions
+        ok 1 - validates totalClaimedCents range and state machine transitions
+          ---
+          duration_ms: 2.11092
+          type: 'test'
+          ...
+        1..1
+    ok 1 - ClaimReconciliation Domain Aggregate Invariants
+      ---
+      duration_ms: 3.089704
+      type: 'suite'
+      ...
+    # Subtest: ClaimReconciliation Use Cases & Repository
+        # Subtest: executes Create, Get, Update, and List with idempotency key
+        ok 1 - executes Create, Get, Update, and List with idempotency key
+          ---
+          duration_ms: 2.751518
+          type: 'test'
+          ...
+        1..1
+    ok 2 - ClaimReconciliation Use Cases & Repository
+      ---
+      duration_ms: 2.913876
+      type: 'suite'
+      ...
+    1..2
+ok 1 - ClaimReconciliation Full Vertical Slice Unit & Repo Tests
+  ---
+  duration_ms: 6.813693
+  type: 'suite'
+  ...
+# Subtest: Claim Full Vertical Slice Unit & Repo Tests
+    # Subtest: Claim Domain Aggregate Invariants
+        # Subtest: validates claimAmountCents range and state machine transitions
+        ok 1 - validates claimAmountCents range and state machine transitions
+          ---
+          duration_ms: 2.355716
+          type: 'test'
+          ...
+        1..1
+    ok 1 - Claim Domain Aggregate Invariants
+      ---
+      duration_ms: 3.322459
+      type: 'suite'
+      ...
+    # Subtest: Claim Use Cases & Repository
+        # Subtest: executes Create with idempotency key and enforces unique claim code per tenant
+        ok 1 - executes Create with idempotency key and enforces unique claim code per tenant
+          ---
+          duration_ms: 2.762144
+          type: 'test'
+          ...
+        1..1
+    ok 2 - Claim Use Cases & Repository
+      ---
+      duration_ms: 2.948691
+      type: 'suite'
+      ...
+    1..2
+ok 2 - Claim Full Vertical Slice Unit & Repo Tests
+  ---
+  duration_ms: 7.046004
+  type: 'suite'
+  ...
+# (node:335282) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///app/services/claims-service/dist/services/audit-service/src/application/usecases/record_audit.usecase.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /app/services/claims-service/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Skipping Claims Module & E2E Integration Tests because live database is not reachable.
+# Subtest: Claims Module & E2E Integration Tests
+    # Subtest: Domain: ClaimAggregate validates invariants, state machine transitions, and over-claim checks
+    ok 1 - Domain: ClaimAggregate validates invariants, state machine transitions, and over-claim checks
+      ---
+      duration_ms: 1.518393
+      type: 'test'
+      ...
+    # Subtest: Repo: Save, find, update claims, audit log creation, and optimistic locking
+    ok 2 - Repo: Save, find, update claims, audit log creation, and optimistic locking
+      ---
+      duration_ms: 0.424513
+      type: 'test'
+      ...
+    # Subtest: E2E: Full lifecycle via API Gateway, concurrency guard, and audit history check
+    ok 3 - E2E: Full lifecycle via API Gateway, concurrency guard, and audit history check
+      ---
+      duration_ms: 0.620898
+      type: 'test'
+      ...
+    1..3
+ok 3 - Claims Module & E2E Integration Tests
+  ---
+  duration_ms: 5410.691678
+  type: 'suite'
+  ...
+# {"timestamp":"2026-09-12T18:35:41.915Z","level":"INFO","message":"Created SchemeClaim ccb3d609-1389-44f1-bef3-df4c1cd5a3c2 for tenant 27f43782-5dbb-4fe7-87ab-a703aaaae8b1","service":"CreateSchemeClaimUseCase"}
+# {"timestamp":"2026-09-12T18:35:41.917Z","level":"INFO","message":"Updated SchemeClaim ccb3d609-1389-44f1-bef3-df4c1cd5a3c2 for tenant 27f43782-5dbb-4fe7-87ab-a703aaaae8b1","service":"UpdateSchemeClaimUseCase"}
+# Subtest: SchemeClaim Full Vertical Slice Unit & Repo Tests
+    # Subtest: SchemeClaim Domain Aggregate Invariants
+        # Subtest: validates claimAmountCents range and state machine transitions
+        ok 1 - validates claimAmountCents range and state machine transitions
+          ---
+          duration_ms: 2.092817
+          type: 'test'
+          ...
+        1..1
+    ok 1 - SchemeClaim Domain Aggregate Invariants
+      ---
+      duration_ms: 3.067582
+      type: 'suite'
+      ...
+    # Subtest: SchemeClaim Use Cases & Repository
+        # Subtest: executes Create, Get, Update, and List with idempotency key
+        ok 1 - executes Create, Get, Update, and List with idempotency key
+          ---
+          duration_ms: 2.980261
+          type: 'test'
+          ...
+        1..1
+    ok 2 - SchemeClaim Use Cases & Repository
+      ---
+      duration_ms: 3.146419
+      type: 'suite'
+      ...
+    1..2
+ok 4 - SchemeClaim Full Vertical Slice Unit & Repo Tests
+  ---
+  duration_ms: 6.989845
+  type: 'suite'
+  ...
+# {"timestamp":"2026-09-12T18:35:42.040Z","level":"INFO","message":"Created Settlement 611e6b36-f0ec-4467-931f-6ec08d14d72a for tenant e341b214-6877-4059-a7ca-d791176bb9b4","service":"CreateSettlementUseCase"}
+# {"timestamp":"2026-09-12T18:35:42.041Z","level":"INFO","message":"Idempotent hit for key idempotency-key-set-1","service":"CreateSettlementUseCase"}
+# {"timestamp":"2026-09-12T18:35:42.041Z","level":"INFO","message":"Updated Settlement 611e6b36-f0ec-4467-931f-6ec08d14d72a for tenant e341b214-6877-4059-a7ca-d791176bb9b4","service":"UpdateSettlementUseCase"}
+# {"timestamp":"2026-09-12T18:35:42.043Z","level":"INFO","message":"Created Settlement ed62aa9a-a343-40eb-b381-d44a4e95887d for tenant e341b214-6877-4059-a7ca-d791176bb9b4","service":"CreateSettlementUseCase"}
+# {"timestamp":"2026-09-12T18:35:42.043Z","level":"INFO","message":"Updated Settlement ed62aa9a-a343-40eb-b381-d44a4e95887d for tenant e341b214-6877-4059-a7ca-d791176bb9b4","service":"UpdateSettlementUseCase"}
+# {"timestamp":"2026-09-12T18:35:42.045Z","level":"INFO","message":"Created Settlement 0a5a69c1-f890-4950-907a-21b7c353b876 for tenant e341b214-6877-4059-a7ca-d791176bb9b4","service":"CreateSettlementUseCase"}
+# {"timestamp":"2026-09-12T18:35:42.045Z","level":"INFO","message":"Created Settlement 982ecd8e-76d0-4a16-962d-94de96e55e54 for tenant 74057fa5-6188-4c3d-a581-bdb333101aec","service":"CreateSettlementUseCase"}
+# {"timestamp":"2026-09-12T18:35:42.049Z","level":"INFO","message":"Created Settlement 90437616-4d10-4f94-a6d1-66fcb1fa8deb for tenant e341b214-6877-4059-a7ca-d791176bb9b4","service":"CreateSettlementUseCase"}
+# {"timestamp":"2026-09-12T18:35:42.049Z","level":"INFO","message":"Updated Settlement 90437616-4d10-4f94-a6d1-66fcb1fa8deb for tenant e341b214-6877-4059-a7ca-d791176bb9b4","service":"UpdateSettlementUseCase"}
+# {"timestamp":"2026-09-12T18:35:42.051Z","level":"INFO","message":"Created Settlement eeadf358-8845-4b4a-9f19-bfc73b7170ef for tenant e341b214-6877-4059-a7ca-d791176bb9b4","service":"CreateSettlementUseCase"}
+# {"timestamp":"2026-09-12T18:35:42.051Z","level":"INFO","message":"Created Settlement 344db555-16df-4248-9344-f1fc74079783 for tenant e341b214-6877-4059-a7ca-d791176bb9b4","service":"CreateSettlementUseCase"}
+# {"timestamp":"2026-09-12T18:35:42.052Z","level":"ERROR","message":"Create failed: [\\n  {\\n    \\"validation\\": \\"uuid\\",\\n    \\"code\\": \\"invalid_string\\",\\n    \\"message\\": \\"claimId must be a valid UUID\\",\\n    \\"path\\": [\\n      \\"claimId\\"\\n    ]\\n  },\\n  {\\n    \\"code\\": \\"too_small\\",\\n    \\"minimum\\": 0,\\n    \\"type\\": \\"number\\",\\n    \\"inclusive\\": true,\\n    \\"exact\\": false,\\n    \\"message\\": \\"amountCents must be >= 0\\",\\n    \\"path\\": [\\n      \\"amountCents\\"\\n    ]\\n  }\\n]","service":"SettlementController"}
+# Subtest: Settlement Full Vertical Slice QA Suite (Tasks 1221-1224)
+    # Subtest: Task 1221: Domain Unit Tests & Invariants
+        # Subtest: enforces required fields (tenantId, settlementCode, claimId, distributorId)
+        ok 1 - enforces required fields (tenantId, settlementCode, claimId, distributorId)
+          ---
+          duration_ms: 2.189326
+          type: 'test'
+          ...
+        # Subtest: validates amountCents boundary & edge values (zero, negative, overflow)
+        ok 2 - validates amountCents boundary & edge values (zero, negative, overflow)
+          ---
+          duration_ms: 0.576959
+          type: 'test'
+          ...
+        # Subtest: exercises valid and invalid state transitions
+        ok 3 - exercises valid and invalid state transitions
+          ---
+          duration_ms: 0.726631
+          type: 'test'
+          ...
+        1..3
+    ok 1 - Task 1221: Domain Unit Tests & Invariants
+      ---
+      duration_ms: 4.649187
+      type: 'suite'
+      ...
+    # Subtest: Task 1222: Use Cases Unit Tests
+        # Subtest: executes Create, Get, Update, List happy path with idempotency
+        ok 1 - executes Create, Get, Update, List happy path with idempotency
+          ---
+          duration_ms: 3.254355
+          type: 'test'
+          ...
+        # Subtest: rejects un-authorized principals (RBAC / tenant denied)
+        ok 2 - rejects un-authorized principals (RBAC / tenant denied)
+          ---
+          duration_ms: 0.791762
+          type: 'test'
+          ...
+        # Subtest: handles optimistic-lock version conflicts on update
+        ok 3 - handles optimistic-lock version conflicts on update
+          ---
+          duration_ms: 0.878741
+          type: 'test'
+          ...
+        1..3
+    ok 2 - Task 1222: Use Cases Unit Tests
+      ---
+      duration_ms: 5.45458
+      type: 'suite'
+      ...
+    # Subtest: Task 1223: Repository Integration & RLS Isolation Tests
+        # Subtest: enforces tenant RLS isolation — Tenant A cannot view or alter Tenant B settlements
+        ok 1 - enforces tenant RLS isolation — Tenant A cannot view or alter Tenant B settlements
+          ---
+          duration_ms: 1.050874
+          type: 'test'
+          ...
+        # Subtest: handles unique constraint & deletion cleanly
+        ok 2 - handles unique constraint & deletion cleanly
+          ---
+          duration_ms: 0.473782
+          type: 'test'
+          ...
+        1..2
+    ok 3 - Task 1223: Repository Integration & RLS Isolation Tests
+      ---
+      duration_ms: 1.923225
+      type: 'suite'
+      ...
+    # Subtest: Task 1224: API Integration & Security Suite
+        # Subtest: handles controller CRUD routes with status codes (201, 200, 400, 404, 409, 403)
+        ok 1 - handles controller CRUD routes with status codes (201, 200, 400, 404, 409, 403)
+          ---
+          duration_ms: 3.901475
+          type: 'test'
+          ...
+        # Subtest: rejects negative-security vectors (cross-tenant headers, injection, invalid format)
+        ok 2 - rejects negative-security vectors (cross-tenant headers, injection, invalid format)
+          ---
+          duration_ms: 2.215863
+          type: 'test'
+          ...
+        1..2
+    ok 4 - Task 1224: API Integration & Security Suite
+      ---
+      duration_ms: 6.382977
+      type: 'suite'
+      ...
+    1..4
+ok 5 - Settlement Full Vertical Slice QA Suite (Tasks 1221-1224)
+  ---
+  duration_ms: 19.560295
+  type: 'suite'
+  ...
+1..5
+# tests 19
+# suites 15
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5915.694367
