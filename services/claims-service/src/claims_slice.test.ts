@@ -190,7 +190,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       claimCode: 'CLM-003',
       claimAmountCents: 12000,
       status: 'UNDER_REVIEW',
-      version: 2, // stale, current in DB is 2, so it will expect 2, but we pass 2 so it expects existing to be 1. Wait, if we pass version=2 to update(), it expects DB version to be 1. DB version is 2. 2 !== 1, so it throws.
+      version: 2, // stale version > 1 will trigger concurrency check in repository
     });
 
     await assert.rejects(
@@ -256,13 +256,15 @@ describe('Claims Module & E2E Integration Tests', () => {
         id: claimId,
         distributorId,
         schemeId,
-        amount: 8500,
+        name: 'Integration E2E Claim',
+        claimCode: 'CLM-E2E-001',
+        claimAmountCents: 8500,
       },
     });
 
     assert.strictEqual(createResult.status, 201);
     assert.strictEqual(createResult.body.success, true);
-    assert.strictEqual((createResult.body as any).status, 'raised');
+    assert.strictEqual((createResult.body as any).status, 'SUBMITTED');
 
     // 2. POST /api/v1/claims/:id/validate
     const validateResult = await gateway.handleRequest({
@@ -278,7 +280,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(validateResult.status, 200);
     assert.strictEqual(validateResult.body.success, true);
-    assert.strictEqual((validateResult.body as any).status, 'validated');
+    assert.strictEqual((validateResult.body as any).status, 'UNDER_REVIEW');
 
     // 3. POST /api/v1/claims/:id/approve
     const approveResult = await gateway.handleRequest({
@@ -294,7 +296,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(approveResult.status, 200);
     assert.strictEqual(approveResult.body.success, true);
-    assert.strictEqual((approveResult.body as any).status, 'approved');
+    assert.strictEqual((approveResult.body as any).status, 'APPROVED');
 
     // 4. POST /api/v1/claims/:id/settle
     const settleResult = await gateway.handleRequest({
@@ -313,7 +315,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(settleResult.status, 200);
     assert.strictEqual(settleResult.body.success, true);
-    assert.strictEqual(((settleResult.body as any).transaction).status, 'settled');
+    assert.strictEqual((settleResult.body as any).status, 'SETTLED');
 
     // 5. Test Idempotency (Repeat settle request with same key)
     const settleRepeatResult = await gateway.handleRequest({
