@@ -7,6 +7,7 @@ import { createSign } from 'node:crypto';
 import { PostgresDatabaseClient, PgDriver, MigrationRunner, ConcurrencyError, EntityNotFoundError } from '@dms/pkg-database';
 import { loadConfigSync } from '@dms/pkg-config';
 import { ClaimEntity } from './domain/entities/claim.entity.js';
+import { Claim } from './domain/entities/claim.js';
 import { ClaimAggregate } from './domain/aggregates/claim.aggregate.js';
 import { ClaimPgRepository } from './infrastructure/database/repositories/claim.pg-repository.js';
 import { GatewayController } from '../../api-gateway/src/presentation/rest/controllers/gateway.controller.js';
@@ -158,7 +159,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(new Claim(entity as any), tenantA);
 
     // 2. Find
     const saved: any = await claimRepo.findById(tenantA, entity.id);
