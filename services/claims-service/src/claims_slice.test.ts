@@ -193,7 +193,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     // 5. Verify RLS Isolation
     await assert.rejects(
       async () => {
-        await claimRepo.findById(tenantB, entity.id);
+        await claimRepo.findById(tenantB, claim.id);
       },
       (err: any) => {
         return err instanceof EntityNotFoundError;
