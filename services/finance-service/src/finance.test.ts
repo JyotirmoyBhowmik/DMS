@@ -252,11 +252,19 @@ describe('Finance Service - Unit Tests', () => {
       const db = new PostgresDatabaseClient(new InMemoryDriver());
 
       // Seed Period and Accounts
+
+      const now = new Date();
+      const currentYear = now.getUTCFullYear();
+      const currentMonth = now.getUTCMonth();
+
+      const startOfMonth = new Date(Date.UTC(currentYear, currentMonth, 1));
+      const endOfMonth = new Date(Date.UTC(currentYear, currentMonth + 1, 0, 23, 59, 59, 999));
+
       await repo.savePeriod(new LedgerPeriod({
         id: 'p1',
         tenantId,
-        startDate: new Date('2026-06-01'),
-        endDate: new Date('2026-06-30'),
+        startDate: startOfMonth,
+        endDate: endOfMonth,
         status: 'OPEN'
       }), tenantId);
 
@@ -292,7 +300,7 @@ describe('Finance Service - Unit Tests', () => {
         referenceType: 'ORDER',
         referenceId: 'order-123',
         description: 'Customer order payment',
-        postedAt: new Date('2026-06-10'),
+        postedAt: new Date(),
         idempotencyKey: 'idemp-key-1',
         postings: [
           { accountId: cashAccountId, type: 'DEBIT', amount: 200 },
