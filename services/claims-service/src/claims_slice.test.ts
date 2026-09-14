@@ -168,7 +168,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.updateStatus('UNDER_REVIEW', 'admin-id');
+    saved.updateStatus('UNDER_REVIEW');
     await claimRepo.update(saved, tenantA);
 
     const updated = await claimRepo.findById(tenantA, aggregate.id);

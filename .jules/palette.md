@@ -10,3 +10,7 @@
 
 **Learning:** When testing optimistic concurrency with domain aggregates, avoid bypassing domain invariants by directly mutating properties like `version` on saved entities. Instead, simulate a concurrency conflict by instantiating a new aggregate object with the stale version number.
 **Action:** When working with backend repositories (e.g., `ClaimPgRepository` in `@dms/claims-service`), ensure you pass domain aggregates (e.g., `Claim`) instead of raw database entities (e.g., `ClaimEntity`) to methods like `save` and `update`, as the repositories rely on aggregate methods like `.toJSON()` to format data for persistence. Also, ensure API tests match the exact input shapes defined by their controllers (e.g., passing `claimAmountCents` rather than legacy `amount` properties).
+## 2024-09-14 - Fix optimistic concurrency test parameter typing
+
+**Learning:** When passing hardcoded string types to methods that expect enums (like `ClaimStatus`), TypeScript will compile correctly if the string matches the union type but may cause runtime errors or compilation issues if the strictness of the compiler is high or if the type is explicitly narrow.
+**Action:** When instantiating domain aggregates like `Claim` in `@dms/claims-service`, ensure strict adherence to the aggregate's specific union types (e.g., `ClaimStatus` expects `'SUBMITTED'`, `'UNDER_REVIEW'`, `'APPROVED'` rather than legacy DB entity statuses like `'raised'`) to prevent TypeScript compilation errors and runtime issues.
