@@ -251,6 +251,13 @@ describe('Finance Service - Unit Tests', () => {
       const repo = new MockLedgerRepository();
       const db = new PostgresDatabaseClient(new InMemoryDriver());
 
+      const now = new Date();
+      const currentYear = now.getUTCFullYear();
+      const currentMonth = now.getUTCMonth();
+
+      const startDate = new Date(Date.UTC(currentYear, currentMonth, 1));
+      const endDate = new Date(Date.UTC(currentYear, currentMonth + 1, 0, 23, 59, 59, 999));
+
       // Seed Period and Accounts
       await repo.savePeriod(new LedgerPeriod({
         id: 'p1',
@@ -263,8 +270,8 @@ describe('Finance Service - Unit Tests', () => {
       await repo.savePeriod(new LedgerPeriod({
         id: 'p2',
         tenantId,
-        startDate: new Date('2026-08-01'),
-        endDate: new Date('2026-08-31'),
+        startDate: startDate,
+        endDate: endDate,
         status: 'OPEN'
       }), tenantId);
 
