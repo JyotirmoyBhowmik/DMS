@@ -268,6 +268,19 @@ describe('Finance Service - Unit Tests', () => {
         status: 'OPEN'
       }), tenantId);
 
+      // Add dynamic period for current month to avoid temporal test failures (time bombs)
+      // ReverseLedgerEntryUseCase uses new Date() for reversalDate
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      await repo.savePeriod(new LedgerPeriod({
+        id: 'p3',
+        tenantId,
+        startDate: firstDay,
+        endDate: lastDay,
+        status: 'OPEN'
+      }), tenantId);
+
       await repo.saveAccount(new LedgerAccount({
         id: cashAccountId,
         tenantId,
