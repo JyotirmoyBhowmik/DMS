@@ -7,3 +7,8 @@
 **Vulnerability:** Weak PRNG (`Math.random()`) used for generating secure nonces in React Native apps, allowing for predictable values.
 **Learning:** React Native lacks built-in support for `globalThis.crypto.randomUUID()` without specialized polyfills (like `react-native-get-random-values`), which can lead to silent fallback to `Math.random()`. `globalThis.crypto.getRandomValues()` is generally more robust for mobile environments.
 **Prevention:** In React Native, prefer `getRandomValues()` over `randomUUID()`. Always include a fallback for unsupported environments to prevent app crashes while gracefully degrading security.
+
+## 2026-09-14 - Hardcoded Legacy Secrets
+**Vulnerability:** Hardcoded encryption secrets used as a fallback for Vault.
+**Learning:** Hardcoded secrets in the source code can be extracted and compromise the data. However, replacing them completely without a fallback can lead to data loss for legacy encrypted data.
+**Prevention:** Use environment variables for secrets with secure fallbacks, and always maintain compatibility for legacy data decryption.
