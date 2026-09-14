@@ -167,7 +167,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    const savedClaim = new Claim({ ...saved, claimCode: 'C-001', name: 'Test Claim', claimAmountCents: saved.amount });
+    const savedClaim = new Claim({ id: saved.id, tenantId: saved.tenantId, distributorId: saved.distributorId, schemeId: saved.schemeId, status: 'SUBMITTED', version: saved.version, claimCode: 'C-001', name: 'Test Claim', claimAmountCents: saved.amount });
     savedClaim.updateStatus('UNDER_REVIEW'); // Mutates state via domain method instead of saved.status = 'validated'
     const updated: any = await claimRepo.update(savedClaim, tenantA);
     assert.strictEqual(updated.version, 2);
@@ -176,7 +176,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     // 4. Update with stale version (Optimistic Locking failure)
     // Instantiate a stale claim (version 1) to simulate concurrency conflict
     const staleClaim = new Claim({
-      ...saved,
+      id: saved.id, tenantId: saved.tenantId, distributorId: saved.distributorId, schemeId: saved.schemeId, status: 'SUBMITTED',
       claimCode: 'C-001', name: 'Test Claim', claimAmountCents: saved.amount,
       version: 1, // Stale version to trigger conflict
     });
@@ -251,7 +251,7 @@ describe('Claims Module & E2E Integration Tests', () => {
       body: {
         id: claimId,
         name: 'Test Claim',
-        claimCode: 'C-001',
+        claimCode: 'C-002',
         claimAmountCents: 8500,
         distributorId,
         schemeId,
