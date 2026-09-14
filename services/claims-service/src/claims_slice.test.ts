@@ -7,6 +7,7 @@ import { createSign } from 'node:crypto';
 import { PostgresDatabaseClient, PgDriver, MigrationRunner, ConcurrencyError, EntityNotFoundError } from '@dms/pkg-database';
 import { loadConfigSync } from '@dms/pkg-config';
 import { ClaimEntity } from './domain/entities/claim.entity.js';
+import { Claim } from './domain/entities/claim.js';
 import { ClaimAggregate } from './domain/aggregates/claim.aggregate.js';
 import { ClaimPgRepository } from './infrastructure/database/repositories/claim.pg-repository.js';
 import { GatewayController } from '../../api-gateway/src/presentation/rest/controllers/gateway.controller.js';
@@ -86,96 +87,111 @@ describe('Claims Module & E2E Integration Tests', () => {
     // Invariant: amount must be > 0
 
     assert.throws(() => {
-      const entity = new ClaimEntity({
+      new Claim({
+        id: '00000000-0000-0000-0000-000000000001',
         tenantId: tenantA,
         distributorId,
         schemeId,
-        amount: 0,
+        name: 'Test Claim',
+        claimCode: 'CLM-001',
+        claimAmountCents: -100,
       });
-      new ClaimAggregate(entity).validateInvariants();
-    }, /amount must be greater than zero/);
+    }, /claimAmountCents must be non-negative/);
 
     // Draft State Transitions
-    const entity = new ClaimEntity({
+    const claim = new Claim({
       id: '00000000-0000-0000-0000-000000000100',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 5000,
-      status: 'raised',
+      name: 'Test Claim',
+      claimCode: 'CLM-002',
+      claimAmountCents: 5000,
+      status: 'SUBMITTED',
     });
 
-    const aggregate = new ClaimAggregate(entity);
-    aggregate.validateInvariants();
+    // Cannot approve/reject/settle in SUBMITTED state
+    assert.throws(() => claim.updateStatus('APPROVED', 5000));
 
-    // Cannot approve/reject/settle in raised state
-    assert.throws(() => aggregate.approve());
-    assert.throws(() => aggregate.settle(5000));
+    // Move to UNDER_REVIEW
+    claim.updateStatus('UNDER_REVIEW');
+    assert.strictEqual(claim.status, 'UNDER_REVIEW');
 
-    // Move to validated
-    aggregate.validate();
-    assert.strictEqual(entity.status, 'validated');
-
-    // Validate cannot be validated again
-    assert.throws(() => aggregate.validate());
-
-    // Reject from validated
-    aggregate.reject();
-    assert.strictEqual(entity.status, 'rejected');
+    // Reject from UNDER_REVIEW
+    claim.updateStatus('REJECTED');
+    assert.strictEqual(claim.status, 'REJECTED');
 
     // Test approved and settle flow on a fresh aggregate
-    const entity2 = new ClaimEntity({
+    const claim2 = new Claim({
       id: '00000000-0000-0000-0000-000000000200',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 5000,
-      status: 'validated',
+      name: 'Test Claim',
+      claimCode: 'CLM-003',
+      claimAmountCents: 5000,
+      status: 'UNDER_REVIEW',
     });
-    const aggregate2 = new ClaimAggregate(entity2);
     
     // Approve
-    aggregate2.approve();
-    assert.strictEqual(entity2.status, 'approved');
+    claim2.updateStatus('APPROVED', 5000);
+    assert.strictEqual(claim2.status, 'APPROVED');
+    assert.strictEqual(claim2.approvedAmountCents, 5000);
     
     // Settle (Full Settlement)
-    aggregate2.settle(5000);
-    assert.strictEqual(entity2.status, 'settled');
-    assert.strictEqual(entity2.settledAmount, 5000);
+    claim2.updateStatus('SETTLED');
+    assert.strictEqual(claim2.status, 'SETTLED');
   });
 
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+    const aggregate = new Claim({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      name: 'Test Claim',
+      claimCode: 'CLM-001',
+      claimAmountCents: 12000,
+      status: 'SUBMITTED',
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(aggregate, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
-    assert.strictEqual(saved.id, entity.id);
+    const saved = await claimRepo.findById(tenantA, aggregate.id);
+    assert.ok(saved);
+    assert.strictEqual(saved.id, aggregate.id);
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
+    saved.updateStatus('UNDER_REVIEW');
+    await claimRepo.update(saved, tenantA);
+
+    const updated = await claimRepo.findById(tenantA, aggregate.id);
+    assert.ok(updated);
     assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    assert.strictEqual(updated.status, 'UNDER_REVIEW');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleAggregate = new Claim({
+      id: saved.id,
+      tenantId: saved.tenantId,
+      distributorId: saved.distributorId,
+      schemeId: saved.schemeId,
+      name: saved.name,
+      claimCode: saved.claimCode,
+      claimAmountCents: saved.claimAmountCents,
+      status: saved.status,
+      version: 1, // stale version
+    });
+
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleAggregate, tenantA);
       },
 
       (err: any) => {
@@ -186,10 +202,11 @@ describe('Claims Module & E2E Integration Tests', () => {
     // 5. Verify RLS Isolation
     await assert.rejects(
       async () => {
-        await claimRepo.findById(tenantB, entity.id);
+        const found = await claimRepo.findById(tenantB, aggregate.id); // Tenant B trying to access Tenant A's claim
+        if (found) throw new Error('Should not find entity');
       },
       (err: any) => {
-        return err instanceof EntityNotFoundError;
+        return err.message === 'Should not find entity';
       }
     );
   });
@@ -243,13 +260,15 @@ describe('Claims Module & E2E Integration Tests', () => {
         id: claimId,
         distributorId,
         schemeId,
-        amount: 8500,
+        name: 'E2E Test Claim',
+        claimCode: 'E2E-001',
+        claimAmountCents: 8500,
       },
     });
 
     assert.strictEqual(createResult.status, 201);
     assert.strictEqual(createResult.body.success, true);
-    assert.strictEqual((createResult.body as any).status, 'raised');
+    assert.strictEqual((createResult.body as any).status, 'SUBMITTED');
 
     // 2. POST /api/v1/claims/:id/validate
     const validateResult = await gateway.handleRequest({
@@ -265,7 +284,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(validateResult.status, 200);
     assert.strictEqual(validateResult.body.success, true);
-    assert.strictEqual((validateResult.body as any).status, 'validated');
+    assert.strictEqual((validateResult.body as any).status, 'UNDER_REVIEW');
 
     // 3. POST /api/v1/claims/:id/approve
     const approveResult = await gateway.handleRequest({
@@ -276,12 +295,14 @@ describe('Claims Module & E2E Integration Tests', () => {
         'x-tenant-id': tenantA,
         'content-type': 'application/json',
       },
-      body: {},
+      body: {
+        approvedAmountCents: 8500,
+      },
     });
 
     assert.strictEqual(approveResult.status, 200);
     assert.strictEqual(approveResult.body.success, true);
-    assert.strictEqual((approveResult.body as any).status, 'approved');
+    assert.strictEqual((approveResult.body as any).status, 'APPROVED');
 
     // 4. POST /api/v1/claims/:id/settle
     const settleResult = await gateway.handleRequest({
@@ -300,7 +321,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
     assert.strictEqual(settleResult.status, 200);
     assert.strictEqual(settleResult.body.success, true);
-    assert.strictEqual(((settleResult.body as any).transaction).status, 'settled');
+    assert.strictEqual((settleResult.body as any).status, 'SETTLED');
 
     // 5. Test Idempotency (Repeat settle request with same key)
     const settleRepeatResult = await gateway.handleRequest({
