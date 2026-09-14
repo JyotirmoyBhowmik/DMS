@@ -8,6 +8,7 @@ import { PostgresDatabaseClient, PgDriver, MigrationRunner, ConcurrencyError, En
 import { loadConfigSync } from '@dms/pkg-config';
 import { ClaimEntity } from './domain/entities/claim.entity.js';
 import { ClaimAggregate } from './domain/aggregates/claim.aggregate.js';
+import { Claim } from './domain/entities/claim.js';
 import { ClaimPgRepository } from './infrastructure/database/repositories/claim.pg-repository.js';
 import { GatewayController } from '../../api-gateway/src/presentation/rest/controllers/gateway.controller.js';
 import { KeyManager } from '../../identity-service/src/application/usecases/key_manager.js';
@@ -166,16 +167,24 @@ describe('Claims Module & E2E Integration Tests', () => {
     assert.strictEqual(saved.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
+    const savedClaim = new Claim({ ...saved, claimCode: 'C-001', name: 'Test Claim', claimAmountCents: saved.amount });
+    savedClaim.updateStatus('UNDER_REVIEW'); // Mutates state via domain method instead of saved.status = 'validated'
+    const updated: any = await claimRepo.update(savedClaim, tenantA);
     assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    assert.strictEqual(updated.status, 'UNDER_REVIEW');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    // Instantiate a stale claim (version 1) to simulate concurrency conflict
+    const staleClaim = new Claim({
+      ...saved,
+      claimCode: 'C-001', name: 'Test Claim', claimAmountCents: saved.amount,
+      version: 1, // Stale version to trigger conflict
+    });
+    staleClaim.updateStatus('UNDER_REVIEW');
+
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleClaim, tenantA);
       },
 
       (err: any) => {
@@ -241,9 +250,11 @@ describe('Claims Module & E2E Integration Tests', () => {
       },
       body: {
         id: claimId,
+        name: 'Test Claim',
+        claimCode: 'C-001',
+        claimAmountCents: 8500,
         distributorId,
         schemeId,
-        amount: 8500,
       },
     });
 
