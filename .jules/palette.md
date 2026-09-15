@@ -4,3 +4,6 @@
 ## 2026-09-15 - Dynamic Test Periods for Date Invariants
 **Learning:** When mocking `LedgerPeriod` data in tests that validate operations against the current system date (e.g., `new Date()`), hardcoded periods (like '2026-06-01' to '2026-06-30') will inevitably fail over time when the real current date advances past them. This causes temporal 'time bomb' test failures like 'No accounting period defined for the entry date'.
 **Action:** Always instantiate mocked date-sensitive domains or periods by dynamically generating dates relative to the test execution time (e.g., using `new Date().getFullYear()` and `new Date().getMonth()`) to ensure tests remain perpetually valid and resilient against time-based regressions.
+## 2026-09-15 - Testing Repositories Mapped to Domain Aggregates
+**Learning:** When saving to repositories that map internally between database rows and domain aggregates (e.g., `ClaimPgRepository`), passing raw database entity structures (like `ClaimEntity`) instead of the required Domain Aggregate (like `Claim`) will cause runtime errors such as `claim.toJSON is not a function`.
+**Action:** Always instantiate and pass the correct Domain Aggregate structure as expected by the repository's method signature in tests, rather than legacy database DTOs, to ensure domain mapping methods exist and execute successfully.
