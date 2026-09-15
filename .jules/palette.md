@@ -1,0 +1,3 @@
+## 2024-09-15 - Accessible Generic Form Wrappers
+**Learning:** When building generic form wrapper components (e.g., `<FormField>`) in React, explicitly linking the `<label>`'s `htmlFor` attribute to the child input's `id` ensures proper focus management and accessibility. Using `useId()` alongside `React.cloneElement()` safely handles this dynamic generation without breaking existing attributes.
+**Action:** Always use `useId()` to generate unique IDs for generic form wrappers, and carefully inject them into child elements using `React.isValidElement()` and `React.cloneElement()` to preserve accessibility and existing semantic tags like `aria-describedby`.
