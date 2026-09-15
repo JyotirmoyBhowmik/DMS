@@ -7,3 +7,6 @@
 ## 2026-08-24 - Array Filter Optimization in React
 **Learning:** Inside React functional components, recalculating `.toLowerCase()` multiple times per item within list filtering callbacks causes redundant string allocations and memory bloat on each render.
 **Action:** Always hoist string manipulations like `search.toLowerCase()` outside of loops (e.g. `filter` or `map`) inside `useMemo` to reduce layout thrashing.
+## 2026-08-30 - Concurrent API Requests with Promise.all
+**Learning:** Found sequential API calls inside a loop (`for...of` with `await`) causing a significant performance bottleneck during bulk operations.
+**Action:** Always batch independent asynchronous operations and execute them concurrently using `Promise.all` to minimize total execution time.
