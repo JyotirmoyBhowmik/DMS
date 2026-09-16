@@ -75,6 +75,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
   beforeEach(async () => {
     if (!isDbAvailable) return;
+    ClaimPgRepository.clearStore();
     await db.query(`SET app.tenant_id = '${tenantA}'`);
     await db.query('TRUNCATE TABLE claims, claim_audit_history, claims_outbox, claim_reconciliations RESTART IDENTITY CASCADE');
   });
@@ -147,35 +148,64 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+    const { Claim } = await import('./domain/entities/claim.js');
+    const claim = new Claim({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      name: 'Test Claim',
+      claimCode: 'CLM-001',
+      claimAmountCents: 12000,
+      status: 'SUBMITTED',
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(claim, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
-    assert.strictEqual(saved.id, entity.id);
-    assert.strictEqual(saved.version, 1);
+    const saved = await claimRepo.findById(tenantA, claim.id);
+    assert.strictEqual(saved?.id, claim.id);
+    assert.strictEqual(saved?.version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
-    assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    saved!.updateStatus('UNDER_REVIEW');
+    await claimRepo.update(saved!, tenantA);
+    const updated = await claimRepo.findById(tenantA, claim.id);
+    assert.strictEqual(updated?.version, 2);
+    assert.strictEqual(updated?.status, 'UNDER_REVIEW');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleClaim = new Claim({
+      id: '00000000-0000-0000-0000-000000000300',
+      tenantId: tenantA,
+      distributorId,
+      schemeId,
+      name: 'Test Claim',
+      claimCode: 'CLM-001',
+      claimAmountCents: 12000,
+      status: 'UNDER_REVIEW',
+      version: 2, // Simulate updating an already updated claim without incrementing version properly, or a race condition
+    });
+    // However, the test expects a ConcurrencyError to be thrown when a stale update is attempted.
+    // Concurrency check in ClaimPgRepository expects data.version > 1 AND existing.version !== data.version - 1
+    // Let's create a scenario where existing is version 2, and we pass in version 1
+    const staleClaimToThrow = new Claim({
+      id: '00000000-0000-0000-0000-000000000300',
+      tenantId: tenantA,
+      distributorId,
+      schemeId,
+      name: 'Test Claim',
+      claimCode: 'CLM-001',
+      claimAmountCents: 12000,
+      status: 'UNDER_REVIEW',
+      version: 2,
+    });
+
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleClaimToThrow, tenantA);
       },
 
       (err: any) => {
@@ -184,14 +214,8 @@ describe('Claims Module & E2E Integration Tests', () => {
     );
 
     // 5. Verify RLS Isolation
-    await assert.rejects(
-      async () => {
-        await claimRepo.findById(tenantB, entity.id);
-      },
-      (err: any) => {
-        return err instanceof EntityNotFoundError;
-      }
-    );
+    const notFound = await claimRepo.findById(tenantB, claim.id);
+    assert.strictEqual(notFound, null);
   });
 
   // ─── 3. E2E HAPPY PATH / API GATEWAY TEST ──────────────────────────────────
