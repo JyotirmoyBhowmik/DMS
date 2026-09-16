@@ -26,19 +26,19 @@ export function buildTenantRlsPolicy(table: string, tenantColumn: string): strin
 export async function setTenantContext(
   conn: { query: (sql: string, params?: unknown[]) => Promise<unknown> },
   tenantId: string,
-  scope: 'LOCAL' | 'SESSION' = 'LOCAL'
+  scope: 'LOCAL' | 'SESSION' = 'LOCAL',
 ): Promise<void> {
-  const scopeStr = scope === 'LOCAL' ? 'LOCAL ' : '';
-  await conn.query(`SET ${scopeStr}app.tenant_id = '${sanitizeLiteral(tenantId)}'`);
+  const isLocal = scope === 'LOCAL';
+  await conn.query(`SELECT set_config('app.tenant_id', $1, $2)`, [tenantId, isLocal]);
 }
 
 /**
  * Clears the tenant context on a database connection.
  * Typically called at the end of a transaction or on connection release.
  */
-export async function clearTenantContext(
-  conn: { query: (sql: string, params?: unknown[]) => Promise<unknown> },
-): Promise<void> {
+export async function clearTenantContext(conn: {
+  query: (sql: string, params?: unknown[]) => Promise<unknown>;
+}): Promise<void> {
   await conn.query(`RESET app.tenant_id`);
 }
 
@@ -47,11 +47,6 @@ export async function clearTenantContext(
 function sanitizeIdentifier(name: string): string {
   // Strip anything that isn't alphanumeric or underscore to prevent SQL injection
   return name.replace(/[^a-zA-Z0-9_]/g, '');
-}
-
-function sanitizeLiteral(value: string): string {
-  // Escape single quotes and strip semicolons
-  return value.replace(/'/g, "''").replace(/;/g, '');
 }
 
 // ── Backward-compatible class API ──────────────────────────────

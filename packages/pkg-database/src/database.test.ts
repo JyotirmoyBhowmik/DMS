@@ -81,7 +81,7 @@ test('Database RLS Policy: Context set/clear', async () => {
   await setTenantContext(mockConn, tenantId);
   await clearTenantContext(mockConn);
 
-  assert.strictEqual(queries[0], `SET LOCAL app.tenant_id = '${tenantId}'`);
+  assert.strictEqual(queries[0], `SELECT set_config('app.tenant_id', $1, $2)`);
   assert.strictEqual(queries[1], 'RESET app.tenant_id');
 });
 
@@ -92,10 +92,9 @@ test('Database RLS Policy: Automated Cross-Tenant Denial Test', async () => {
   let currentSessionTenantId: string | null = null;
   
   const mockConn = {
-    async query(sql: string, _params?: unknown[]): Promise<any> {
-      if (sql.startsWith('SET LOCAL app.tenant_id')) {
-        const match = sql.match(/'([^']+)'/);
-        currentSessionTenantId = match ? match[1] : null;
+    async query(sql: string, params?: unknown[]): Promise<any> {
+      if (sql.startsWith("SELECT set_config('app.tenant_id'")) {
+        currentSessionTenantId = params?.[0] as string;
       } else if (sql.startsWith('RESET app.tenant_id')) {
         currentSessionTenantId = null;
       }
