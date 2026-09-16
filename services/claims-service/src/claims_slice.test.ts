@@ -75,6 +75,7 @@ describe('Claims Module & E2E Integration Tests', () => {
 
   beforeEach(async () => {
     if (!isDbAvailable) return;
+    ClaimPgRepository.clearStore();
     await db.query(`SET app.tenant_id = '${tenantA}'`);
     await db.query('TRUNCATE TABLE claims, claim_audit_history, claims_outbox, claim_reconciliations RESTART IDENTITY CASCADE');
   });
