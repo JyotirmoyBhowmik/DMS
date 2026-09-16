@@ -260,11 +260,18 @@ describe('Finance Service - Unit Tests', () => {
         status: 'OPEN'
       }), tenantId);
 
+      // Dynamic period that covers new Date() dynamically (to prevent test time bombs on new Date() inside ReverseLedgerEntryUseCase)
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const startOfCurrentMonth = new Date(currentYear, currentMonth, 1);
+      const endOfCurrentMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+
       await repo.savePeriod(new LedgerPeriod({
         id: 'p2',
         tenantId,
-        startDate: new Date('2026-08-01'),
-        endDate: new Date('2026-08-31'),
+        startDate: startOfCurrentMonth,
+        endDate: endOfCurrentMonth,
         status: 'OPEN'
       }), tenantId);
 
