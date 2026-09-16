@@ -7,6 +7,7 @@ import { createSign } from 'node:crypto';
 import { PostgresDatabaseClient, PgDriver, MigrationRunner, ConcurrencyError, EntityNotFoundError } from '@dms/pkg-database';
 import { loadConfigSync } from '@dms/pkg-config';
 import { ClaimEntity } from './domain/entities/claim.entity.js';
+import { Claim } from './domain/entities/claim.js';
 import { ClaimAggregate } from './domain/aggregates/claim.aggregate.js';
 import { ClaimPgRepository } from './infrastructure/database/repositories/claim.pg-repository.js';
 import { GatewayController } from '../../api-gateway/src/presentation/rest/controllers/gateway.controller.js';
@@ -147,35 +148,38 @@ describe('Claims Module & E2E Integration Tests', () => {
   // ─── 2. REPOSITORY INTEGRATION TESTS ───────────────────────────────────────
   test('Repo: Save, find, update claims, audit log creation, and optimistic locking', async () => {
     if (!isDbAvailable) return;
-    const entity = new ClaimEntity({
+    const aggregate = new Claim({
       id: '00000000-0000-0000-0000-000000000300',
       tenantId: tenantA,
       distributorId,
       schemeId,
-      amount: 12000,
-      status: 'raised',
+      name: 'Test Claim',
+      claimCode: 'CLM-001',
+      claimAmountCents: 12000,
+      status: 'SUBMITTED',
       version: 1,
     });
 
     // 1. Save
-    await claimRepo.save(entity as any, tenantA);
+    await claimRepo.save(aggregate, tenantA);
 
     // 2. Find
-    const saved: any = await claimRepo.findById(tenantA, entity.id);
-    assert.strictEqual(saved.id, entity.id);
-    assert.strictEqual(saved.version, 1);
+    const saved = await claimRepo.findById(tenantA, aggregate.id);
+    assert.strictEqual(saved?.id, aggregate.id);
+    assert.strictEqual(saved?.toJSON().version, 1);
 
     // 3. Update (Optimistic Locking success)
-    saved.status = 'validated';
-    const updated: any = await claimRepo.update(saved, tenantA);
-    assert.strictEqual(updated.version, 2);
-    assert.strictEqual(updated.status, 'validated');
+    const updatedAggregate = new Claim({ ...saved?.toJSON() as any, status: 'UNDER_REVIEW' });
+    await claimRepo.update(updatedAggregate, tenantA);
+    const updated = await claimRepo.findById(tenantA, aggregate.id);
+    assert.strictEqual(updated?.toJSON().version, 2);
+    assert.strictEqual(updated?.toJSON().status, 'UNDER_REVIEW');
 
     // 4. Update with stale version (Optimistic Locking failure)
-    saved.version = 1; // stale version
+    const staleAggregate = new Claim({ ...updated?.toJSON() as any, version: 1 });
     await assert.rejects(
       async () => {
-        await claimRepo.update(saved, tenantA);
+        await claimRepo.update(staleAggregate, tenantA);
       },
 
       (err: any) => {
@@ -186,7 +190,7 @@ describe('Claims Module & E2E Integration Tests', () => {
     // 5. Verify RLS Isolation
     await assert.rejects(
       async () => {
-        await claimRepo.findById(tenantB, entity.id);
+        await claimRepo.findById(tenantB, aggregate.id);
       },
       (err: any) => {
         return err instanceof EntityNotFoundError;
@@ -243,13 +247,15 @@ describe('Claims Module & E2E Integration Tests', () => {
         id: claimId,
         distributorId,
         schemeId,
-        amount: 8500,
+        name: 'API Claim',
+        claimCode: 'CLM-002',
+        claimAmountCents: 8500,
       },
     });
 
     assert.strictEqual(createResult.status, 201);
     assert.strictEqual(createResult.body.success, true);
-    assert.strictEqual((createResult.body as any).status, 'raised');
+    assert.strictEqual((createResult.body as any).status, 'SUBMITTED');
 
     // 2. POST /api/v1/claims/:id/validate
     const validateResult = await gateway.handleRequest({
