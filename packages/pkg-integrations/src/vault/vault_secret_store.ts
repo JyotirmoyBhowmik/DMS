@@ -86,7 +86,11 @@ export class VaultSecretStore {
   }
 
   private encryptAesGcm(plainText: string): string {
-    const key = crypto.scryptSync('dms-vault-secret-key-32-chars-long', 'salt', 32);
+    const secret = process.env.LEGACY_PLATFORM_KEK_SECRET;
+    if (!secret) {
+      throw new Error('LEGACY_PLATFORM_KEK_SECRET is missing');
+    }
+    const key = crypto.scryptSync(secret, 'salt', 32);
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
     let encrypted = cipher.update(plainText, 'utf8', 'hex');
@@ -96,8 +100,12 @@ export class VaultSecretStore {
   }
 
   private decryptAesGcm(cipherText: string): string {
+    const secret = process.env.LEGACY_PLATFORM_KEK_SECRET;
+    if (!secret) {
+      throw new Error('LEGACY_PLATFORM_KEK_SECRET is missing');
+    }
     const [ivHex, authTagHex, encryptedHex] = cipherText.split(':');
-    const key = crypto.scryptSync('dms-vault-secret-key-32-chars-long', 'salt', 32);
+    const key = crypto.scryptSync(secret, 'salt', 32);
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(ivHex, 'hex'));
     decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
     let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
