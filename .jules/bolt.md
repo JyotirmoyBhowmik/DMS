@@ -7,3 +7,6 @@
 ## 2026-08-24 - Array Filter Optimization in React
 **Learning:** Inside React functional components, recalculating `.toLowerCase()` multiple times per item within list filtering callbacks causes redundant string allocations and memory bloat on each render.
 **Action:** Always hoist string manipulations like `search.toLowerCase()` outside of loops (e.g. `filter` or `map`) inside `useMemo` to reduce layout thrashing.
+## 2026-08-30 - Array Filter Optimization in React
+**Learning:** Redundant string allocations like `search.toLowerCase()` inside `useMemo` filtering loops can cause performance degradation and layout thrashing for large arrays.
+**Action:** Always hoist string manipulations like `search.toLowerCase()` outside of `filter` or `map` loops within `useMemo`.
