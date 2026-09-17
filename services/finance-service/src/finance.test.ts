@@ -251,6 +251,14 @@ describe('Finance Service - Unit Tests', () => {
       const repo = new MockLedgerRepository();
       const db = new PostgresDatabaseClient(new InMemoryDriver());
 
+      // Dynamically generate a mocked period that covers the current system date
+      // to prevent temporal test failures since ReverseLedgerEntryUseCase uses new Date()
+      const now = new Date();
+      const currentYear = now.getUTCFullYear();
+      const currentMonth = now.getUTCMonth();
+      const firstDayOfCurrentMonth = new Date(Date.UTC(currentYear, currentMonth, 1));
+      const lastDayOfCurrentMonth = new Date(Date.UTC(currentYear, currentMonth + 1, 0, 23, 59, 59, 999));
+
       // Seed Period and Accounts
       await repo.savePeriod(new LedgerPeriod({
         id: 'p1',
@@ -261,10 +269,10 @@ describe('Finance Service - Unit Tests', () => {
       }), tenantId);
 
       await repo.savePeriod(new LedgerPeriod({
-        id: 'p2',
+        id: 'p-current',
         tenantId,
-        startDate: new Date('2026-08-01'),
-        endDate: new Date('2026-08-31'),
+        startDate: firstDayOfCurrentMonth,
+        endDate: lastDayOfCurrentMonth,
         status: 'OPEN'
       }), tenantId);
 
