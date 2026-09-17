@@ -1,0 +1,3 @@
+## 2024-05-24 - FormField ARIA Linking
+**Learning:** Reusable form components that wrap inputs must dynamically generate IDs to associate the `<label htmlFor>` and hint `aria-describedby` with the child input, avoiding accessibility failures in forms.
+**Action:** When building generic form wrapper components (e.g., `<FormField>`), ensure accessibility by using `useId()` and `React.cloneElement()` (wrapped in a `React.isValidElement()` check) to automatically generate and link the `<label>`'s `htmlFor` attribute to the child element's `id`, and safely assign `aria-describedby` to link any associated hint text, preserving any existing attributes.
