@@ -88,12 +88,15 @@ export const EnterpriseHierarchy: React.FC<{ role: UserRole }> = ({ role }) => {
   }, [selectedTenant]);
 
   // Filter Distributors by Search Query
+  // ⚡ Bolt: Hoisted `searchQuery.toLowerCase()` outside of the filter loop
+  // Expected impact: Reduces redundant string allocations and GC spikes from O(N) to O(1) allocation per render.
   const filteredDistributors = useMemo(() => {
+    const searchLower = searchQuery.toLowerCase();
     return distributors.filter(d => {
       const matchesSearch =
-        d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.level.toLowerCase().includes(searchQuery.toLowerCase());
+        d.name.toLowerCase().includes(searchLower) ||
+        d.id.toLowerCase().includes(searchLower) ||
+        d.level.toLowerCase().includes(searchLower);
       return matchesSearch;
     });
   }, [distributors, searchQuery]);
