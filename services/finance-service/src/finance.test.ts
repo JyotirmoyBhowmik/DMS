@@ -260,11 +260,15 @@ describe('Finance Service - Unit Tests', () => {
         status: 'OPEN'
       }), tenantId);
 
+      const now = new Date();
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
       await repo.savePeriod(new LedgerPeriod({
         id: 'p2',
         tenantId,
-        startDate: new Date('2026-08-01'),
-        endDate: new Date('2026-08-31'),
+        startDate: currentMonthStart,
+        endDate: currentMonthEnd,
         status: 'OPEN'
       }), tenantId);
 
