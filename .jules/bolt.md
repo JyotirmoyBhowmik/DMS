@@ -7,3 +7,4 @@
 ## 2026-08-24 - Array Filter Optimization in React
 **Learning:** Inside React functional components, recalculating `.toLowerCase()` multiple times per item within list filtering callbacks causes redundant string allocations and memory bloat on each render.
 **Action:** Always hoist string manipulations like `search.toLowerCase()` outside of loops (e.g. `filter` or `map`) inside `useMemo` to reduce layout thrashing.
+\n## 2025-05-24 - Single Pass Traversal\n**Learning:** In React components like SyncQueue, extracting multiple `.filter()` array passes over the same dataset into a single O(N) traversal loop within a `useMemo` block minimizes iteration overhead and prevents unnecessary layout thrashing during renders.\n**Action:** Combine multiple independent array filters or reductions into a single traversal loop whenever rendering derived dataset counts.
